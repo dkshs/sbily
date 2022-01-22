@@ -20,7 +20,7 @@ def valida_link(request):
     if form.is_valid():
         try:
             form.save()
-            return HttpResponse(f'Seu link foi criado com sucesso e é: {link_fixo}{link_encurtado}')
+            return render(request, 'links.html', {'link_fixo': link_fixo, 'link_encurtado': link_encurtado})
         except:
             return HttpResponse('Erro Interno do Sistema')
 
