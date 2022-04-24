@@ -41,14 +41,21 @@ Inicie um ambiente virtual e ative-o. Se não souber como, isso pode ajudar: (<h
 pip install -r requirements.txt
 ```
 
-### 5. Modificar as Constantes
+### 5. Configurar variáveis de ambiente
 
-Na pasta do projeto, vá na pasta `encurtador_links` e abra o `settings.py`.
-Troque o valor da constante `SECRET_KEY` para uma senha qualquer, e do `DEBUG` para `True`. Dessa forma:
+Copie o arquivo `.env.example` neste diretório para `.env` (que será ignorado pelo Git):
+
+```bash
+cp .env.example .env
+```
+
+- Se der errado o `cp` crie o arquivo `.env` nesta pasta.
+
+Em seguida, defina cada variável em `.env`:
 
 ```text
-SECRET_KEY = "Digite_Uma_Senha_Secreta_aqui"
-DEBUG = True
+SECRET_KEY=Digite_Uma_Senha_Secreta_aqui
+DEBUG=True
 ```
 
 ### 7. Migações no Banco Dados
