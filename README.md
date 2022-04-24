@@ -88,6 +88,10 @@ Apartir daí crie os seus links**
 
 O deploy da aplicação foi feito no [Heroku](https://devcenter.heroku.com/).
 
+## Créditos
+
+> Este projeto teve como base o vídeo da [Pythonando](https://www.youtube.com/c/pythonando) "[Criando um ENCURTADO de LINK com DJANGO](https://www.youtube.com/watch?v=xOhiVo1B5Rw)".
+
 ## Licença
 
 Este projeto esta sobe a licença [MIT](LICENSE)
