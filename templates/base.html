@@ -8,6 +8,9 @@
     {% block 'head' %} {% endblock %}
     <title>Sbily | {% block 'titulo' %}{% endblock %}</title>
     <style>
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         background-color: black;
         color: white;
@@ -16,13 +19,42 @@
         font-weight: var(--font-weight-medium);
         margin-top: -30px;
       }
+      @keyframes animate-open {
+        /* 0%   {background-color: red;}
+        25%  {background-color: yellow;}
+        50%  {background-color: blue;}
+        100% {background-color: green;} */
+        0%   {opacity: 0;}
+        100% {opacity: 1;}
+      }
+      @keyframes animate-close {
+        /* 0%   {background-color: red;}
+        25%  {background-color: yellow;}
+        50%  {background-color: blue;}
+        100% {background-color: green;} */
+        0%   {opacity: 1;}
+        100% {opacity: 0;}
+      }
+      .animate-open {
+        animation-name: animate-open;
+        animation-duration: 2s;
+      }
+      .animate-close {
+        animation-name: animate-close;
+        animation-duration: 4s;
+      }
     </style>
   </head>
   <body>
     {% block 'body' %}{% endblock %}
     <script>
       const message = document.querySelector("#message");
-      setTimeout(() => {message.remove()}, 5000)
+      message.classList.add("animate-open")
+      setTimeout(() => {message.classList.add("animate-close")}, 6000)
+      setTimeout(() => 
+        {
+          message.remove()
+        }, 10000)
     </script>
   </body>
 </html>

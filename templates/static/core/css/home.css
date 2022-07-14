@@ -15,6 +15,14 @@
   opacity: 75%;
   padding: 10px 0px;
 }
+.title a {
+  transition-property: all;
+  transition-duration: 300ms;
+}
+.title a:hover {
+  color: rgba(0, 69, 199, 0.8);
+  transition-duration: 300ms;
+}
 .description {
   font-size: 1.125rem; /* 18px */
   line-height: 1.75rem; /* 28px */
@@ -43,6 +51,17 @@
   border-radius: 10px;
   font-weight: var(--font-weight-medium);
   color: white;
+  border: 3px solid rgba(73, 72, 153, 1);
+  transition-duration: 300ms;
+}
+.input-link:hover {
+  transition-duration: 300ms;
+  border-color: rgba(0, 7, 138, 0.8);
+}
+.input-link:focus {
+  transition-duration: 300ms;
+  background-color: rgba(0, 7, 138, 0.1);
+  outline: none;
 }
 .btn-create-link {
   padding: 8px;
@@ -51,4 +70,10 @@
   color: white;
   border-radius: 10px;
   font-weight: var(--font-weight-medium);
+  transition-duration: 300ms;
+}
+.btn-create-link:hover {
+  transition-duration: 300ms;
+  background-color: rgba(73, 72, 153, 0.5);
+  transform: scale(1.1);
 }
