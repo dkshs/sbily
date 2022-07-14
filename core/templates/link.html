@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block 'head' %}
+  <style>
+    .container {
+      gap: 10px;
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+{% endblock %}
+
+{% block 'titulo' %}
+  Link Criado
+{% endblock %}
+
+{% block 'body' %}
+  <div class="container">
+    <div id="message">
+      {% if messages %}
+        <br />
+        {% for message in messages %}
+          <div class="alert {{message.tags}}">{{message}}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div>
+      <span>Seu Link é: 
+        <a href="{{link_encurtado}}">
+          <strong>{{link_encurtado}}</strong>
+        </a>
+      </span>
+    </div>
+  </div>
+{% endblock %}
