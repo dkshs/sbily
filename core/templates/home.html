@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block 'head' %}
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+{% endblock %}
+
+{% block 'titulo' %}
+  Home
+{% endblock %}
+
+{% block 'body' %}
+  <div class="welcome">
+    <h1 class="title">Bem Vindo ao Sbily</h1>
+    <p class="description">Um simples encurtador de links.</p>
+  </div>
+
+  <main class="container">
+    <form action="" class="form">
+      <input class="input-link-encurtado" type="text" placeholder="Digite o link encurtado"/>
+      <button class="btn-create-link" type="submit">Criar Link</button>
+    </form>
+  </main>
+{% endblock %}
