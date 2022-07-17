@@ -43,6 +43,30 @@
   gap: 25px;
   max-width: 420px;
   width: 100%;
+  font-weight: var(--font-weight-medium);
+}
+.inputs {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+}
+.inputs label {
+  width: 100%;
+}
+.link-encurta {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.link-encurta label {
+  width: 50%;
+}
+.link-encurta input {
+  width: 90%;
 }
 .input-link {
   width: 100%;

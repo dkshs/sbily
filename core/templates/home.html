@@ -18,20 +18,29 @@
 
   <main class="container">
     <form action="{% url 'valida_link' %}" method="POST" class="form">{% csrf_token %}
-      <input
-        class="input-link"
-        id="input-link-redirecionado"
-        type="text"
-        placeholder="Digite o link redirecionado"
-        name="link_redirecionado"
-      />
-      <input
-        class="input-link"
-        id="input-link-encurtado"
-        type="text"
-        placeholder="Digite o link encurtado"
-        name="link_encurtado"
-      />
+      <div class="inputs">
+        <label for="input-link-redirecionado">Digite o Link para qual deseja redirecionar:</label>
+        <input
+          class="input-link"
+          id="input-link-redirecionado"
+          type="text"
+          placeholder="Digite o link redirecionado"
+          name="link_redirecionado"
+        />
+      </div>
+      <div class="inputs">
+        <label for="input-link-encurtado">Digite como deseja o seu link:</label>
+        <div class="link-encurta">
+          <label for="input-link-encurtado">http://127.0.0.1:8000/</label>
+          <input
+            class="input-link"
+            id="input-link-encurtado"
+            type="text"
+            placeholder="Digite o link encurtado"
+            name="link_encurtado"
+          />
+        </div>
+      </div>
       <button class="btn-create-link" type="submit">Criar Link</button>
       <div id="message">
         {% if messages %}
