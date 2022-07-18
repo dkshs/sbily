@@ -5,7 +5,8 @@ from django.contrib.messages import constants
 
 
 def home(request):
-    return render(request, "home.html")
+    domain = Link.link_fixo
+    return render(request, "home.html", {"domain": domain})
 
 
 def valida_link(request):
