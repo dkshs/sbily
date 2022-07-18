@@ -1,9 +1,7 @@
-from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from .models import Link
 from django.contrib import messages
 from django.contrib.messages import constants
-from decouple import config
 
 
 def home(request):
