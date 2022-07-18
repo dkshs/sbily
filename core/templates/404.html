@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block 'head' %}
+  <link rel="stylesheet" href="{% static 'core/css/404.css' %}" />
+{% endblock %}
+
+{% block 'titulo' %}
+  Página não encontrada
+{% endblock %}
+
+{% block 'body' %}
+  <div class="container">
+    <h1 class="title">Página não encontrada!!</h1>
+    <span id="information">Clique <a href="/">Aqui</a> para voltar</span>
+  </div>
+{% endblock %}

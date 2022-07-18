@@ -31,9 +31,7 @@ def valida_link(request):
         messages.add_message(
             request, constants.SUCCESS, "Link Encurtado criado com sucesso"
         )
-        link_encurtado_format = (
-            Link.link_fixo + link_encurtado
-        )
+        link_encurtado_format = Link.link_fixo + link_encurtado
         return render(request, "link.html", {"link_encurtado": link_encurtado_format})
     except:
         messages.add_message(request, constants.ERROR, "Erro interno do sistema")
@@ -46,3 +44,15 @@ def redirecionar(request, link):
         return redirect("/")
 
     return redirect(link[0].link_redirecionado)
+
+
+def handler404(request, exception, template_name="404.html"):
+    response = render(request, template_name)
+    response.status_code = 404
+    return response
+
+
+def handler500(request, *args, **argv):
+    response = render(request, "500.html")
+    response.status_code = 500
+    return response
