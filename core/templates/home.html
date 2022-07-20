@@ -17,13 +17,21 @@
   </div>
 
   <main class="container">
+    <div id="message">
+      {% if messages %}
+        <br />
+        {% for message in messages %}
+          <div class="alert {{message.tags}}">{{message}}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
     <form action="{% url 'valida_link' %}" method="POST" class="form">{% csrf_token %}
       <div class="inputs">
         <label for="input-link-redirecionado">Digite o Link para qual deseja redirecionar:</label>
         <input
           class="input-link"
           id="input-link-redirecionado"
-          type="text"
+          type="url"
           placeholder="Digite o link redirecionado"
           name="link_redirecionado"
         />
@@ -42,14 +50,6 @@
         </div>
       </div>
       <button class="btn-create-link" type="submit">Criar Link</button>
-      <div id="message">
-        {% if messages %}
-          <br />
-          {% for message in messages %}
-            <div class="alert {{message.tags}}">{{message}}</div>
-          {% endfor %}
-        {% endif %}
-      </div>
     </form>
   </main>
 {% endblock %}
