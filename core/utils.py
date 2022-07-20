@@ -8,6 +8,17 @@ def link_is_valid(request, link_redirecionado, link_encurtado):
         messages.add_message(request, constants.ERROR, "Preencha todos os campos")
         return False
 
+    if link_encurtado.count("/") != 0:
+        messages.add_message(
+            request, constants.ERROR, "Link encurtado não pode conter barras."
+        )
+        return False
+    elif link_encurtado.count("#") != 0:
+        messages.add_message(
+            request, constants.ERROR, "Link encurtado não pode conter #."
+        )
+        return False
+
     validate = URLValidator()
     try:
         validate(link_redirecionado)
