@@ -1,4 +1,6 @@
 from django.shortcuts import redirect, render
+
+from core.utils import link_is_valid
 from .models import Link
 from django.contrib import messages
 from django.contrib.messages import constants
@@ -12,9 +14,8 @@ def home(request):
 def valida_link(request):
     link_redirecionado = request.POST.get("link_redirecionado")
     link_encurtado = request.POST.get("link_encurtado")
-
-    if len(link_encurtado.strip()) == 0 or len(link_redirecionado.strip()) == 0:
-        messages.add_message(request, constants.ERROR, "Preencha todos os campos")
+    
+    if not link_is_valid(request, link_redirecionado, link_encurtado):
         return redirect("/")
 
     link = Link.objects.filter(link_encurtado=link_encurtado)
@@ -30,8 +31,8 @@ def valida_link(request):
         messages.add_message(
             request, constants.SUCCESS, "Link Encurtado criado com sucesso"
         )
-        link_encurtado_format = Link.link_fixo + link_encurtado
-        return render(request, "link.html", {"link_encurtado": link_encurtado_format})
+        link_encurtado_formatted = Link.link_fixo + link_encurtado
+        return render(request, "link.html", {"link_encurtado": link_encurtado_formatted})
     except:
         messages.add_message(request, constants.ERROR, "Erro interno do sistema")
         return redirect("/")
@@ -41,9 +42,12 @@ def redirecionar(request, link):
     link = Link.objects.filter(link_encurtado=link)
     if not link.exists():
         return redirect("/")
-
-    return redirect(link[0].link_redirecionado)
-
+    
+    try:
+        return redirect(link[0].link_redirecionado)
+    except:
+        messages.add_message(request, constants.ERROR, "Link inválido")
+        return redirect("/")
 
 def handler404(request, exception, template_name="404.html"):
     response = render(request, template_name)
