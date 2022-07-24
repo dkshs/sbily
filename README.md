@@ -98,3 +98,7 @@ python manage.py runserver
 - Na URL depois do `8000/` dígite `admin/` para acessar a área administrativa.
 
 - Na área administrativa coloque o usuário e senha criados na [etapa 8](https://github.com/ShadowsS01/Encurtador-Django#8-criando-o-super-usu%C3%A1rio).
+
+## Licença
+
+Este projeto esta sobe a licença [MIT](LICENSE)
