@@ -1,7 +1,7 @@
 # Encurtador-Django
 Um projeto simples usando o Framework Django para desenvolver uma aplicação web de um encurtador de links.
 
-[![license MIT](https://img.shields.io/github/license/ShadowsS01/Encurtador-Django?color=blue&style=flat-square)](LICENCE)
+[![license MIT](https://img.shields.io/github/license/ShadowsS01/Encurtador-Django?color=blue&style=flat-square)](LICENSE)
 
 ## Tecnologias utilizadas
 
@@ -101,4 +101,4 @@ python manage.py runserver
 
 ## Licença
 
-Este projeto esta sobe a licença [MIT](LICENCE)
+Este projeto esta sobe a licença [MIT](LICENSE)
