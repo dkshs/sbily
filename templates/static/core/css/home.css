@@ -20,7 +20,9 @@
   transition-property: all;
   transition-duration: 300ms;
 }
-.title a:hover {
+.title a:hover,
+.title a:focus-visible {
+  outline: 0;
   color: rgba(0, 69, 199, 0.8);
   transition-duration: 300ms;
 }
@@ -78,7 +80,7 @@
   border: 3px solid rgba(73, 72, 153, 1);
   transition-duration: 300ms;
 }
-.input-link:hover {
+.input-link:not(:focus):hover {
   transition-duration: 300ms;
   border-color: rgba(0, 7, 138, 0.8);
 }
@@ -96,7 +98,9 @@
   font-weight: var(--font-weight-medium);
   transition-duration: 300ms;
 }
-.btn-create-link:hover {
+.btn-create-link:hover,
+.btn-create-link:focus-visible {
+  outline: 0;
   transition-duration: 300ms;
   background-color: rgba(73, 72, 153, 0.5);
   transform: scale(1.1);
