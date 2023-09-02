@@ -2,7 +2,7 @@
 
 Um projeto simples usando o Framework [Django](https://www.djangoproject.com/) para desenvolver uma aplicação web de um encurtador de links.
 
-[![license MIT](https://img.shields.io/github/license/ShadowsS01/Encurtador-Django?color=blue&style=flat-square)](LICENSE)
+[![license MIT](https://img.shields.io/github/license/dkshs/Encurtador-Django?color=blue&style=flat-square)](LICENSE)
 
 ## Tecnologias utilizadas
 
@@ -17,7 +17,7 @@ Você também precisará de um editor de código, eu utilizei o [VSCode](https:/
 ### 1. Clone esse repositório
 
 ```bash
-git clone https://github.com/ShadowsS01/Encurtador-Django.git
+git clone https://github.com/dkshs/Encurtador-Django.git
 ```
 
 ### 2. Acesse a pasta do projeto
