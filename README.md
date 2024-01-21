@@ -1,100 +1,133 @@
-# Encurtador Django
+# Sbily
 
-Um projeto simples usando o Framework [Django](https://www.djangoproject.com/) para desenvolver uma aplicação web de um encurtador de links.
+[![license mit](https://img.shields.io/badge/licence-MIT-blue)](/LICENSE)
 
-[![license MIT](https://img.shields.io/github/license/dkshs/Encurtador-Django?color=blue&style=flat-square)](LICENSE)
+A Django project for a link shortener.
 
-## Tecnologias utilizadas
+## Technologies used
 
 - [Python](https://www.python.org/)
 - [Django](https://www.djangoproject.com/)
+- [TailwindCSS](https://tailwindcss.com/)
+- [Docker](https://www.docker.com/)
 
-## Executar o Projeto localmente
+## How to execute the project
 
-Para executar o projeto você precisa ter o [Python](https://www.python.org/) e o [Git](https://git-scm.com) instalados na sua maquina.
-Você também precisará de um editor de código, eu utilizei o [VSCode](https://code.visualstudio.com).
+To run the project you need to have [Python](https://www.python.org/), [Node](https://nodejs.org/) (To run TailwindCSS) and [Git](https://git-scm.com) installed on your machine or just use [Docker](#9-running-with-docker) together with [Git](https://git-scm.com).
 
-### 1. Clone esse repositório
-
-```bash
-git clone https://github.com/dkshs/Encurtador-Django.git
-```
-
-### 2. Acesse a pasta do projeto
+### 1. Clone this repository
 
 ```bash
-cd Encurtador-Django
+git clone https://github.com/dkshs/sbily.git
 ```
 
-### 3. Ambiente Virtual
+### 2. Access the project folder
 
 ```bash
-# Criar
-  # Linux
-      python3 -m venv venv
-  # Windows
-      python -m venv venv
-    
-# Ativar
-  # Linux
-      source venv/bin/activate
-  # Windows
-      venv/Scripts/Activate
-
-# Caso algum comando retorne um erro de permissão execute o código e tente novamente:
-
- Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+cd sbily
 ```
 
-### 4. instale as dependências
+### 3. Virtual environment
+
+Start a virtual environment and activate it. If you don't know how, this might help: <https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments>.
+
+### 4. Install dependencies
+
+Python dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements/local.txt
 ```
 
-### 5. Configurar variáveis de ambiente
+Node dependencies:
 
-Copie o arquivo `.env.example` neste diretório para `.env` *(que será ignorado pelo Git)*:
+```bash
+npm install
+```
+
+### 5. Configure environment variables
+
+Copy the `.env.example` file in this directory to `.env` _(which will be ignored by Git)_:
 
 ```bash
 cp .env.example .env
 ```
 
-Em seguida, defina cada variável em `.env`:
+Then define each variable in `.env`:
 
-```text
-SECRET_KEY=Digite_Uma_Senha_Secreta_aqui
+```env
+SECRET_KEY=Enter_A_Secret_Password_here
 DEBUG=True
-
-DEFAULT_DOMAIN=http://127.0.0.1:8000/
+ALLOWED_HOSTS=localhost,127.0.0.1
+BASE_URL=http://127.0.0.1:8000/
 ```
 
-### 7. Migações no Banco Dados
-
-Agora precisamos fazer as migrações para o banco de dados, só rodar no terminal:
+### 6. Make the migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 8. Criando o Super Usuário
+### 7. Create a super user
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 9. Executando aplicação em modo de desenvolvimento
+### 8. Running application in development mode
+
+Django application:
 
 ```bash
 python manage.py runserver
 ```
 
-- A aplicação inciará localmente - acesse: <http://127.0.0.1:8000/>
+Tailwind css:
 
-- Na URL depois do `8000/` dígite `admin/` para acessar a área administrativa.
+```bash
+npm run dev
+```
 
-- Na área administrativa coloque o usuário e senha criados na [etapa 8](#8-criando-o-super-usuário).
+- The application will start locally - go to: <http://127.0.0.1:8000/>
 
-## Licença
+- In the administrative area, enter the username and password created in [step 7](#7-create-a-super-user).
 
-Este projeto esta sobe a licença [MIT](LICENSE)
+### 9. Running with Docker
+
+Having the [source code](#1-clone-this-repository) with the [variables defined](#5-configure-environment-variables), with [Docker](https://www.docker.com/) installed, let's up the container:
+
+```bash
+docker compose up -d
+```
+
+_When started, the container starts the Django application!_
+
+> **_The steps below will only be necessary if you have not yet carried out the migrations and created a super user! If you have already done so, the application can be accessed at: <http://localhost:8080>_**
+
+You will need to enter the container via CLI:
+
+```bash
+docker compose exec -it app zsh
+```
+
+> Now you are inside the container!
+
+You will need to make the migrations:
+
+```bash
+python manage.py migrate
+```
+
+Creating a super user:
+
+```bash
+python manage.py createsuperuser
+```
+
+- The application is running on: <http://localhost:8080/>.
+
+## License
+
+This project is under the [MIT license](/LICENSE).
+
+🔝[Back to top](#sbily)
