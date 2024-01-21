@@ -1,0 +1,12 @@
+FROM dkshs/python_dev:latest
+
+ARG BUILD_ENVIRONMENT=local
+
+ENV BUILD_ENV ${BUILD_ENVIRONMENT}
+
+COPY ./requirements .
+RUN pip install -r ${BUILD_ENVIRONMENT}.txt
+
+COPY . .
+
+CMD [ "./.docker/start.sh" ]
