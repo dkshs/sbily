@@ -4,11 +4,12 @@ ARG BUILD_ENVIRONMENT=local
 
 ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 
-USER ${USERNAME}
-
 COPY ./requirements .
 RUN pip install -r ${BUILD_ENVIRONMENT}.txt
 
-COPY --chown=${USERNAME}:${USERNAME} . .
+COPY . .
+RUN chown -R ${USERNAME}:${USERNAME} ${APP_HOME}
+
+USER ${USERNAME}
 
 CMD [ "./.docker/start.sh" ]
