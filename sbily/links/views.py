@@ -1,6 +1,8 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
+# ruff: noqa: BLE001
 from django.conf import settings
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.shortcuts import render
 
 from .models import ShortenedLink
 from .utils import link_is_valid
@@ -32,7 +34,10 @@ def create_link(request):
     if not link_is_valid(request, original_link, shortened_link):
         return redirect("home")
     try:
-        ShortenedLink.objects.create(original_link=original_link, shortened_link=shortened_link)
+        ShortenedLink.objects.create(
+            original_link=original_link,
+            shortened_link=shortened_link,
+        )
         messages.success(request, "Link created successfully")
         return redirect("link", shortened_link=shortened_link)
     except Exception:
