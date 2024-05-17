@@ -48,6 +48,9 @@ def create_link(request):
 def redirect_link(request, shortened_link):
     try:
         link = ShortenedLink.objects.get(shortened_link=shortened_link)
+        if not link.is_active:
+            messages.error(request, "Link is not active")
+            return redirect("home")
         return redirect(link.original_link)
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")

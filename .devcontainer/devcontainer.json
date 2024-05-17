@@ -1,10 +1,15 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
 {
-  "name": "sbily",
-  "dockerComposeFile": ["../docker-compose.yaml"],
+  "name": "sbily-dev",
+  "dockerComposeFile": ["../docker-compose.local.yml"],
   "init": true,
   "mounts": [
+    {
+      "source": "./.devcontainer/zsh_history",
+      "target": "/home/dev-user/.zsh_history",
+      "type": "bind"
+    },
     {
       "source": "~/.ssh",
       "target": "/home/dev-user/.ssh",
@@ -12,9 +17,9 @@
     }
   ],
 
-  "service": "app",
+  "service": "django",
   "remoteUser": "dev-user",
-  "workspaceFolder": "/home/dev-user/app",
+  "workspaceFolder": "/app",
 
   "customizations": {
     "vscode": {

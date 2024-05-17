@@ -12,7 +12,7 @@ function copy(value, btnId) {
   } catch (error) {
     toast("Failed to copy", "toast-error");
     button.innerHTML = `${errorIcon} Error`;
-    console.log(error);
+    console.error(error);
     return;
   }
 
