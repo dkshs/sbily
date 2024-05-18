@@ -87,7 +87,7 @@ def my_account(request: HttpRequest):
         user.username = username
         user.email = email
         user.save()
-    links = ShortenedLink.objects.all()
+    links = ShortenedLink.objects.filter(user=user)
     return render(
         request,
         "my_account.html",

@@ -63,3 +63,34 @@ def redirect_link(request, shortened_link):
     except Exception:
         messages.error(request, "An error occurred")
         return redirect("home")
+
+
+def edit_link(request, shortened_link):
+    try:
+        link = ShortenedLink.objects.get(shortened_link=shortened_link)
+        if request.method == "POST":
+            original_link = request.POST.get("original_link") or ""
+            shortened_link = request.POST.get("shortened_link") or ""
+            is_active = request.POST.get("is_active") or ""
+            if not link_is_valid(request, original_link, shortened_link, link.id):
+                return redirect("edit_link", link.shortened_link)
+            if (
+                original_link == link.original_link
+                and shortened_link == link.shortened_link
+                and (is_active == "on" and link.is_active)
+            ):
+                messages.warning(request, "No changes were made")
+                return redirect("edit_link", link.shortened_link)
+            link.original_link = original_link
+            link.shortened_link = shortened_link
+            link.is_active = is_active == "on"
+            link.updated_at.now()
+            link.save()
+            messages.success(request, "Link updated successfully")
+        return render(request, "edit_link.html", {"link": link, "BASE_URL": BASE_URL})
+    except ShortenedLink.DoesNotExist:
+        messages.error(request, "Link not found")
+        return redirect("home")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        return redirect("home")
