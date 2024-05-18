@@ -33,7 +33,7 @@
     {% block body %}
       <header class="fixed h-16 inset-x-0 top-0 bg-secondary/60 backdrop-blur-md z-[9999] border-b">
         <nav class="flex items-center justify-between px-4 md:px-12 size-full gap-4 container">
-          <a class="link font-bold text-lg" href="{% url "home" %}">
+          <a class="link font-bold text-lg" href="{% url 'home' %}">
             Sbily
           </a>
           <button
@@ -49,20 +49,20 @@
             id="nav__dropdown-content"
           >
             {% if request.user.is_authenticated %}
-              <a href="{% url "my_account" %}" class="dropdown-nav-link">My Account</a>
-              <a href="{% url "sign_out" %}" class="dropdown-nav-link text-red-600">Sign Out</a>
+              <a href="{% url 'my_account' %}" class="dropdown-nav-link">My Account</a>
+              <a href="{% url 'sign_out' %}" class="dropdown-nav-link text-red-600">Sign Out</a>
             {% else %}
-              <a href="{% url "sign_up" %}" class="dropdown-nav-link">Sign Up</a>
-              <a href="{% url "sign_in" %}" class="dropdown-nav-link">Sign In</a>
+              <a href="{% url 'sign_up' %}" class="dropdown-nav-link">Sign Up</a>
+              <a href="{% url 'sign_in' %}" class="dropdown-nav-link">Sign In</a>
             {% endif %}
           </div>
           <div class="hidden items-center gap-4 md:flex">
             {% if request.user.is_authenticated %}
-              <a href="{% url "my_account" %}" class="link">My Account</a>
-              <a href="{% url "sign_out" %}" class="link text-red-600">Sign Out</a>
+              <a href="{% url 'my_account' %}" class="link">My Account</a>
+              <a href="{% url 'sign_out' %}" class="link text-red-600">Sign Out</a>
             {% else %}
-              <a href="{% url "sign_up" %}" class="link">Sign Up</a>
-              <a href="{% url "sign_in" %}" class="link">Sign In</a>
+              <a href="{% url 'sign_up' %}" class="link">Sign Up</a>
+              <a href="{% url 'sign_in' %}" class="link">Sign In</a>
             {% endif %}
           </div>
         </nav>

@@ -18,7 +18,7 @@
         </button>
       </div>
       <div class="separator my-4"></div>
-      <form method="post" action="{% url "edit_link" link.shortened_link %}" class="flex flex-col gap-2">
+      <form method="post" action="{% url 'edit_link' link.shortened_link %}" class="flex flex-col gap-2">
         {% csrf_token %}
         <div class="flex flex-col gap-3 mb-6">
           <label for="original_link" class="label">Enter where this link goes:</label>

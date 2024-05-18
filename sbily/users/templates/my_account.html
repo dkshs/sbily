@@ -7,7 +7,7 @@
     <div class="flex flex-col justify-center p-6 border rounded-md">
       <h1 class="text-2xl font-bold">My informations</h1>
       <div class="separator my-4"></div>
-      <form method="post" action="{% url "my_account" %}" class="flex flex-col gap-2">
+      <form method="post" action="{% url 'my_account' %}" class="flex flex-col gap-2">
         {% csrf_token %}
         <p class="text-lg flex items-center gap-2">
           <label for="username">Username: </label>
@@ -31,7 +31,7 @@
         </p>
         <p class="text-lg flex items-center gap-2">
           Password: <span class="font-bold">****</span>
-          <a href="{% url "change_password" %}" class="button py-0 px-2 gap-2">
+          <a href="{% url 'change_password' %}" class="button py-0 px-2 gap-2">
             Edit <i class="ph-bold ph-pencil"></i>
           </a>
         </p>
@@ -58,7 +58,7 @@
                 <i class="ph-bold ph-copy"></i>
                 Copy
               </button>
-              <a href="{% url "edit_link" link.shortened_link %}" class="button py-0 px-2 gap-1">
+              <a href="{% url 'edit_link' link.shortened_link %}" class="button py-0 px-2 gap-1">
                 Edit <i class="ph-bold ph-pencil"></i>
               </a>
             </p>
