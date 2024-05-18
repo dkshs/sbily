@@ -1,6 +1,7 @@
 # ruff: noqa: BLE001
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.shortcuts import render
 
@@ -10,10 +11,12 @@ from .utils import link_is_valid
 BASE_URL = getattr(settings, "BASE_URL", None)
 
 
+@login_required
 def home(request):
     return render(request, "home.html", {"BASE_URL": BASE_URL})
 
 
+@login_required
 def link(request, shortened_link):
     try:
         link = ShortenedLink.objects.get(shortened_link=shortened_link)
@@ -26,6 +29,7 @@ def link(request, shortened_link):
         return redirect("home")
 
 
+@login_required
 def create_link(request):
     if request.method != "POST":
         return redirect("home")
@@ -37,6 +41,7 @@ def create_link(request):
         ShortenedLink.objects.create(
             original_link=original_link,
             shortened_link=shortened_link,
+            user=request.user,
         )
         messages.success(request, "Link created successfully")
         return redirect("link", shortened_link=shortened_link)
