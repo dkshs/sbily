@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./sbily/**/*.html", "./sbily/static/js/*.js"],
+  content: ["./sbily/tailwind.css", "./sbily/**/*.html", "./sbily/static/js/*.js"],
   theme: {
     container: {
       center: true,

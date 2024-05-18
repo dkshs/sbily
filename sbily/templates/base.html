@@ -32,8 +32,8 @@
   <body>
     {% block body %}
       <header class="fixed h-16 inset-x-0 top-0 bg-secondary/60 backdrop-blur-md z-[9999] border-b">
-        <nav class="flex items-center px-4 md:px-12 size-full gap-6 container">
-          <a class="flex gap-2 items-center link font-bold text-lg" href="{% url "home" %}">
+        <nav class="flex items-center justify-between px-4 md:px-12 size-full gap-4 container">
+          <a class="link font-bold text-lg" href="{% url "home" %}">
             Sbily
           </a>
           <button
@@ -48,10 +48,22 @@
             class="hidden absolute flex-col z-20 p-1 bg-secondary right-3 rounded-md end-0 top-16 -translate-y-8 w-40 opacity-0"
             id="nav__dropdown-content"
           >
-            <a href="{% url "home" %}" class="dropdown-nav-link">Home</a>
+            {% if request.user.is_authenticated %}
+              <a href="{% url "my_account" %}" class="dropdown-nav-link">My Account</a>
+              <a href="{% url "sign_out" %}" class="dropdown-nav-link text-red-600">Sign Out</a>
+            {% else %}
+              <a href="{% url "sign_up" %}" class="dropdown-nav-link">Sign Up</a>
+              <a href="{% url "sign_in" %}" class="dropdown-nav-link">Sign In</a>
+            {% endif %}
           </div>
           <div class="hidden items-center gap-4 md:flex">
-            <a href="{% url "home" %}" class="link">Home</a>
+            {% if request.user.is_authenticated %}
+              <a href="{% url "my_account" %}" class="link">My Account</a>
+              <a href="{% url "sign_out" %}" class="link text-red-600">Sign Out</a>
+            {% else %}
+              <a href="{% url "sign_up" %}" class="link">Sign Up</a>
+              <a href="{% url "sign_in" %}" class="link">Sign In</a>
+            {% endif %}
           </div>
         </nav>
       </header>
@@ -64,6 +76,7 @@
     </div>
     <script src="{% static "js/toast.js" %}"></script>
     <script src="{% static "js/nav_dropdown.js" %}"></script>
+    <script src="{% static "js/copy.js" %}"></script>
     {% if messages %}
       <script>
         {% for message in messages %}

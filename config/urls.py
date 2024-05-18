@@ -6,8 +6,9 @@ from django.urls import path
 from django.views import defaults as default_views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("", include("sbily.links.urls")),
+    path("accounts/", include("sbily.users.urls")),
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
