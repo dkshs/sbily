@@ -6,6 +6,7 @@ from django.core.validators import URLValidator
 from .models import ShortenedLink
 
 LINK_REGEX = r"^[a-zA-Z0-9_-]+$"
+MAX_NUM_LINKS_PER_USER = 5
 MAX_LINK_SIZE = 10
 
 
@@ -39,5 +40,13 @@ def link_is_valid(  # noqa: PLR0911
         validator(original_link)
     except Exception:  # noqa: BLE001
         messages.error(request, "Invalid original link")
+        return False
+    return True
+
+
+def can_user_create_link(request):
+    links = ShortenedLink.objects.filter(user=request.user)
+    if not links.count() <= MAX_NUM_LINKS_PER_USER:
+        messages.error(request, f"You can only create {MAX_NUM_LINKS_PER_USER} links")
         return False
     return True

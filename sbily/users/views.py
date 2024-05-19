@@ -82,7 +82,7 @@ def my_account(request: HttpRequest):
         username = request.POST.get("username") or ""
         email = request.POST.get("email") or ""
         if user.username == username and user.email == email:
-            messages.error(request, "There were no changes")
+            messages.warning(request, "There were no changes")
             return redirect("my_account")
         user.username = username
         user.email = email
