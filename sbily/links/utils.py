@@ -8,6 +8,7 @@ from .models import ShortenedLink
 
 LINK_REGEX = r"^[a-zA-Z0-9_-]+$"
 MAX_NUM_LINKS_PER_USER = 5
+MAX_NUM_LINKS_PER_PREMIUM_USER = 10
 MAX_LINK_SIZE = 10
 
 
@@ -48,8 +49,11 @@ def link_is_valid(  # noqa: PLR0911
 def can_user_create_link(request: HttpRequest):
     user = request.user
     links = ShortenedLink.objects.filter(user=user)
-    if not links.count() <= MAX_NUM_LINKS_PER_USER:
-        if user.is_superuser:
+    max_num_links = (
+        MAX_NUM_LINKS_PER_PREMIUM_USER if user.is_premium else MAX_NUM_LINKS_PER_USER
+    )
+    if not links.count() <= max_num_links:
+        if user.is_admin:
             return True
         messages.error(request, f"You can only create {MAX_NUM_LINKS_PER_USER} links")
         return False

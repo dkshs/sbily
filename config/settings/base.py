@@ -70,8 +70,10 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
+AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = "account"
+LOGIN_REDIRECT_URL = "my_account"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "sign_in"
 

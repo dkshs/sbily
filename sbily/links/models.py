@@ -1,8 +1,10 @@
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
 
-BASE_URL = getattr(settings, "BASE_URL", None)
+from sbily.users.models import User
+
+BASE_URL: str | None = getattr(settings, "BASE_URL", None)
 
 
 class ShortenedLink(models.Model):
@@ -21,4 +23,5 @@ class ShortenedLink(models.Model):
         return self.shortened_link
 
     def get_absolute_url(self):
-        return f"{BASE_URL}{self.shortened_link}" if BASE_URL else None
+        path = reverse("redirect_link", kwargs={"shortened_link": self.shortened_link})
+        return f"{BASE_URL}{path.lstrip('/')}"

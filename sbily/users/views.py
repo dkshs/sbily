@@ -4,12 +4,12 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.shortcuts import render
 
 from sbily.links.models import ShortenedLink
+from sbily.users.models import User
 
 from .utils import validate
 
