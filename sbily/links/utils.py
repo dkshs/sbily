@@ -2,6 +2,7 @@ import re
 
 from django.contrib import messages
 from django.core.validators import URLValidator
+from django.http import HttpRequest
 
 from .models import ShortenedLink
 
@@ -44,9 +45,12 @@ def link_is_valid(  # noqa: PLR0911
     return True
 
 
-def can_user_create_link(request):
-    links = ShortenedLink.objects.filter(user=request.user)
+def can_user_create_link(request: HttpRequest):
+    user = request.user
+    links = ShortenedLink.objects.filter(user=user)
     if not links.count() <= MAX_NUM_LINKS_PER_USER:
+        if user.is_superuser:
+            return True
         messages.error(request, f"You can only create {MAX_NUM_LINKS_PER_USER} links")
         return False
     return True
