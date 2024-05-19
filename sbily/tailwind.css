@@ -59,6 +59,9 @@
   .button-outline {
     @apply button border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/60;
   }
+  .button-destructive {
+    @apply button bg-destructive/80 text-destructive-foreground hover:bg-destructive active:bg-destructive/40 ring-destructive;
+  }
   .link {
     @apply inline-flex items-center rounded-md justify-center font-medium ring-offset-background underline-offset-4 duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring active:opacity-70;
   }
