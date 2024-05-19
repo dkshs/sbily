@@ -87,7 +87,9 @@
                   <a href="{% url 'link' link.shortened_link %}" class="button-outline gap-1 p-2">
                     Edit <i class="ph-bold ph-pencil"></i>
                   </a>
-                  <a href="" class="button-destructive p-2">Delete</a>
+                  <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive p-2">
+                    Delete
+                  </a>
                 </td>
               </tr>
             {% endfor %}

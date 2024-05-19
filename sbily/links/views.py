@@ -82,3 +82,21 @@ def redirect_link(request, shortened_link):
     except Exception:
         messages.error(request, "An error occurred")
         return redirect("home")
+
+
+@login_required
+def delete_link(request, shortened_link):
+    try:
+        link = ShortenedLink.objects.get(
+            shortened_link=shortened_link,
+            user=request.user,
+        )
+        link.delete()
+        messages.success(request, "Link deleted successfully")
+        return redirect("my_account")
+    except ShortenedLink.DoesNotExist:
+        messages.error(request, "Link not found")
+        return redirect("home")
+    except Exception:
+        messages.error(request, "An error occurred")
+        return redirect("home")
