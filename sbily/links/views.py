@@ -77,6 +77,8 @@ def redirect_link(request, shortened_link):
         link = ShortenedLink.objects.get(shortened_link=shortened_link)
         if not link.is_active:
             messages.error(request, "Link is not active")
+            if request.user == link.user:
+                return redirect("link", link.shortened_link)
             return redirect("home")
         return redirect(link.original_link)
     except ShortenedLink.DoesNotExist:
