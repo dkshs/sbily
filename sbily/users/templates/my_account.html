@@ -43,57 +43,59 @@
     </div>
     <div class="flex flex-col justify-center p-6 border rounded-md">
       <h2 class="text-2xl font-bold">My links</h2>
-      <div class="w-full overflow-auto mt-4 pb-2 max-h-[500px] overscroll-contain">
-        <table class="w-full caption-bottom text-sm">
-          <caption class="mt-4 text-sm text-muted-foreground">
-            A list of your links.
-          </caption>
-          <thead>
-            <tr class="border-b duration-200 hover:bg-muted/50">
-              <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
-              <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
-              <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="[&_tr:last-child]:border-0">
-            {% for link in links %}
-              <tr class="border-b duration-200 hover:bg-muted/50 focus-within:bg-muted/50">
-                <td class="p-4 align-middle font-medium text-lg">
-                  <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
-                </td>
-                <td class="p-4 text-center align-middle font-medium">
-                  <span
-                    aria-label="Link is {% if not link.is_active %}not {% endif %}active"
-                    title="Link is {% if not link.is_active %}not {% endif %}active"
-                    class="text-lg {% if link.is_active %}text-green-600{% else %}text-red-600{% endif %}"
-                  >
-                    {% if link.is_active %}
-                      <i class="ph-bold ph-check-circle"></i>
-                    {% else %}
-                      <i class="ph-bold ph-x-circle"></i>
-                    {% endif %}
-                  </span>
-                </td>
-                <td class="p-4 flex gap-1.5 justify-center align-middle font-medium">
-                  <button
-                    type="button"
-                    class="button-primary gap-1 p-2"
-                    id="copy-{{ link.shortened_link }}"
-                    onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
-                  >
-                    <i class="ph-bold ph-copy"></i> Copy
-                  </button>
-                  <a href="{% url 'link' link.shortened_link %}" class="button-outline gap-1 p-2">
-                    Edit <i class="ph-bold ph-pencil"></i>
-                  </a>
-                  <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive p-2">
-                    Delete
-                  </a>
-                </td>
+      <div class="border rounded-md mt-4 pb-2">
+        <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
+          <table class="w-full caption-bottom text-sm">
+            <caption class="mt-4 text-sm text-muted-foreground">
+              A list of your links.
+            </caption>
+            <thead>
+              <tr class="border-b duration-200 hover:bg-muted/50">
+                <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
+                <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
+                <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for link in links %}
+                <tr class="border-b duration-200 hover:bg-muted/50 focus-within:bg-muted/50">
+                  <td class="px-4 py-2 align-middle font-medium text-lg">
+                    <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
+                  </td>
+                  <td class="px-4 py-2 text-center align-middle font-medium">
+                    <span
+                      aria-label="Link is {% if not link.is_active %}not {% endif %}active"
+                      title="Link is {% if not link.is_active %}not {% endif %}active"
+                      class="text-lg {% if link.is_active %}text-green-600{% else %}text-red-600{% endif %}"
+                    >
+                      {% if link.is_active %}
+                        <i class="ph-bold ph-check-circle"></i>
+                      {% else %}
+                        <i class="ph-bold ph-x-circle"></i>
+                      {% endif %}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2 flex gap-1.5 justify-center align-middle font-medium">
+                    <button
+                      type="button"
+                      class="button-primary gap-1 p-2"
+                      id="copy-{{ link.shortened_link }}"
+                      onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
+                    >
+                      <i class="ph-bold ph-copy"></i> Copy
+                    </button>
+                    <a href="{% url 'link' link.shortened_link %}" class="button-outline gap-1 p-2">
+                      Edit <i class="ph-bold ph-pencil"></i>
+                    </a>
+                    <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive p-2">
+                      Delete
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
