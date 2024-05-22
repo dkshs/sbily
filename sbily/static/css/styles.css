@@ -913,6 +913,51 @@ body {
   opacity: 0.7;
 }
 
+.dropdown-menu-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: calc(var(--radius) - 2px);
+  font-weight: 500;
+  text-underline-offset: 4px;
+  --tw-ring-offset-color: hsl(var(--background));
+  transition-duration: 200ms;
+}
+
+.dropdown-menu-item:hover {
+  text-decoration-line: underline;
+}
+
+.dropdown-menu-item:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  --tw-ring-color: hsl(var(--ring));
+  --tw-ring-offset-width: 2px;
+}
+
+.dropdown-menu-item:active {
+  opacity: 0.7;
+}
+
+.dropdown-menu-item {
+  height: 2.5rem;
+  transition-duration: 200ms;
+}
+
+.dropdown-menu-item:hover {
+  background-color: hsl(var(--background) / 0.4);
+  text-decoration-line: none;
+}
+
+.dropdown-menu-overlay {
+  position: absolute;
+  inset: 0px;
+  z-index: 10;
+}
+
 .dropdown-nav-link {
   display: inline-flex;
   align-items: center;
@@ -1309,6 +1354,10 @@ body {
 
 .top-16 {
   top: 4rem;
+}
+
+.z-10 {
+  z-index: 10;
 }
 
 .z-20 {

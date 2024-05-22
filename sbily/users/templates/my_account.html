@@ -76,20 +76,38 @@
                     </span>
                   </td>
                   <td class="px-4 py-2 flex gap-1.5 justify-center align-middle font-medium">
-                    <button
-                      type="button"
-                      class="button-primary gap-1 p-2"
-                      id="copy-{{ link.shortened_link }}"
-                      onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
-                    >
-                      <i class="ph-bold ph-copy"></i> Copy
-                    </button>
-                    <a href="{% url 'link' link.shortened_link %}" class="button-outline gap-1 p-2">
-                      Edit <i class="ph-bold ph-pencil"></i>
-                    </a>
-                    <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive p-2">
-                      Delete
-                    </a>
+                    <div>
+                      <button
+                        type="button"
+                        class="button-outline p-2"
+                        onclick="handle_menu('dropdown-menu-content-{{ link.id }}')"
+                        aria-expanded="false"
+                        aria-label="Open action menu for link {{ link.shortened_link }}"
+                        title="Open action menu for link {{ link.shortened_link }}"
+                      >
+                        <i class="ph-bold ph-dots-three"></i>
+                      </button>
+                      <div
+                        id="dropdown-menu-content-{{ link.id }}"
+                        class="hidden absolute flex-col z-20 p-1 border bg-secondary rounded-md w-40 opacity-0"
+                      >
+                        <button
+                          type="button"
+                          class="dropdown-menu-item gap-1 p-2"
+                          id="copy-{{ link.shortened_link }}"
+                          onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
+                        >
+                          <i class="ph-bold ph-copy"></i> Copy
+                        </button>
+                        <div class="separator"></div>
+                        <a href="{% url 'link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                          <i class="ph-bold ph-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'delete_link' link.shortened_link %}" class="dropdown-menu-item p-2">
+                          <i class="ph ph-trash text-red-600"></i> Delete
+                        </a>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               {% endfor %}

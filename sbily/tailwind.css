@@ -65,6 +65,12 @@
   .link {
     @apply inline-flex items-center rounded-md justify-center font-medium ring-offset-background underline-offset-4 duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring active:opacity-70;
   }
+  .dropdown-menu-item {
+    @apply link hover:no-underline hover:bg-background/40 duration-200 h-10;
+  }
+  .dropdown-menu-overlay {
+    @apply absolute z-10 inset-0;
+  }
   .dropdown-nav-link {
     @apply link hover:no-underline hover:bg-background/40 duration-200 px-2 py-3;
   }
