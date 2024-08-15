@@ -74,7 +74,7 @@ STORAGES = {
     },
 }
 MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
-COLLECTFAST_STRATEGY = "collectfast.strategies.gcloud.GoogleCloudStrategy"
+COLLECTFASTA_STRATEGY = "collectfasta.strategies.gcloud.GoogleCloudStrategy"
 STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 
 # ADMIN
@@ -82,7 +82,7 @@ STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 # Django Admin URL regex.
 ADMIN_URL = config("DJANGO_ADMIN_URL")
 
-# Collectfast
+# Collectfasta
 # ------------------------------------------------------------------------------
-# https://github.com/antonagestam/collectfast#installation
-INSTALLED_APPS = ["collectfast", *INSTALLED_APPS]
+# https://github.com/jasongi/collectfasta#installation
+INSTALLED_APPS = ["collectfasta", *INSTALLED_APPS]
