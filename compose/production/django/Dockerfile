@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS client-builder
+FROM node:20.17.0-bookworm-slim AS client-builder
 
 ARG APP_HOME=/app
 WORKDIR ${APP_HOME}
