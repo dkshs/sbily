@@ -5,7 +5,14 @@
 {% block content %}
   <div class="my-16 flex flex-col justify-center max-w-xl mx-auto gap-4">
     <div class="flex flex-col justify-center p-6 border rounded-md">
-      <h1 class="text-2xl font-bold">My informations</h1>
+      <div class="flex items-center gap-2">
+        <h1 class="text-2xl font-bold">My informations</h1>
+        <span
+          class="badge-{% if user.is_premium or user.is_admin %}default{% else %}secondary{% endif %}"
+        >
+          {{ user.role }}
+        </span>
+      </div>
       <div class="separator my-4"></div>
       <form method="post" action="{% url 'my_account' %}" class="flex flex-col gap-2">
         {% csrf_token %}
