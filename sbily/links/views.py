@@ -110,8 +110,8 @@ def update_link(request, shortened_link):
         if (
             original_link == link.original_link
             and shortened_link == link.shortened_link
-            and (is_active and link.is_active)
-            and (is_temporary and link.remove_at is not None)
+            and is_active == link.is_active
+            and is_temporary == (link.remove_at is not None)
         ):
             messages.warning(request, "No changes were made")
             return redirect("link", link.shortened_link)
