@@ -52,9 +52,9 @@ def can_user_create_link(request: HttpRequest):
     max_num_links = (
         MAX_NUM_LINKS_PER_PREMIUM_USER if user.is_premium else MAX_NUM_LINKS_PER_USER
     )
-    if not links.count() <= max_num_links:
+    if not links.count() < max_num_links:
         if user.is_admin:
             return True
-        messages.error(request, f"You can only create {MAX_NUM_LINKS_PER_USER} links")
+        messages.error(request, f"You can only create {max_num_links} links")
         return False
     return True
