@@ -25,20 +25,23 @@ def link(request, shortened_link):
         if request.method == "POST":
             original_link = request.POST.get("original_link") or ""
             shortened_link = request.POST.get("shortened_link") or ""
-            is_active = request.POST.get("is_active") or ""
+            is_active = request.POST.get("is_active") == "on" or False
+            is_temporary = request.POST.get("is_temporary") == "on" or False
             if not link_is_valid(request, original_link, shortened_link, link.id):
                 return redirect("link", link.shortened_link)
             if (
                 original_link == link.original_link
                 and shortened_link == link.shortened_link
-                and (is_active == "on" and link.is_active)
+                and (is_active and link.is_active)
+                and (is_temporary and link.remove_at is not None)
             ):
                 messages.warning(request, "No changes were made")
                 return redirect("link", link.shortened_link)
             link.original_link = original_link
             link.shortened_link = shortened_link
-            link.is_active = is_active == "on"
+            link.is_active = is_active
             link.updated_at.now()
+            link.remove_at = datetime.now() + timedelta(days=1) if is_temporary else None
             link.save()
             messages.success(request, "Link updated successfully")
         return render(request, "link.html", {"link": link, "BASE_URL": BASE_URL})
