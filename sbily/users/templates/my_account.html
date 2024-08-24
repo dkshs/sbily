@@ -66,8 +66,13 @@
             <tbody>
               {% for link in links %}
                 <tr class="border-b duration-200 hover:bg-muted/50 focus-within:bg-muted/50">
-                  <td class="px-4 py-2 align-middle font-medium text-lg">
+                  <td class="flex items-center gap-1 px-4 py-2 align-middle font-medium text-lg">
                     <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
+                    {% if link.remove_at %}
+                      <span class="mt-1" title="This link is temporary" aria-label="This link is temporary">
+                        <i class="ph-bold ph-clock-countdown text-xl text-yellow-500"></i>
+                      </span>
+                    {% endif %}
                   </td>
                   <td class="px-4 py-2 text-center align-middle font-medium">
                     <span

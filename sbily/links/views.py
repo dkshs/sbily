@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.shortcuts import render
+from datetime import datetime, timedelta
 
 from .models import ShortenedLink
 from .utils import can_user_create_link
@@ -55,6 +56,7 @@ def create_link(request):
         return redirect("home")
     original_link = request.POST.get("original_link") or ""
     shortened_link = request.POST.get("shortened_link") or ""
+    is_temporary = request.POST.get("is_temporary") == "on" or False
     if not link_is_valid(request, original_link, shortened_link):
         return redirect("home")
     try:
@@ -62,6 +64,7 @@ def create_link(request):
             original_link=original_link,
             shortened_link=shortened_link,
             user=request.user,
+            remove_at=datetime.now() + timedelta(days=1) if is_temporary else None,
         )
         messages.success(request, "Link created successfully")
         return redirect("link", shortened_link=shortened_link)
