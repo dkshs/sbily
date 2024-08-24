@@ -57,7 +57,7 @@
         <div class="flex items-center flex-wrap gap-2 mt-2">
           <div class="flex gap-2 flex-wrap">
             <button type="submit" class="button-primary w-fit">Update link</button>
-            <a class="button-outline" href="{% url "my_account" %}">Go back</a>
+            <button type="button" class="button-outline" onclick="goBack();">Go back</button>
           </div>
           <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive gap-1 w-fit">
             <i class="ph-bold ph-trash"></i> Delete
@@ -67,3 +67,16 @@
     </div>
   </div>
 {% endblock content %}
+
+{% block js %}
+<script>
+  function goBack() {
+    if (history.length > 1) {
+      history.back();
+      return;
+    };
+
+    location.pathname = "{% url 'my_account' %}";
+  };
+</script>
+{% endblock js %}
