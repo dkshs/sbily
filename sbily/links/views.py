@@ -44,6 +44,15 @@ def link(request, shortened_link):
             link.remove_at = datetime.now() + timedelta(days=1) if is_temporary else None
             link.save()
             messages.success(request, "Link updated successfully")
+
+        deactivate = request.GET.get("deactivate")
+        if deactivate is not None:
+            deactivate = deactivate == "True" or False
+            link.is_active = not deactivate
+            link.save()
+            messages.success(request, f"Link {'deactivated' if deactivate else 'activated'}")
+            return redirect("my_account")
+
         return render(request, "link.html", {"link": link, "BASE_URL": BASE_URL})
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")

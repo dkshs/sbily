@@ -59,10 +59,7 @@
           <input type="checkbox" id="is_temporary" name="is_temporary" {% if link.remove_at %}checked{% endif %} />
         </div>
         <div class="flex items-center flex-wrap gap-2 mt-2">
-          <div class="flex gap-2 flex-wrap">
-            <button type="submit" class="button-primary w-fit">Update link</button>
-            <button type="button" class="button-outline" onclick="goBack();">Go back</button>
-          </div>
+          <button type="submit" class="button-primary w-fit">Update link</button>
           <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive gap-1 w-fit">
             <i class="ph-bold ph-trash"></i> Delete
           </a>
@@ -71,16 +68,3 @@
     </div>
   </div>
 {% endblock content %}
-
-{% block js %}
-<script>
-  function goBack() {
-    if (history.length > 1) {
-      history.back();
-      return;
-    };
-
-    location.pathname = "{% url 'my_account' %}";
-  };
-</script>
-{% endblock js %}
