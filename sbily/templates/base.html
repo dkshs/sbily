@@ -39,8 +39,10 @@
           <button
             type="button"
             class="absolute end-0 mr-4 md:mr-12 text-2xl flex md:hidden button-primary z-20"
+            onclick="handle_menu('nav__dropdown-content');"
             aria-expanded="false"
-            id="nav__dropdown-trigger"
+            aria-label="Open navigation menu."
+            title="Open navigation menu."
           >
             <i class="ph-fill ph-list"></i>
           </button>
@@ -75,7 +77,6 @@
       <ol tabindex="-1" id="toast-ol" class="toast-list"></ol>
     </div>
     <script src="{% static 'js/toast.js' %}"></script>
-    <script src="{% static 'js/nav_dropdown.js' %}"></script>
     <script src="{% static 'js/copy.js' %}"></script>
     <script src="{% static 'js/dropdown_menu.js' %}"></script>
     {% if messages %}
