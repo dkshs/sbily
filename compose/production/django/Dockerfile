@@ -86,6 +86,4 @@ USER django
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test"
 
-RUN python /app/manage.py collectstatic --noinput
-
 ENTRYPOINT ["/entrypoint"]
