@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Shorten your links with Sbily." />
     <meta name="keywords" content="study, programming" />
+    <link href="{% static 'images/favicons/logo.jpg' %}" rel="icon" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,7 +34,14 @@
     {% block body %}
       <header class="fixed h-16 inset-x-0 top-0 bg-secondary/60 backdrop-blur-md z-[9999] border-b">
         <nav class="flex items-center justify-between px-4 md:px-12 size-full gap-4 container">
-          <a class="link font-bold text-lg" href="{% url 'home' %}">
+          <a class="link font-bold text-lg gap-2 group" href="{% url 'home' %}">
+            <img
+              src="{% static 'images/favicons/logo.jpg' %}"
+              alt="Sbily logo"
+              class="size-10 rounded-full group-hover:brightness-200 duration-200"
+              width="40px"
+              height="40px"
+            />
             Sbily
           </a>
           <button
