@@ -47,8 +47,10 @@ def create_link(request):
 def redirect_link(request, shortened_link):
     try:
         link = ShortenedLink.objects.get(shortened_link=shortened_link)
-        if not link.is_active:
-            messages.error(request, "Link is not active")
+        if not link.is_active or (
+            link.remove_at and link.remove_at < datetime.now(UTC)
+        ):
+            messages.error(request, "Link is expired or deactivated")
             if request.user == link.user:
                 return redirect("link", link.shortened_link)
             return redirect("home")
