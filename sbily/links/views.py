@@ -13,12 +13,12 @@ from .models import ShortenedLink
 from .utils import can_user_create_link
 from .utils import link_is_valid
 
-BASE_URL = getattr(settings, "BASE_URL", None)
+LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 
 
 @login_required
 def home(request):
-    return render(request, "home.html", {"BASE_URL": BASE_URL})
+    return render(request, "home.html", {"LINK_BASE_URL": LINK_BASE_URL})
 
 
 @login_required
@@ -82,7 +82,11 @@ def link(request, shortened_link):
             )
             return redirect("my_account")
 
-        return render(request, "link.html", {"link": link, "BASE_URL": BASE_URL})
+        return render(
+            request,
+            "link.html",
+            {"link": link, "LINK_BASE_URL": LINK_BASE_URL},
+        )
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
         return redirect("home")

@@ -17,7 +17,10 @@ ALLOWED_HOSTS = config(
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
 
+# URLS
 BASE_URL = config("BASE_URL")
+LINK_PREFIX = config("LINK_PREFIX")
+LINK_BASE_URL = BASE_URL + LINK_PREFIX
 
 # DATABASES
 # ------------------------------------------------------------------------------

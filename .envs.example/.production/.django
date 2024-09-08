@@ -5,7 +5,10 @@ DJANGO_SECRET_KEY="$*v2bRvHvKJJ!8KYD4o$tL&9g#bw7k*WuVQ*!JEn5Ygm6mDJGw%*5urYc@Sw^
 DJANGO_ADMIN_URL="H99PfEskxt8gX7s7MymRd7tp7eHWEx2a/"
 DJANGO_ALLOWED_HOSTS=".example.com"
 CORS_ALLOWED_ORIGINS="https://example.com"
-BASE_URL="https://example.com"
+
+# URLS
+BASE_URL="https://example.com/"
+LINK_PREFIX="l/"
 
 # Security
 # ------------------------------------------------------------------------------
