@@ -17,6 +17,10 @@ DJANGO_SECURE_SSL_REDIRECT=False
 DJANGO_GCP_CREDENTIALS=""
 DJANGO_GCP_STORAGE_BUCKET_NAME=""
 
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL="redis://redis:6379/0"
+
 # Gunicorn
 # ------------------------------------------------------------------------------
 WEB_CONCURRENCY=4

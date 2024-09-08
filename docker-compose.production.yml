@@ -27,6 +27,9 @@ services:
     env_file:
       - ./.envs/.production/.postgres
 
+  redis:
+    image: redis:7
+
   traefik:
     build:
       context: .
