@@ -11,7 +11,7 @@ COPY . ${APP_HOME}
 RUN npm run tailwind:build
 
 # define an alias for the specific python version used in this file.
-FROM python:3.12.5-slim-bookworm AS python
+FROM python:3.12.6-slim-bookworm AS python
 
 # Python build stage
 FROM python AS python-build-stage
