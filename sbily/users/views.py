@@ -87,6 +87,7 @@ def my_account(request: HttpRequest):
         user.username = username
         user.email = email
         user.save()
+        messages.success(request, "User updated successfully")
     links = ShortenedLink.objects.filter(user=user).order_by("-updated_at")
     return render(
         request,
