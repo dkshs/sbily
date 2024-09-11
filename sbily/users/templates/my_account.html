@@ -6,7 +6,7 @@
   <div class="my-16 flex flex-col justify-center max-w-xl mx-auto gap-4">
     <div class="flex flex-col justify-center p-6 border rounded-md">
       <div class="flex items-center gap-2">
-        <h1 class="text-2xl font-bold">My informations</h1>
+        <h1 class="text-2xl font-bold text-center">My informations</h1>
         <span
           class="badge-{% if user.is_premium or user.is_admin %}default{% else %}secondary{% endif %}"
         >
@@ -16,8 +16,28 @@
       <div class="separator my-4"></div>
       <form method="post" action="{% url 'my_account' %}" class="flex flex-col gap-2">
         {% csrf_token %}
-        <p class="text-lg flex items-center gap-2">
-          <label for="username">Username: </label>
+        <div class="flex items-center flex-nowrap gap-2">
+          <label class="text-lg text-nowrap" for="first_name">First Name: </label>
+          <input
+            class="font-bold input px-2 py-0"
+            id="first_name"
+            name="first_name"
+            type="text"
+            value="{{ user.first_name }}"
+          />
+        </div>
+        <div class="flex items-center flex-nowrap gap-2">
+          <label class="text-lg text-nowrap" for="last_name">Last Name: </label>
+          <input
+            class="font-bold input px-2 py-0"
+            id="last_name"
+            name="last_name"
+            type="text"
+            value="{{ user.last_name }}"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-lg" for="username">Username: </label>
           <input
             class="font-bold input px-2 py-0"
             id="username"
@@ -25,9 +45,9 @@
             type="text"
             value="{{ user.username }}"
           />
-        </p>
-        <p class="text-lg flex items-center gap-2">
-          <label for="email">Email: </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-lg" for="email">Email: </label>
           <input
             class="font-bold input px-2 py-0"
             id="email"
@@ -35,13 +55,13 @@
             type="email"
             value="{{ user.email }}"
           />
-        </p>
-        <p class="text-lg flex items-center gap-2">
+        </div>
+        <div class="text-lg flex items-center gap-2">
           Password: <span class="font-bold">****</span>
-          <a href="{% url 'change_password' %}" class="button py-0 px-2 gap-2">
+          <a href="{% url 'change_password' %}" class="button py-0 px-2 gap-2 hover:underline">
             Edit <i class="ph-bold ph-pencil"></i>
           </a>
-        </p>
+        </div>
         <button type="submit" class="button-primary w-fit mt-2">Update my informations</button>
         {% if user.is_staff %}
           <a href="{{ ADMIN_URL }}" class="mt-1 link-primary self-start">Access admin</a>

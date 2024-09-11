@@ -79,11 +79,23 @@ def sign_out(request):
 def my_account(request: HttpRequest):
     user = request.user
     if request.method == "POST":
+        first_name = request.POST.get("first_name") or ""
+        last_name = request.POST.get("last_name") or ""
         username = request.POST.get("username") or ""
         email = request.POST.get("email") or ""
-        if user.username == username and user.email == email:
+        if not validate([username]):
+            messages.error(request, "Username is required")
+            return redirect("my_account")
+        if (
+            user.username == username
+            and user.email == email
+            and user.first_name == first_name
+            and user.last_name == last_name
+        ):
             messages.warning(request, "There were no changes")
             return redirect("my_account")
+        user.first_name = first_name
+        user.last_name = last_name
         user.username = username
         user.email = email
         user.save()
