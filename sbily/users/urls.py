@@ -6,6 +6,7 @@ from . import views
 account_urlpatterns = [
     path("", views.my_account, name="my_account"),
     path("change_password", views.change_password, name="change_password"),
+    path("delete_account", views.delete_account, name="delete_account"),
 ]
 
 auth_urlpatterns = [

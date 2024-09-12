@@ -62,7 +62,10 @@
             Edit <i class="ph-bold ph-pencil"></i>
           </a>
         </div>
-        <button type="submit" class="button-primary w-fit mt-2">Update my informations</button>
+        <div class="flex items-center gap-2 mt-2">
+          <button type="submit" class="button-primary w-fit">Update my informations</button>
+          <a href="{% url "delete_account" %}" class="button-destructive">Delete Account</a>
+        </div>
         {% if user.is_staff %}
           <a href="{{ ADMIN_URL }}" class="mt-1 link-primary self-start">Access admin</a>
         {% endif %}

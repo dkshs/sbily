@@ -144,3 +144,10 @@ def change_password(request: HttpRequest):
         user.save()
         messages.success(request, "Successful updated password")
     return render(request, "change_password.html")
+
+
+@login_required
+def delete_account(request: HttpRequest):
+    request.user.delete()
+    messages.success(request, "User deleted successfully")
+    return redirect("sign_in")
