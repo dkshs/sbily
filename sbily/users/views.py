@@ -23,6 +23,8 @@ def sign_up(request):  # noqa: PLR0911
     if request.user.is_authenticated:
         return redirect("home")
     if request.method == "POST":
+        first_name = request.POST.get("first_name") or ""
+        last_name = request.POST.get("last_name") or ""
         username = request.POST.get("username") or ""
         email = request.POST.get("email") or ""
         password = request.POST.get("password") or ""
@@ -42,7 +44,13 @@ def sign_up(request):  # noqa: PLR0911
             messages.error(request, "User already exists")
             return redirect("sign_up")
         try:
-            user = User.objects.create_user(username, email=email, password=password)
+            user = User.objects.create_user(
+                username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+            )
             messages.success(request, "User created successfully")
             login(request, user)
             return redirect("home")
