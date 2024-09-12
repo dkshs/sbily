@@ -11,48 +11,6 @@
       <p class="text-lg font-medium">A simple link shortener.</p>
     </div>
     <div class="separator mt-6 mb-10" role="separator"></div>
-    <form
-      class="border rounded-md p-4 w-full md:w-3/4 lg:w-1/2"
-      method="post"
-      action="{% url 'create_link' %}"
-    >
-      {% csrf_token %}
-      <h2 class="text-2xl font-bold mb-6">Create link</h2>
-      <div class="flex flex-col gap-3 mb-6">
-        <label for="original_link" class="label">Enter where this link goes:</label>
-        <input
-          type="url"
-          id="original_link"
-          name="original_link"
-          class="input"
-          placeholder="https://google.com"
-          required
-        />
-      </div>
-      <div class="flex flex-col gap-3 mb-6">
-        <label for="shortened_link" class="label">Enter how you want your link:</label>
-        <div class="flex items-center">
-          <label
-            class="border-l border-y h-10 flex items-center rounded-l-md px-3 py-2"
-            for="shortened_link"
-          >
-            {{ LINK_BASE_URL }}
-          </label>
-          <input
-            type="text"
-            id="shortened_link"
-            name="shortened_link"
-            class="input border-l-0 rounded-l-none"
-            placeholder="my_link"
-            required
-          />
-        </div>
-      </div>
-      <div class="flex gap-1 mb-6">
-        <label for="is_temporary" class="label">Temporary link:</label>
-        <input type="checkbox" id="is_temporary" name="is_temporary" />
-      </div>
-      <button type="submit" class="button-primary">Create</button>
-    </form>
+    {% include "partials/create_link_form.html" %}
   </div>
 {% endblock content %}

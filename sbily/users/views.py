@@ -16,6 +16,7 @@ from .utils import validate
 MIN_PASSWORD_LENGTH = 8
 
 
+LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 ADMIN_URL = f"{settings.BASE_URL}{settings.ADMIN_URL}"
 
 
@@ -112,7 +113,12 @@ def my_account(request: HttpRequest):
     return render(
         request,
         "my_account.html",
-        {"user": user, "links": links, "ADMIN_URL": ADMIN_URL},
+        {
+            "user": user,
+            "links": links,
+            "ADMIN_URL": ADMIN_URL,
+            "LINK_BASE_URL": LINK_BASE_URL,
+        },
     )
 
 
