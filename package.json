@@ -1,8 +1,8 @@
 {
   "name": "sbily",
   "version": "1.0.0",
-  "author": "DKSHS",
   "description": "A Django project for a link shortener.",
+  "author": "DKSHS",
   "license": "MIT",
   "nodemonConfig": {
     "watch": [

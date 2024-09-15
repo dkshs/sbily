@@ -1,5 +1,5 @@
 function copy(value, btnId) {
-  const button = document.getElementById(btnId);
+  const button = document.querySelector(`#${btnId}`);
   const buttonContent = button.innerHTML;
   button.setAttribute("disabled", true);
   const successIcon = `<i class="ph-bold ph-check"></i>`;

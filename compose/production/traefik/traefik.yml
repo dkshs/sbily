@@ -19,7 +19,7 @@ certificatesResolvers:
   letsencrypt:
     # https://doc.traefik.io/traefik/https/acme/#lets-encrypt
     acme:
-      email: "4sg9gdqxh@mozmail.com"
+      email: 4sg9gdqxh@mozmail.com
       storage: /etc/traefik/acme/acme.json
       # https://doc.traefik.io/traefik/https/acme/#httpchallenge
       httpChallenge:
@@ -28,7 +28,7 @@ certificatesResolvers:
 http:
   routers:
     web-secure-router:
-      rule: "Host(`localhost`)"
+      rule: Host(`localhost`)
       entryPoints:
         - web-secure
       middlewares:

@@ -1,18 +1,18 @@
 function verifyToastOl() {
-  const toastOl = document.getElementById("toast-ol");
+  let toastOl = document.querySelector("#toast-ol");
   if (!toastOl) {
     toastOl = document.createElement("ol");
     toastOl.setAttribute("id", "toast-ol");
     toastOl.setAttribute("tabindex", "-1");
     toastOl.classList.add("toast-list");
-    document.body.appendChild(toastOl);
+    document.body.append(toastOl);
   }
   return toastOl;
 }
 
 function closeToast(id, time = 3000) {
   setTimeout(() => {
-    const toast = document.getElementById(id);
+    const toast = document.querySelector(`#${id}`);
     if (!toast) return;
     toast.classList.add("toast-close");
     setTimeout(() => toast.remove(), 600);
@@ -34,9 +34,9 @@ function getToastIcon(tag) {
 
 function toast(msg, className, time = 3000) {
   const toastOl = verifyToastOl();
-  id =
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15);
+  const id =
+    Math.random().toString(36).slice(2, 15) +
+    Math.random().toString(36).slice(2, 15);
   toastOl.insertAdjacentHTML(
     "beforeend",
     `<li class="toast-open ${className}" id="${id}" role="alert" aria-live="assertive" aria-atomic="true" tabindex="0">
@@ -64,7 +64,7 @@ function toast(msg, className, time = 3000) {
           ${msg}
         </p>
       </div>
-    </li>`
+    </li>`,
   );
 
   closeToast(id, time);
