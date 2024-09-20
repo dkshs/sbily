@@ -8,6 +8,6 @@ argon2-cffi==23.1.0  # https://github.com/hynek/argon2_cffi
 # Django
 # ------------------------------------------------------------------------------
 django==5.0.9  # https://www.djangoproject.com/
-django-cleanup==8.1.0  # https://github.com/un1t/django-cleanup
+django-cleanup==9.0.0  # https://github.com/un1t/django-cleanup
 dj-database-url==2.2.0  # https://github.com/jazzband/dj-database-url
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
