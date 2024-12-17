@@ -3,7 +3,7 @@ volumes:
   sbily_local_postgres_data_backups: {}
 
 services:
-  django:
+  django: &django
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
@@ -18,6 +18,7 @@ services:
       - .:/app:z
     depends_on:
       - postgres
+      - redis
     command: /start
 
   postgres:
@@ -31,6 +32,38 @@ services:
       - sbily_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
+
+  redis:
+    image: redis:7
+    container_name: sbily_local_redis
+
+  celeryworker:
+    <<: *django
+    image: sbily_local_celeryworker
+    container_name: sbily_local_celeryworker
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: sbily_local_celerybeat
+    container_name: sbily_local_celerybeat
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: sbily_local_flower
+    container_name: sbily_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower
 
   node:
     build:

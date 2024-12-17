@@ -11,6 +11,7 @@ from django.shortcuts import render
 from sbily.links.models import ShortenedLink
 from sbily.users.models import User
 
+from .tasks import send_welcome_email
 from .utils import validate
 
 MIN_PASSWORD_LENGTH = 8
@@ -54,6 +55,7 @@ def sign_up(request):  # noqa: PLR0911
             )
             messages.success(request, "User created successfully")
             login(request, user)
+            send_welcome_email.delay(user.id)
             return redirect("home")
         except Exception as e:  # noqa: BLE001
             messages.error(request, f"Error creating user: {e}")

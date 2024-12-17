@@ -33,3 +33,6 @@ class User(AbstractUser):
         if self.is_superuser:
             self.role = "admin"
         super().save(*args, **kwargs)
+
+    def get_full_name(self):
+        return super().get_full_name() or self.username

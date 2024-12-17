@@ -72,6 +72,18 @@ COPY --chown=dev-user:dev-user ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
+COPY ./compose/local/django/celery/worker/start /start-celeryworker
+RUN sed -i 's/\r$//g' /start-celeryworker
+RUN chmod +x /start-celeryworker
+
+COPY ./compose/local/django/celery/beat/start /start-celerybeat
+RUN sed -i 's/\r$//g' /start-celerybeat
+RUN chmod +x /start-celerybeat
+
+COPY ./compose/local/django/celery/flower/start /start-flower
+RUN sed -i 's/\r$//g' /start-flower
+RUN chmod +x /start-flower
+
 RUN wget https://gist.githubusercontent.com/dkshs/46cbda109e29d1772416d8e44f148a64/raw/50564b1a3e6c326289754a7128ca98c627e0b355/.p10k.zsh && \
   mv ./.p10k.zsh /home/dev-user
 

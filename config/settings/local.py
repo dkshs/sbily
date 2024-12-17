@@ -57,3 +57,8 @@ INSTALLED_APPS += ["django_extensions"]
 # https://github.com/adamchainz/django-browser-reload#installation
 INSTALLED_APPS += ["django_browser_reload"]
 MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
+
+# Celery
+# ------------------------------------------------------------------------------
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-eager-propagates
+CELERY_TASK_EAGER_PROPAGATES = True

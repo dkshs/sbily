@@ -4,13 +4,14 @@ volumes:
   production_traefik: {}
 
 services:
-  django:
+  django: &django
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
     image: sbily_production_django
     depends_on:
       - postgres
+      - redis
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
@@ -30,6 +31,21 @@ services:
   redis:
     image: redis:7
 
+  celeryworker:
+    <<: *django
+    image: sbily_production_celeryworker
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: sbily_production_celerybeat
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: sbily_production_flower
+    command: /start-flower
+
   traefik:
     build:
       context: .
@@ -42,3 +58,4 @@ services:
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
+      - "0.0.0.0:5555:5555"
