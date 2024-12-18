@@ -42,7 +42,7 @@ http:
         certResolver: letsencrypt
 
     flower-secure-router:
-      rule: "Host(`localhost`)"
+      rule: Host(`localhost`)
       entryPoints:
         - flower
       service: flower
