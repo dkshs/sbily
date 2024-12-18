@@ -9,8 +9,10 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 
 from sbily.links.models import ShortenedLink
+from sbily.users.models import Token
 from sbily.users.models import User
 
+from .tasks import send_email_verification
 from .tasks import send_welcome_email
 from .utils import validate
 
@@ -53,9 +55,12 @@ def sign_up(request):  # noqa: PLR0911
                 first_name=first_name,
                 last_name=last_name,
             )
-            messages.success(request, "User created successfully")
+            messages.success(
+                request,
+                "User created successfully! Please verify your email",
+            )
             login(request, user)
-            send_welcome_email.delay(user.id)
+            send_welcome_email.delay_on_commit(user.id)
             return redirect("home")
         except Exception as e:  # noqa: BLE001
             messages.error(request, f"Error creating user: {e}")
@@ -63,27 +68,70 @@ def sign_up(request):  # noqa: PLR0911
     return render(request, "sign_up.html")
 
 
-def sign_in(request):
+def sign_in(request: HttpRequest):
+    next_param = request.GET.get("next") or None
     if request.user.is_authenticated:
         return redirect("home")
     if request.method == "POST":
         username = request.POST.get("username") or ""
         password = request.POST.get("password") or ""
+        next_param = request.POST.get("next") or None
         if not validate([username, password]):
             messages.error(request, "Please fill in all fields")
             return redirect("sign_in")
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect("home")
+            return redirect(next_param if next_param != "None" else "home")
         messages.error(request, "Invalid username or password")
         return redirect("sign_in")
-    return render(request, "sign_in.html")
+    return render(request, "sign_in.html", {"next_param": next_param})
 
 
 def sign_out(request):
     logout(request)
     return redirect("sign_in")
+
+
+def verify_email(request: HttpRequest, token: str):
+    user = request.user
+    is_authenticated = user.is_authenticated
+    redirect_url_name = "my_account" if is_authenticated else "sign_in"
+
+    try:
+        obj_token = Token.objects.get(token=token, type="email_verification")
+        if is_authenticated and user != obj_token.user:
+            messages.error(request, "Invalid token")
+            return redirect(redirect_url_name)
+        if obj_token.is_expired():
+            messages.error(request, "Token has expired! Please request a new one")
+            return redirect(redirect_url_name)
+        if obj_token.user.email_verified:
+            messages.warning(request, "Email has already been verified")
+            return redirect(redirect_url_name)
+        obj_token.user.email_verified = True
+        obj_token.user.save()
+        obj_token.delete()
+        messages.success(request, "Email verified successfully")
+        return redirect(redirect_url_name)
+    except Token.DoesNotExist:
+        messages.error(request, "Invalid token")
+        return redirect(redirect_url_name)
+    except Exception as e:  # noqa: BLE001
+        messages.error(request, f"Error verifying email: {e}")
+        return redirect(redirect_url_name)
+
+
+@login_required
+def resend_verify_email(request):
+    try:
+        user = request.user
+        send_email_verification.delay_on_commit(user.id)
+        messages.success(request, "Verification email sent successfully")
+        return redirect("my_account")
+    except Exception as e:  # noqa: BLE001
+        messages.error(request, f"Error sending verification email: {e}")
+        return redirect("my_account")
 
 
 @login_required

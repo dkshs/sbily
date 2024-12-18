@@ -56,16 +56,30 @@
             value="{{ user.email }}"
           />
         </div>
+        <span
+          class="badge-{% if user.email_verified %}default{% else %}secondary{% endif %}"
+        >
+          {% if user.email_verified %}
+            Email Verified
+          {% else %}
+            Email Not Verified
+          {% endif %}
+        </span>
         <div class="text-lg flex items-center gap-2">
           Password: <span class="font-bold">****</span>
           <a href="{% url 'change_password' %}" class="button py-0 px-2 gap-2 hover:underline">
             Edit <i class="ph-bold ph-pencil"></i>
           </a>
         </div>
-        <div class="flex items-center gap-2 mt-2">
+        <div class="flex flex-wrap items-center gap-2 mt-2">
           <button type="submit" class="button-primary w-fit">Update my informations</button>
           <a href="{% url "delete_account" %}" class="button-destructive">Delete Account</a>
         </div>
+        {% if not user.email_verified %}
+          <a href="{% url "resend_verify_email" %}" class="w-fit button-outline">
+            Resend Verification Email
+          </a>
+        {% endif %}
         {% if user.is_staff %}
           <a href="{{ ADMIN_URL }}" class="mt-1 link-primary self-start">Access admin</a>
         {% endif %}
