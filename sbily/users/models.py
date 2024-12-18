@@ -107,7 +107,7 @@ class Token(models.Model):
         verbose_name = _("Token")
         verbose_name_plural = _("Tokens")
         ordering = ["-created_at"]
-        index_together = ["user", "type", "created_at"]
+        indexes = [models.Index(fields=["user", "type", "created_at"])]
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "type"],
