@@ -142,8 +142,8 @@ def my_account(request: HttpRequest):
         last_name = request.POST.get("last_name") or ""
         username = request.POST.get("username") or ""
         email = request.POST.get("email") or ""
-        if not validate([username]):
-            messages.error(request, "Username is required")
+        if not validate([username, email]):
+            messages.error(request, "Username and email are required")
             return redirect("my_account")
         if (
             user.username == username
