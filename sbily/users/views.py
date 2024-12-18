@@ -123,9 +123,15 @@ def verify_email(request: HttpRequest, token: str):
 
 
 @login_required
-def resend_verify_email(request):
+def resend_verify_email(request: HttpRequest):
     try:
         user = request.user
+        if not user.email:
+            messages.error(request, "No email found")
+            return redirect("my_account")
+        if user.email_verified:
+            messages.warning(request, "Email has already been verified")
+            return redirect("my_account")
         send_email_verification.delay_on_commit(user.id)
         messages.success(request, "Verification email sent successfully")
         return redirect("my_account")
