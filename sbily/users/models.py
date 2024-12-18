@@ -96,7 +96,6 @@ class Token(models.Model):
         help_text=_("Type of token"),
     )
     expires_at = models.DateTimeField(
-        default=datetime.now(UTC) + DEFAULT_EXPIRY,
         db_index=True,
         editable=False,
         help_text=_("Token expiration date and time"),
@@ -120,6 +119,8 @@ class Token(models.Model):
         return f"{self.user.username} - {self.type} - {self.token}"
 
     def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = datetime.now(UTC) + self.DEFAULT_EXPIRY
         if not self.token:
             self.token = generate_token()
         super().save(*args, **kwargs)

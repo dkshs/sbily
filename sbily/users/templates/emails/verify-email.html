@@ -1,6 +1,33 @@
-Dear {{ name }},
+<html>
+  <body>
+    <head>
+      <style>
+        .main {
+          font-size: medium;
+          font-weight: 500;
+        }
 
-Please verify your email address by clicking <a href="{{ verify_email_link }}" target="_blank" rel="noopener noreferrer">here</a>.
+        .footer p {
+          margin: 0;
+        }
+      </style>
+    </head>
 
-Best regards,
-The Sbily Team.
+    <div class="main">
+      <p>Dear {{ name }},</p>
+
+      <p>
+        Please verify your email address by clicking
+        <a href="{{ verify_email_link }}" target="_blank" rel="noopener noreferrer">
+          here
+        </a>.
+      </p>
+
+      <div class="footer">
+        <p>Best regards,</p>
+        <p>The Sbily Team.</p>
+      </div>
+    </div>
+  </body>
+</html>
+

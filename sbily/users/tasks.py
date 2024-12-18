@@ -1,11 +1,13 @@
 from celery import shared_task
+from django.conf import settings
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 
 from .models import User
 
 
-def send_email_to_user(user: User, subject: str, template: str, **kwargs):
+def send_email_to_user(user: User, subject: str, template: str, **kwargs) -> bool:
     """Send an email to a user.
 
     Args:
@@ -13,15 +15,26 @@ def send_email_to_user(user: User, subject: str, template: str, **kwargs):
         subject: Email subject line
         template: Email template to use
         **kwargs: Additional context data for the email template
-    """
 
-    context = {"user": user, "name": user.get_short_name(), **kwargs}
-    message = render_to_string(template, context)
-    user.email_user(
-        subject=subject,
-        message=message,
-        fail_silently=False,
-    )
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+    """
+    try:
+        context = {"user": user, "name": user.get_short_name()} | kwargs
+        message = render_to_string(template, context)
+        from_email = settings.DEFAULT_FROM_EMAIL
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=[user.email],
+            fail_silently=False,
+            html_message=message,
+        )
+    except Exception:  # noqa: BLE001
+        return False
+    else:
+        return True
 
 
 @shared_task(bind=True, name="send_welcome_email", max_retries=3)
