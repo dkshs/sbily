@@ -9,7 +9,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from .utils import generate_token
+from .utils.data import generate_token
 
 BASE_URL = settings.BASE_URL.removesuffix("/")
 
@@ -58,11 +58,17 @@ class User(AbstractUser):
         return super().get_short_name() or self.username
 
     def get_verify_email_link(self):
+        if not self.email:
+            raise ValidationError(_("User has no email address"))
         if self.email_verified:
-            return None
+            raise ValidationError(_("User email is already verified"))
+
         token = self.tokens.filter(
             type="email_verification",
         ).first() or self.tokens.create(type="email_verification")
+        if token.is_expired():
+            token.renew()
+
         return BASE_URL + reverse(
             "verify_email",
             kwargs={"token": token.token},

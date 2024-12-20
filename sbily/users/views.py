@@ -14,7 +14,7 @@ from sbily.users.models import User
 
 from .tasks import send_email_verification
 from .tasks import send_welcome_email
-from .utils import validate
+from .utils.data import validate
 
 MIN_PASSWORD_LENGTH = 8
 
