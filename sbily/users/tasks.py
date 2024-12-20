@@ -1,3 +1,6 @@
+import logging
+from typing import Any
+
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
@@ -5,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 
 from .models import User
+
+logger = logging.getLogger(__name__)
 
 
 def send_email_to_user(user: User, subject: str, template: str, **kwargs) -> bool:
@@ -31,18 +36,39 @@ def send_email_to_user(user: User, subject: str, template: str, **kwargs) -> boo
             fail_silently=False,
             html_message=message,
         )
-    except Exception:  # noqa: BLE001
+    except Exception as e:
+        logger.exception(f"Failed to send email to {user.email}: {e!s}")
         return False
     else:
         return True
 
 
+def get_task_response(
+    status: str,
+    message: str,
+    user_id: int,
+    error: str | None = None,
+) -> dict[str, Any]:
+    """Helper function to standardize task responses"""
+    response = {
+        "status": status,
+        "message": message,
+        "user_id": user_id,
+    }
+    if error:
+        response["error"] = error
+    return response
+
+
 @shared_task(bind=True, name="send_welcome_email", max_retries=3)
-def send_welcome_email(self, user_id: int):
+def send_welcome_email(self, user_id: int) -> dict[str, Any]:
     """Send welcome email to newly registered user.
 
     Args:
         user_id: ID of user to send email to
+
+    Returns:
+        Dict containing task status and details
     """
 
     try:
@@ -51,53 +77,65 @@ def send_welcome_email(self, user_id: int):
 
         subject = f"Welcome to Sbily, {name}!"
         template = "emails/welcome.html"
-        send_email_to_user(user, subject, template)
+        if not send_email_to_user(user, subject, template):
+            raise Exception("Failed to send welcome email")
+
         send_email_verification.delay_on_commit(user.id)
 
-    except Exception as exc:  # noqa: BLE001
-        self.retry(exc=exc, countdown=60)  # Retry after 1 minute
-        return {
-            "status": "FAILED",
-            "message": f"Failed to send welcome email to user {user_id}.",
-            "error": str(exc),
-        }
-    else:
-        return {
-            "status": "COMPLETED",
-            "message": f"Welcome email sent to {user.username}.",
-            "user_id": user_id,
-        }
+    except Exception as exc:
+        logger.exception(f"Error in welcome email task for user {user_id}: {exc!s}")
+        self.retry(exc=exc, countdown=60)
+        return get_task_response(
+            "FAILED",
+            f"Failed to send welcome email to user {user_id}.",
+            user_id,
+            str(exc),
+        )
+
+    return get_task_response(
+        "COMPLETED",
+        f"Welcome email sent to {user.username}.",
+        user_id,
+    )
 
 
 @shared_task(bind=True, name="send_email_verification", max_retries=3)
-def send_email_verification(self, user_id: int):
+def send_email_verification(self, user_id: int) -> dict[str, Any]:
     """Send email verification link to user.
 
     Args:
         user_id: ID of user to send verification email to
+
+    Returns:
+        Dict containing task status and details
     """
     try:
         user = get_object_or_404(User, id=user_id)
 
         subject = "Verify your email address"
         template = "emails/verify-email.html"
-        send_email_to_user(
+        if not send_email_to_user(
             user,
             subject,
             template,
             verify_email_link=user.get_verify_email_link(),
+        ):
+            raise Exception("Failed to send verification email")
+
+    except Exception as exc:
+        logger.exception(
+            f"Error in verification email task for user {user_id}: {exc!s}"
+        )
+        self.retry(exc=exc, countdown=60)
+        return get_task_response(
+            "FAILED",
+            f"Failed to send verification email to user {user_id}.",
+            user_id,
+            str(exc),
         )
 
-    except Exception as exc:  # noqa: BLE001
-        self.retry(exc=exc, countdown=60)  # Retry after 1 minute
-        return {
-            "status": "FAILED",
-            "message": f"Failed to send verification email to user {user_id}.",
-            "error": str(exc),
-        }
-    else:
-        return {
-            "status": "COMPLETED",
-            "message": f"Verification email sent to {user.username}.",
-            "user_id": user_id,
-        }
+    return get_task_response(
+        "COMPLETED",
+        f"Verification email sent to {user.username}.",
+        user_id,
+    )
