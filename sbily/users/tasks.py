@@ -86,7 +86,7 @@ def send_email_verification(self, user_id: int) -> dict[str, Any]:
         except MaxRetriesExceededError:
             return get_task_response(
                 "FAILED",
-                f"Failed to send verification email to user {user_id} after max retries.",
+                f"Failed to send verification email to user {user_id} after max retries.",  # noqa: E501
                 str(exc),
                 user_id=user_id,
             )
