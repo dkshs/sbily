@@ -229,5 +229,9 @@ CELERY_TASK_SOFT_TIME_LIMIT = 60
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-send-task-events
 CELERY_WORKER_SEND_TASK_EVENTS = True
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-concurrency
+CELERY_WORKER_CONCURRENCY = 4
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-max-tasks-per-child
+CELERY_MAX_TASKS_PER_CHILD = 4
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std-setting-task_send_sent_event
 CELERY_TASK_SEND_SENT_EVENT = True
