@@ -6,7 +6,7 @@ watchfiles==1.0.3  # https://github.com/samuelcolvin/watchfiles
 
 # Testing
 # ------------------------------------------------------------------------------
-mypy==1.13.0  # https://github.com/python/mypy
+mypy==1.14.0  # https://github.com/python/mypy
 
 # Code quality
 # ------------------------------------------------------------------------------
