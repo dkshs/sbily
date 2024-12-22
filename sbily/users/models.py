@@ -59,9 +59,9 @@ class User(AbstractUser):
 
     def get_verify_email_link(self):
         if not self.email:
-            raise ValidationError(_("User has no email address"))
+            raise ValidationError(_("User has no email address"), code="no_email")
         if self.email_verified:
-            raise ValidationError(_("User email is already verified"))
+            raise ValidationError(_("User email is already verified"), code="verified")
 
         token = self.tokens.filter(
             type="email_verification",
@@ -155,6 +155,14 @@ class Token(models.Model):
     def clean(self):
         super().clean()
         if self.is_expired():
-            raise ValidationError(_("This token has expired."))
+            raise ValidationError(_("This token has expired."), code="expired")
         if self.type == "email_verification" and self.user.email_verified:
-            raise ValidationError(_("This email has already been verified."))
+            raise ValidationError(
+                _("This email has already been verified."),
+                code="verified",
+            )
+        if self.type == "password_reset" and not self.user.email_verified:
+            raise ValidationError(
+                _("This email has not been verified."),
+                code="unverified",
+            )
