@@ -11,10 +11,10 @@ from django.shortcuts import render
 from sbily.links.models import ShortenedLink
 from sbily.users.models import Token
 from sbily.users.models import User
+from sbily.utils.data import validate
 
 from .tasks import send_email_verification
 from .tasks import send_welcome_email
-from .utils.data import validate
 
 MIN_PASSWORD_LENGTH = 8
 
