@@ -27,27 +27,34 @@ def home(request):
 def create_link(request: HttpRequest):
     if request.method != "POST":
         return redirect("home")
+    next_path = request.POST.get("next_path") or "home"
     original_link = request.POST.get("original_link") or ""
     shortened_link = request.POST.get("shortened_link") or ""
-    is_temporary = request.POST.get("is_temporary") == "on" or False
+    is_temporary = request.POST.get("is_temporary") == "on"
+
     if not validate([original_link]):
-        messages.error(request, "Please enter an original link")
-        return redirect("home")
+        messages.error(request, "Please enter a valid original link")
+        return redirect(next_path)
+
     try:
-        link = ShortenedLink.objects.create(
-            original_link=original_link,
-            shortened_link=shortened_link,
-            user=request.user,
-            remove_at=datetime.now(UTC) + timedelta(days=1) if is_temporary else None,
-        )
+        link_data = {
+            "original_link": original_link,
+            "shortened_link": shortened_link,
+            "user": request.user,
+        }
+
+        if is_temporary:
+            link_data["remove_at"] = datetime.now(UTC) + timedelta(days=1)
+
+        link = ShortenedLink.objects.create(**link_data)
         messages.success(request, "Link created successfully")
         return redirect("link", shortened_link=link.shortened_link)
     except ValidationError as e:
         messages.error(request, e.messages[0])
-        return redirect("home")
+        return redirect(next_path)
     except Exception:
         messages.error(request, "An error occurred")
-        return redirect("home")
+        return redirect(next_path)
 
 
 def redirect_link(request, shortened_link):
