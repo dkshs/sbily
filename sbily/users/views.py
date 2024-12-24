@@ -14,6 +14,7 @@ from sbily.users.models import User
 from sbily.utils.data import validate
 
 from .tasks import send_email_verification
+from .tasks import send_password_changed_email
 from .tasks import send_welcome_email
 
 MIN_PASSWORD_LENGTH = 8
@@ -204,6 +205,7 @@ def change_password(request: HttpRequest):
             return redirect("change_password")
         user.set_password(new_password)
         user.save()
+        send_password_changed_email.delay_on_commit(request.user.id)
         messages.success(request, "Successful updated password")
     return render(request, "change_password.html")
 

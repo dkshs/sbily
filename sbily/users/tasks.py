@@ -101,3 +101,45 @@ def send_email_verification(self, user_id: int) -> dict[str, Any]:
         f"Verification email sent to {user.username}.",
         user_id=user_id,
     )
+
+
+@shared_task(
+    bind=True,
+    name="send_password_changed_email",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_password_changed_email(self, user_id: int) -> dict[str, Any]:
+    """Send email informing user that their password has been changed.
+
+    Args:
+        user_id: ID of user to send email to
+    """
+    try:
+        user = get_object_or_404(User, id=user_id)
+
+        subject = "Your password has been changed!"
+        template = "emails/password-changed.html"
+
+        send_email_to_user(user, subject, template)
+    except Exception as exc:
+        try:
+            self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            return get_task_response(
+                "FAILED",
+                f"Failed to send password changed email to user {user_id} after max retries.",  # noqa: E501
+                str(exc),
+                user_id=user_id,
+            )
+        return get_task_response(
+            "RETRY",
+            f"Retrying password changed email for user {user_id}",
+            str(exc),
+            user_id=user_id,
+        )
+    return get_task_response(
+        "COMPLETED",
+        f"Password changed email sent to {user.username}.",
+        user_id=user_id,
+    )
