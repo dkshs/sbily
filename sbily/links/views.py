@@ -107,50 +107,62 @@ def link(request, shortened_link):
 
 
 @login_required
-def update_link(request, shortened_link):
+def update_link(request: HttpRequest, shortened_link: str):
     if request.method != "POST":
         return redirect("my_account")
+
+    old_shortened_link = shortened_link
+
     try:
-        link = ShortenedLink.objects.get(
+        link = ShortenedLink.objects.select_for_update().get(
             shortened_link=shortened_link,
             user=request.user,
         )
-        original_link = request.POST.get("original_link") or ""
-        shortened_link = request.POST.get("shortened_link") or ""
-        is_active = request.POST.get("is_active") == "on" or False
-        is_temporary = request.POST.get("is_temporary") == "on" or False
 
-        if not validate([original_link]):
-            messages.error(request, "Please enter an original link")
-            return redirect("link", link.shortened_link)
+        form_data = {
+            "original_link": request.POST.get("original_link", "").strip(),
+            "shortened_link": request.POST.get("shortened_link", "").strip(),
+            "is_active": request.POST.get("is_active") == "on",
+            "is_temporary": request.POST.get("is_temporary") == "on",
+        }
+
+        if not validate([form_data["original_link"]]):
+            msg = "Please enter a valid original link"
+            raise ValidationError(msg)  # noqa: TRY301
 
         if (
-            original_link == link.original_link
-            and shortened_link == link.shortened_link
-            and is_active == link.is_active
-            and is_temporary == (link.remove_at is not None)
+            form_data["original_link"] == link.original_link
+            and form_data["shortened_link"] == link.shortened_link
+            and form_data["is_active"] == link.is_active
+            and form_data["is_temporary"] == bool(link.remove_at)
         ):
             messages.warning(request, "No changes were made")
-            return redirect("link", link.shortened_link)
+            return redirect("link", old_shortened_link)
 
-        old_shortened_link = link.shortened_link
-        link.original_link = original_link
-        link.shortened_link = shortened_link
-        link.is_active = is_active
-        link.remove_at = datetime.now(UTC) + timedelta(days=1) if is_temporary else None
+        link.original_link = form_data["original_link"]
+        link.shortened_link = form_data["shortened_link"]
+        link.is_active = form_data["is_active"]
+        link.remove_at = (
+            datetime.now(UTC) + timedelta(days=1) if form_data["is_temporary"] else None
+        )
+
         link.save()
 
         messages.success(request, "Link updated successfully")
         return redirect("link", link.shortened_link)
+
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
         return redirect("my_account")
     except ValidationError as e:
-        messages.error(request, e.messages[0])
+        messages.error(
+            request,
+            str(e) if isinstance(e.messages, str) else e.messages[0],
+        )
         return redirect("link", old_shortened_link)
-    except Exception:
-        messages.error(request, "An error occurred")
-        return redirect("home")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e!s}")
+        return redirect("my_account")
 
 
 @login_required
