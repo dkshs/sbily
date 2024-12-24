@@ -14,7 +14,6 @@ from django.shortcuts import render
 from sbily.utils.data import validate
 
 from .models import ShortenedLink
-from .utils import can_user_create_link
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 
@@ -26,7 +25,7 @@ def home(request):
 
 @login_required
 def create_link(request: HttpRequest):
-    if request.method != "POST" or not can_user_create_link(request):
+    if request.method != "POST":
         return redirect("home")
     original_link = request.POST.get("original_link") or ""
     shortened_link = request.POST.get("shortened_link") or ""

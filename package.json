@@ -14,7 +14,7 @@
   "scripts": {
     "tailwind": "tailwindcss -i ./sbily/tailwind.css -o ./sbily/static/css/styles.css",
     "tailwind:build": "npm run tailwind -- -m",
-    "tailwind:dev": "npm run tailwind -- -w",
+    "tailwind:dev": "npm run tailwind -- -w -m",
     "dev": "nodemon -x npm run tailwind:dev"
   },
   "devDependencies": {

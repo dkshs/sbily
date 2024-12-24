@@ -18,6 +18,8 @@ class UserAdmin(auth_admin.UserAdmin):
             _("Permissions"),
             {
                 "fields": (
+                    "max_num_links",
+                    "max_num_links_temporary",
                     "is_active",
                     "is_staff",
                     "is_superuser",

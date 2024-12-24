@@ -88,7 +88,15 @@
     {% include "partials/create_link_form.html" with width="full" %}
     <div class="flex flex-col justify-center p-6 border rounded-md relative">
       <h2 class="text-2xl font-bold">My links</h2>
-      <div class="border rounded-md mt-4 pb-2">
+      <div class="mt-1 flex flex-wrap gap-0.5">
+        <span class="badge-default">
+          You have {{ user.link_num.links }} of {{ user.max_num_links }} links.
+        </span>
+        <span class="badge-yellow">
+          You have {{ user.link_num.temp_links }} of {{ user.max_num_links_temporary }} temporary links.
+        </span>
+      </div>
+      <div class="border rounded-md mt-2 pb-2">
         <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
           <table class="w-full caption-bottom text-sm">
             <caption class="mt-4 text-sm text-muted-foreground">

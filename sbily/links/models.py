@@ -111,6 +111,18 @@ class ShortenedLink(models.Model):
         path = reverse("redirect_link", kwargs={"shortened_link": self.shortened_link})
         return urljoin(SITE_BASE_URL, path)
 
+    def clean(self):
+        user = self.user
+        if not user.can_create_link() and not user.can_create_temporary_link():
+            raise ValidationError(
+                _(
+                    "You have reached the maximum number of links allowed for your account. "  # noqa: E501
+                    "Please upgrade your account to create more links.",
+                ),
+                code="max_links_reached",
+            )
+        return super().clean()
+
     def _generate_unique_shortened_link(self) -> None:
         """Helper method to generate unique shortened link with retries"""
         for retry in range(self.MAX_RETRIES):

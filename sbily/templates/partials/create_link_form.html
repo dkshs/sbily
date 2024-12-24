@@ -4,7 +4,24 @@
   action="{% url 'create_link' %}"
 >
   {% csrf_token %}
-  <h2 class="text-2xl font-bold mb-6">Create link</h2>
+  <h2 class="text-2xl font-bold">Create link</h2>
+  <div class="mt-1 mb-6 flex flex-col gap-1">
+    <span class="badge-default">
+      {% if user.link_num_left.links > 0 %}
+        You can create {{ user.link_num_left.links }} link{% if user.link_num_left.links > 1 %}s{% endif %}.
+      {% else %}
+        You no longer have quota to create links.
+      {% endif %}
+    </span>
+    <span class="badge-yellow">
+      {% if user.link_num_left.temp_links > 0 %}
+        You can create {{ user.link_num_left.temp_links }} temporary
+        link{% if user.link_num_left.temp_links > 1 %}s{% endif %}.
+      {% else %}
+        You no longer have quota to create temporary links.
+      {% endif %}
+    </span>
+  </div>
   <div class="flex flex-col gap-3 mb-6">
     <label for="original_link" class="label">Enter where this link goes:</label>
     <input
@@ -37,7 +54,18 @@
   </div>
   <div class="flex gap-1 mb-6">
     <label for="is_temporary" class="label">Temporary link:</label>
-    <input type="checkbox" id="is_temporary" name="is_temporary" />
+    <input
+      type="checkbox"
+      id="is_temporary"
+      name="is_temporary"
+      {% if user.link_num_left.temp_links < 1 %}disabled{% endif %}
+    />
   </div>
-  <button type="submit" class="button-primary">Create</button>
+  <button
+    type="submit"
+    class="button-primary"
+    {% if user.link_num_left.links < 1 and user.link_num_left.temp_links < 1 %}disabled{% endif %}
+  >
+    Create
+  </button>
 </form>
