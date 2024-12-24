@@ -100,10 +100,10 @@ def link(request, shortened_link):
         )
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
-        return redirect("home")
+        return redirect("my_account")
     except Exception:
         messages.error(request, "An error occurred")
-        return redirect("home")
+        return redirect("my_account")
 
 
 @login_required
