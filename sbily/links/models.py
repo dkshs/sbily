@@ -13,6 +13,8 @@ from django.utils.translation import gettext_lazy as _
 
 from sbily.users.models import User
 
+from .utils import user_can_create_link
+
 SITE_BASE_URL = settings.BASE_URL or ""
 
 
@@ -112,15 +114,7 @@ class ShortenedLink(models.Model):
         return urljoin(SITE_BASE_URL, path)
 
     def clean(self):
-        user = self.user
-        if not user.can_create_link() and not user.can_create_temporary_link():
-            raise ValidationError(
-                _(
-                    "You have reached the maximum number of links allowed for your account. "  # noqa: E501
-                    "Please upgrade your account to create more links.",
-                ),
-                code="max_links_reached",
-            )
+        user_can_create_link(self.id, self.remove_at, self.user)
         return super().clean()
 
     def _generate_unique_shortened_link(self) -> None:

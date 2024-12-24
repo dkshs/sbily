@@ -55,7 +55,13 @@
         </div>
         <div class="flex gap-1">
           <label for="is_temporary" class="label">Link is temporary:</label>
-          <input type="checkbox" id="is_temporary" name="is_temporary" {% if link.remove_at %}checked{% endif %} />
+          <input
+            type="checkbox"
+            id="is_temporary"
+            name="is_temporary"
+            {% if link.remove_at %}checked{% endif %}
+            {% if user.link_num_left.temp_links < 1 %}disabled{% endif %}
+          />
         </div>
         <div class="flex items-center flex-wrap gap-2 mt-2">
           <button type="submit" class="button-primary w-fit">Update link</button>
