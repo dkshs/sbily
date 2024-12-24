@@ -27,7 +27,7 @@ def user_can_create_link(
 
     link = user.shortened_links.get(id=link_id) if link_id else None
 
-    def validate_link_creation(**is_temporary: bool) -> None:
+    def validate_link_creation(is_temporary: bool) -> None:  # noqa: FBT001
         if is_temporary and not user.can_create_temporary_link():
             raise ValidationError(error_message, code=error_code)
         if not is_temporary and not user.can_create_link():
