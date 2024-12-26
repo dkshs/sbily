@@ -1,0 +1,48 @@
+<html>
+  <body>
+    <head>
+      <style>
+        .main {
+          font-size: medium;
+          font-weight: 500;
+        }
+        .main p {
+          margin: 0;
+        }
+
+        .title {
+          font-size: large;
+          font-weight: bold;
+        }
+        .content {
+          margin-top: 8px;
+        }
+        .content_info {
+          margin-top: 16px;
+        }
+        .footer {
+          margin-top: 18px;
+        }
+      </style>
+    </head>
+
+    <div class="main">
+      <h1 class="title">Your links have been deleted</h1>
+
+      <div class="content">
+        <p>Hi, {{ name }}!</p>
+
+        <div class="content_info">
+          <p>This is an automatic notification to inform you that a total</p>
+          <p>of {{ links_count }} links have been deleted due to exceeding your account limits.</p>
+          <p>Please upgrade your account to a higher level or purchase more links!</p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Best regards,</p>
+        <p>The Sbily Team.</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -64,6 +64,12 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
         if link_num_temp > 0:
             links_to_delete = links.filter(remove_at__isnull=False)[:link_num_temp]
             deleted_count += links.filter(pk__in=links_to_delete).delete()[0]
+        if link_num > 0 or link_num_temp > 0:
+            user.email_user(
+                "Your links have been deleted",
+                "emails/links_deleted.html",
+                links_count=deleted_count,
+            )
 
     return get_task_response(
         "COMPLETED",
