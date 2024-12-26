@@ -20,10 +20,21 @@ from .models import ShortenedLink
 def delete_expired_links(self) -> dict[str, str | int]:
     """Delete expired links from the database"""
 
-    expired_links = ShortenedLink.objects.select_for_update().filter(
+    expired_links = ShortenedLink.objects.filter(
         remove_at__lte=datetime.now(tz=UTC),
     )
+    expired_links_backup = list(expired_links)
     deleted_count = expired_links.delete()[0]
+    if deleted_count > 0:
+        users = [link.user for link in expired_links_backup]
+        for user in set(users):
+            links = [link for link in expired_links_backup if link.user == user]
+            user.email_user(
+                "Your links have expired",
+                "emails/links_expired.html",
+                links=links,
+                links_count=len(links),
+            )
     return get_task_response(
         "COMPLETED",
         f"Deleted {deleted_count} expired links.",
