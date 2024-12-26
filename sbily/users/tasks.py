@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404
 from sbily.utils.tasks import get_task_response
 
 from .models import User
-from .utils.email import send_email_to_user
 
 
 @shared_task(
@@ -31,7 +30,7 @@ def send_welcome_email(self, user_id: int) -> dict[str, Any]:
         subject = f"Welcome to Sbily, {name}!"
         template = "emails/welcome.html"
 
-        send_email_to_user(user, subject, template)
+        user.email_user(subject, template)
         send_email_verification.apply_async([user.id], countdown=5)
     except Exception as exc:
         try:
@@ -74,8 +73,7 @@ def send_email_verification(self, user_id: int) -> dict[str, Any]:
         subject = "Verify your email address"
         template = "emails/verify-email.html"
         verify_email_link = user.get_verify_email_link()
-        send_email_to_user(
-            user,
+        user.email_user(
             subject,
             template,
             verify_email_link=verify_email_link,
@@ -121,7 +119,7 @@ def send_password_changed_email(self, user_id: int) -> dict[str, Any]:
         subject = "Your password has been changed!"
         template = "emails/password-changed.html"
 
-        send_email_to_user(user, subject, template)
+        user.email_user(subject, template)
     except Exception as exc:
         try:
             self.retry(exc=exc)

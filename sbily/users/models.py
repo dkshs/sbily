@@ -136,6 +136,28 @@ class User(AbstractUser):
         path = reverse("verify_email", kwargs={"token": token.token})
         return urljoin(BASE_URL, path)
 
+    def email_user(
+        self,
+        subject: str,
+        template: str,
+        **kwargs,
+    ):
+        """Send an email to a user with given subject and template.
+
+        Args:
+            subject: Email subject
+            template: Path to the email template
+            **kwargs: Additional context data for the email template
+        """
+        from .utils.email import send_email_to_user
+
+        send_email_to_user(
+            self,
+            subject,
+            template,
+            **kwargs,
+        )
+
 
 class Token(models.Model):
     """Token model for email verification and password reset"""

@@ -127,9 +127,6 @@ def verify_email(request: HttpRequest, token: str):
 def resend_verify_email(request: HttpRequest):
     try:
         user = request.user
-        if not user.email:
-            messages.error(request, "No email found")
-            return redirect("my_account")
         if user.email_verified:
             messages.warning(request, "Email has already been verified")
             return redirect("my_account")
