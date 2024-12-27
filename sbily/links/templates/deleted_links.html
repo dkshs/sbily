@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Deleted links{% endblock title %}
+
+{% block content %}
+  <div class="my-16 flex flex-col justify-center max-w-xl mx-auto gap-4">
+    <div class="flex flex-col justify-center p-6 border rounded-md relative">
+      <h2 class="text-2xl font-bold">My deleted links</h2>
+      <div class="border rounded-md mt-2 pb-2">
+        <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
+          <table class="w-full caption-bottom text-sm">
+            <caption class="mt-4 text-sm text-muted-foreground">
+              A list of your deleted links.
+            </caption>
+            <thead>
+              <tr class="border-b duration-200 hover:bg-muted/50">
+                <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
+                <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Remove in</th>
+                <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for link in links %}
+                <tr class="border-b duration-200 hover:bg-muted/50 focus-within:bg-muted/50">
+                  <td class="flex items-center gap-1 px-4 py-2 align-middle font-medium text-lg">
+                    {{ link.shortened_link }}
+                    {% if link.remove_at %}
+                      <span class="mt-1" title="This link is temporary" aria-label="This link is temporary">
+                        <i class="ph-bold ph-clock-countdown text-xl text-yellow-500"></i>
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2 text-center align-middle font-medium">
+                    <span
+                      aria-label="This link will be removed in {{ link.time_until_permanent_deletion_formatted }}"
+                      title="This link will be removed in {{ link.time_until_permanent_deletion_formatted }}"
+                      class="text-lg"
+                    >
+                      {{ link.time_until_permanent_deletion_formatted }}
+                    </span>
+                  </td>
+                  <td class="flex justify-center gap-1.5 px-4 py-2 align-middle font-medium">
+                    <button
+                      type="button"
+                      class="button-outline p-2"
+                      onclick="handle_menu('dropdown-menu-content-{{ link.id }}')"
+                      aria-expanded="false"
+                      aria-label="Open action menu for link {{ link.shortened_link }}"
+                      title="Open action menu for link {{ link.shortened_link }}"
+                    >
+                      <i class="ph-bold ph-dots-three"></i>
+                    </button>
+                    <div
+                      id="dropdown-menu-content-{{ link.id }}"
+                      class="hidden absolute right-0 flex-col z-20 p-1 border bg-secondary rounded-md w-40 opacity-0 sm:right-4"
+                    >
+                      <a href="{% url 'restore_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                        <i class="ph-bold ph-clock-clockwise text-primary text-lg"></i> Restore link
+                      </a>
+                      <a href="{% url 'remove_deleted_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                        <i class="ph-bold ph-trash text-red-600 text-lg"></i> Delete
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

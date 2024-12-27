@@ -1,11 +1,12 @@
-from datetime import UTC
-from datetime import datetime
+from collections import defaultdict
 
 from celery import shared_task
+from django.utils import timezone
 
 from sbily.users.models import User
 from sbily.utils.tasks import get_task_response
 
+from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 
@@ -19,29 +20,28 @@ from .models import ShortenedLink
 )
 def delete_expired_links(self) -> dict[str, str | int]:
     """Delete expired links from the database"""
-    expired_links = ShortenedLink.objects.select_related("user").filter(
-        remove_at__lte=datetime.now(tz=UTC),
+    expired_links = ShortenedLink.objects.filter(
+        remove_at__lte=timezone.now(),
     )
-    expired_links_backup = list(expired_links)
-    deleted_count = expired_links.delete()[0]
+    deleted_count = 0
 
-    if deleted_count > 0:
-        user_links = {}
-        for link in expired_links_backup:
-            if link.user not in user_links:
-                user_links[link.user] = []
-            user_links[link.user].append(link)
+    user_links = defaultdict(list)
+    for link in expired_links:
+        user_links[link.user].append(link)
+        link.delete()
+        deleted_count += 1
 
-        for user, links in user_links.items():
-            user.email_user(
-                "Your links have expired",
-                "emails/links_expired.html",
-                links=links,
-                links_count=len(links),
-            )
+    for user, links in user_links.items():
+        user.email_user(
+            "Your links have expired",
+            "emails/links_expired.html",
+            links=links,
+            links_count=len(links),
+        )
     return get_task_response(
         "COMPLETED",
         f"Deleted {deleted_count} expired links.",
+        deleted_count=deleted_count,
     )
 
 
@@ -54,7 +54,7 @@ def delete_expired_links(self) -> dict[str, str | int]:
     max_retries=3,
 )
 def delete_excess_user_links(self) -> dict[str, str | int]:
-    """Delete excess links for users who have exceeded their link limits"""
+    """Delete excess links for users that have exceeded their link limit."""
     users = User.objects.filter(is_superuser=False).select_related()
     total_deleted_count = 0
 
@@ -84,4 +84,29 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
     return get_task_response(
         "COMPLETED",
         f"Deleted {total_deleted_count} excess links for users.",
+    )
+
+
+@shared_task(
+    bind=True,
+    name="cleanup_deleted_shortened_links",
+    acks_late=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    max_retries=3,
+)
+def cleanup_deleted_shortened_links(self) -> dict[str, str | int]:
+    """Permanently deletes links that have been deleted."""
+    links_to_delete = DeletedShortenedLink.objects.filter(
+        user__is_superuser=False,
+    )
+    deleted_count = sum(
+        link.delete()[0]
+        for link in links_to_delete
+        if link.time_until_permanent_deletion <= timezone.now()
+    )
+    return get_task_response(
+        "COMPLETED",
+        f"Permanently deleted {deleted_count} deleted links.",
+        deleted_count=deleted_count,
     )

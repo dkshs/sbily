@@ -41,3 +41,16 @@ def user_can_create_link(
         return
 
     validate_link_creation(is_temporary=link_remove_at is not None)
+
+
+def filter_dict(data: dict, exclude_keys: set) -> dict:
+    """Remove specified keys from a dictionary.
+
+    Args:
+        data (dict): The original dictionary.
+        exclude_keys (set): A set of keys to exclude from the dictionary.
+
+    Returns:
+        dict: The filtered dictionary without the specified keys.
+    """
+    return {k: v for k, v in data.items() if k not in exclude_keys}

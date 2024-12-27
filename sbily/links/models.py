@@ -9,23 +9,25 @@ from django.db import models
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.timesince import timesince
 from django.utils.translation import gettext_lazy as _
 
 from sbily.users.models import User
 
+from .utils import filter_dict
 from .utils import user_can_create_link
 
 SITE_BASE_URL = settings.BASE_URL or ""
 
 
-def future_date_validator(value):
+def future_date_validator(value: timezone.datetime) -> None:
     if value <= timezone.now() + timezone.timedelta(minutes=1):
         raise ValidationError(
-            _("The remove_at date must be at least 1 minutes in the future."),
+            _("The remove_at date must be at least 1 minute in the future."),
         )
 
 
-class ShortenedLink(models.Model):
+class AbstractShortenedLink(models.Model):
     SHORTENED_LINK_PATTERN = r"^[a-zA-Z0-9-_]*$"
     SHORTENED_LINK_MAX_LENGTH = 10
     MAX_RETRIES = 3
@@ -90,6 +92,7 @@ class ShortenedLink(models.Model):
     )
 
     class Meta:
+        abstract = True
         verbose_name = _("Shortened Link")
         verbose_name_plural = _("Shortened Links")
         ordering = ["-created_at"]
@@ -113,10 +116,6 @@ class ShortenedLink(models.Model):
         path = reverse("redirect_link", kwargs={"shortened_link": self.shortened_link})
         return urljoin(SITE_BASE_URL, path)
 
-    def clean(self):
-        user_can_create_link(self.id, self.remove_at, self.user)
-        return super().clean()
-
     def _generate_unique_shortened_link(self) -> None:
         """Helper method to generate unique shortened link with retries"""
         for retry in range(self.MAX_RETRIES):
@@ -139,8 +138,7 @@ class ShortenedLink(models.Model):
 
     def is_expired(self) -> bool:
         """Check if the link has expired based on remove_at timestamp"""
-        now = timezone.now()
-        return bool(self.remove_at and self.remove_at <= now)
+        return bool(self.remove_at and self.remove_at <= timezone.now())
 
     def is_functional(self) -> bool:
         """Check if the link is functional based on is_active and remove_at timestamp"""
@@ -150,5 +148,58 @@ class ShortenedLink(models.Model):
         """Returns the time remaining until link expiration or None if permanent"""
         if not self.remove_at or self.is_expired():
             return None
-        now = timezone.now()
-        return self.remove_at - now
+        return self.remove_at - timezone.now()
+
+
+class ShortenedLink(AbstractShortenedLink):
+    @transaction.atomic
+    def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
+        data = filter_dict(self.__dict__.copy(), {"_state", "id"})
+        deleted = super().delete(*args, **kwargs)
+        DeletedShortenedLink.objects.create(**data)
+        return deleted
+
+    def clean(self) -> None:
+        user_can_create_link(self.id, self.remove_at, self.user)
+        super().clean()
+
+
+class DeletedShortenedLink(AbstractShortenedLink):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="deleted_shortened_links",
+        help_text=_("User who created this shortened link"),
+    )
+    removed_at = models.DateTimeField(
+        _("Removed At"),
+        auto_now_add=True,
+        db_index=True,
+        help_text=_("When this shortened link was removed"),
+    )
+
+    class Meta:
+        verbose_name = _("Deleted Shortened Link")
+        verbose_name_plural = _("Deleted Shortened Links")
+        ordering = ["-removed_at"]
+
+    @property
+    def time_until_permanent_deletion(self) -> timezone.timedelta:
+        """Returns the time remaining until permanent deletion"""
+        user = self.user
+        delete_links_days = 30 if user.is_premium or user.is_admin else 7
+        return timezone.now() + timezone.timedelta(days=delete_links_days)
+
+    @property
+    def time_until_permanent_deletion_formatted(self) -> str:
+        """
+        Returns the time remaining until permanent deletion in a human-readable format.
+        """
+        return timesince(timezone.now(), self.time_until_permanent_deletion)
+
+    @transaction.atomic
+    def restore(self) -> None:
+        """Restore the deleted shortened link"""
+        data = filter_dict(self.__dict__.copy(), {"_state", "id", "removed_at"})
+        ShortenedLink.objects.create(**data)
+        self.delete()

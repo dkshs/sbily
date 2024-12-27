@@ -8,28 +8,31 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 
 from sbily.utils.data import validate
 
+from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 
 
 @login_required
-def home(request):
+def home(request: HttpRequest) -> HttpResponse:
     return render(request, "home.html", {"LINK_BASE_URL": LINK_BASE_URL})
 
 
 @login_required
-def create_link(request: HttpRequest):
+def create_link(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return redirect("home")
-    next_path = request.POST.get("next_path") or "home"
-    original_link = request.POST.get("original_link") or ""
-    shortened_link = request.POST.get("shortened_link") or ""
+
+    next_path = request.POST.get("next_path", "home")
+    original_link = request.POST.get("original_link", "").strip()
+    shortened_link = request.POST.get("shortened_link", "").strip()
     is_temporary = request.POST.get("is_temporary") == "on"
 
     if not validate([original_link]):
@@ -50,14 +53,14 @@ def create_link(request: HttpRequest):
         messages.success(request, "Link created successfully")
         return redirect("link", shortened_link=link.shortened_link)
     except ValidationError as e:
-        messages.error(request, e.messages[0])
+        messages.error(request, str(e.messages[0]))
         return redirect(next_path)
-    except Exception:
-        messages.error(request, "An error occurred")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
         return redirect(next_path)
 
 
-def redirect_link(request, shortened_link):
+def redirect_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
     try:
         link = ShortenedLink.objects.get(shortened_link=shortened_link)
         if not link.is_functional():
@@ -69,13 +72,13 @@ def redirect_link(request, shortened_link):
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
         return redirect("home")
-    except Exception:
-        messages.error(request, "An error occurred")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
         return redirect("home")
 
 
 @login_required
-def link(request, shortened_link):
+def link(request: HttpRequest, shortened_link: str) -> HttpResponse:
     try:
         link = ShortenedLink.objects.get(
             shortened_link=shortened_link,
@@ -84,9 +87,9 @@ def link(request, shortened_link):
 
         deactivate = request.GET.get("deactivate")
         if deactivate is not None:
-            deactivate = deactivate == "True" or False
+            deactivate = deactivate.lower() == "true"
             link.is_active = not deactivate
-            link.save()
+            link.save(update_fields=["is_active"])
             messages.success(
                 request,
                 f"Link {'deactivated' if deactivate else 'activated'}",
@@ -101,13 +104,13 @@ def link(request, shortened_link):
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
         return redirect("my_account")
-    except Exception:
-        messages.error(request, "An error occurred")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
         return redirect("my_account")
 
 
 @login_required
-def update_link(request: HttpRequest, shortened_link: str):
+def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
     if request.method != "POST":
         return redirect("my_account")
 
@@ -161,12 +164,12 @@ def update_link(request: HttpRequest, shortened_link: str):
         )
         return redirect("link", old_shortened_link)
     except Exception as e:
-        messages.error(request, f"An error occurred: {e!s}")
+        messages.error(request, f"An error occurred: {e}")
         return redirect("my_account")
 
 
 @login_required
-def delete_link(request, shortened_link):
+def delete_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
     try:
         link = ShortenedLink.objects.get(
             shortened_link=shortened_link,
@@ -178,6 +181,54 @@ def delete_link(request, shortened_link):
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
         return redirect("my_account")
-    except Exception:
-        messages.error(request, "An error occurred")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
         return redirect("home")
+
+
+@login_required
+def deleted_links(request: HttpRequest) -> HttpResponse:
+    links = DeletedShortenedLink.objects.filter(user=request.user)
+    return render(request, "deleted_links.html", {"links": links})
+
+
+@login_required
+def restore_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+    try:
+        link = DeletedShortenedLink.objects.get(
+            shortened_link=shortened_link,
+            user=request.user,
+        )
+        link.restore()
+        messages.success(request, "Link restored successfully")
+        return redirect("deleted_links")
+    except DeletedShortenedLink.DoesNotExist:
+        messages.error(request, "Link deleted not found")
+        return redirect("deleted_links")
+    except ValidationError as e:
+        messages.error(
+            request,
+            str(e) if isinstance(e.messages, str) else e.messages[0],
+        )
+        return redirect("deleted_links")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        return redirect("deleted_links")
+
+
+@login_required
+def remove_deleted_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+    try:
+        link = DeletedShortenedLink.objects.get(
+            shortened_link=shortened_link,
+            user=request.user,
+        )
+        link.delete()
+        messages.success(request, "Link deleted successfully")
+        return redirect("deleted_links")
+    except DeletedShortenedLink.DoesNotExist:
+        messages.error(request, "Link deleted not found")
+        return redirect("deleted_links")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        return redirect("deleted_links")

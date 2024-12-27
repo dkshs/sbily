@@ -96,6 +96,12 @@
           You have {{ user.link_num.temp_links }} of {{ user.max_num_links_temporary }} temporary links.
         </span>
       </div>
+      <a
+        href="{% url "deleted_links" %}"
+        class="mt-2 mb-1 link-primary self-start"
+      >
+        See your deleted links
+      </a>
       <div class="border rounded-md mt-2 pb-2">
         <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
           <table class="w-full caption-bottom text-sm">

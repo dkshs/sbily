@@ -34,7 +34,7 @@
       required
     />
   </div>
-  <div class="flex flex-col mb-6">
+  <div class="flex flex-col mb-4">
     <label for="shortened_link" class="label mb-3">Enter how you want your link:</label>
     <div class="flex items-center">
       <label
@@ -53,14 +53,19 @@
     </div>
     <p class="text-sm font-medium w-fit text-foreground/80 mt-0.5 ml-0.5">*Optional</p>
   </div>
-  <div class="flex gap-1 mb-6">
-    <label for="is_temporary" class="label">Temporary link:</label>
-    <input
-      type="checkbox"
-      id="is_temporary"
-      name="is_temporary"
-      {% if user.link_num_left.temp_links < 1 %}disabled{% endif %}
-    />
+  <div class="flex flex-col mb-6 gap-1">
+    <div class="flex gap-1">
+      <label for="is_temporary" class="label">Temporary link:</label>
+      <input
+        type="checkbox"
+        id="is_temporary"
+        name="is_temporary"
+        {% if user.link_num_left.temp_links < 1 %}disabled{% endif %}
+      />
+    </div>
+    <span class="text-xs font-medium text-foreground/80">
+      NOTE: The link will be valid for 1 day.
+    </span>
   </div>
   <button
     type="submit"
