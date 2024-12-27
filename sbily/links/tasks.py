@@ -1,6 +1,9 @@
 from collections import defaultdict
+from urllib.parse import urljoin
 
 from celery import shared_task
+from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
 
 from sbily.users.models import User
@@ -8,6 +11,8 @@ from sbily.utils.tasks import get_task_response
 
 from .models import DeletedShortenedLink
 from .models import ShortenedLink
+
+SITE_BASE_URL = settings.BASE_URL or ""
 
 
 @shared_task(
@@ -20,24 +25,26 @@ from .models import ShortenedLink
 )
 def delete_expired_links(self) -> dict[str, str | int]:
     """Delete expired links from the database"""
-    expired_links = ShortenedLink.objects.filter(
+    expired_links = ShortenedLink.objects.select_related("user").filter(
         remove_at__lte=timezone.now(),
     )
-    deleted_count = 0
+    expired_links_backup = list(expired_links)
+    deleted_count = expired_links.delete()[0]
+    deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
 
-    user_links = defaultdict(list)
-    for link in expired_links:
-        user_links[link.user].append(link)
-        link.delete()
-        deleted_count += 1
+    if deleted_count > 0:
+        user_links = defaultdict(list)
+        for link in expired_links_backup:
+            user_links[link.user].append(link)
 
-    for user, links in user_links.items():
-        user.email_user(
-            "Your links have expired",
-            "emails/links_expired.html",
-            links=links,
-            links_count=len(links),
-        )
+        for user, links in user_links.items():
+            user.email_user(
+                "Your links have expired",
+                "emails/links_expired.html",
+                links=links,
+                links_count=len(links),
+                deleted_links_url=deleted_links_url,
+            )
     return get_task_response(
         "COMPLETED",
         f"Deleted {deleted_count} expired links.",
@@ -57,6 +64,7 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
     """Delete excess links for users that have exceeded their link limit."""
     users = User.objects.filter(is_superuser=False).select_related()
     total_deleted_count = 0
+    deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
 
     for user in users:
         links = user.shortened_links.order_by("-updated_at")
@@ -79,6 +87,7 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
                 "Your links have been deleted",
                 "emails/links_deleted.html",
                 links_count=user_deleted_count,
+                deleted_links_url=deleted_links_url,
             )
 
     return get_task_response(

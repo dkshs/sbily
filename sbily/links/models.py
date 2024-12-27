@@ -152,13 +152,6 @@ class AbstractShortenedLink(models.Model):
 
 
 class ShortenedLink(AbstractShortenedLink):
-    @transaction.atomic
-    def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
-        data = filter_dict(self.__dict__.copy(), {"_state", "id"})
-        deleted = super().delete(*args, **kwargs)
-        DeletedShortenedLink.objects.create(**data)
-        return deleted
-
     def clean(self) -> None:
         user_can_create_link(self.id, self.remove_at, self.user)
         super().clean()
