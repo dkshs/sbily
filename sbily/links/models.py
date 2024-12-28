@@ -23,7 +23,7 @@ SITE_BASE_URL = settings.BASE_URL or ""
 def future_date_validator(value: timezone.datetime) -> None:
     if value <= timezone.now() + timezone.timedelta(minutes=1):
         raise ValidationError(
-            _("The remove_at date must be at least 1 minute in the future."),
+            _("The removal date must be at least 1 minute in the future from now."),
         )
 
 
@@ -48,14 +48,16 @@ class AbstractShortenedLink(models.Model):
             RegexValidator(
                 regex=SHORTENED_LINK_PATTERN,
                 message=_(
-                    "Shortened link must be alphanumeric with hyphens and underscores only",  # noqa: E501
+                    "Shortened link must be alphanumeric with "
+                    "hyphens and underscores only",
                 ),
             ),
         ],
         error_messages={
             "unique": _("This shortened link already exists"),
-            "max_length": _("Shortened link must be at most %s characters long")
-            % SHORTENED_LINK_MAX_LENGTH,
+            "max_length": _(
+                "Shortened link must be at most {0} characters long",
+            ).format(SHORTENED_LINK_MAX_LENGTH),
         },
         help_text=_("The shortened URL path"),
     )
@@ -120,7 +122,7 @@ class AbstractShortenedLink(models.Model):
         """Helper method to generate unique shortened link with retries"""
         for retry in range(self.MAX_RETRIES):
             try:
-                self.shortened_link = secrets.token_urlsafe(6)[
+                self.shortened_link = secrets.token_urlsafe(8)[
                     : self.SHORTENED_LINK_MAX_LENGTH
                 ]
                 self.full_clean()
@@ -133,7 +135,10 @@ class AbstractShortenedLink(models.Model):
                     raise
                 if retry == self.MAX_RETRIES - 1:
                     raise ValidationError(
-                        _("Could not generate unique shortened link"),
+                        _(
+                            "Could not generate unique shortened link "
+                            "after {0} attempts",
+                        ).format(self.MAX_RETRIES),
                     ) from e
 
     def is_expired(self) -> bool:
@@ -158,6 +163,9 @@ class ShortenedLink(AbstractShortenedLink):
 
 
 class DeletedShortenedLink(AbstractShortenedLink):
+    PREMIUM_DELETE_DAYS = 30
+    REGULAR_DELETE_DAYS = 7
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -180,7 +188,11 @@ class DeletedShortenedLink(AbstractShortenedLink):
     def time_until_permanent_deletion(self) -> timezone.timedelta:
         """Returns the time remaining until permanent deletion"""
         user = self.user
-        delete_links_days = 30 if user.is_premium or user.is_admin else 7
+        delete_links_days = (
+            self.PREMIUM_DELETE_DAYS
+            if user.is_premium or user.is_admin
+            else self.REGULAR_DELETE_DAYS
+        )
         return timezone.now() + timezone.timedelta(days=delete_links_days)
 
     @property
