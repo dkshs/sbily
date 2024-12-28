@@ -40,7 +40,7 @@ def delete_expired_links(self) -> dict[str, str | int]:
         for user, links in user_links.items():
             user.email_user(
                 "Your links have expired",
-                "emails/links_expired.html",
+                "emails/links/links_expired.html",
                 links=links,
                 links_count=len(links),
                 deleted_links_url=deleted_links_url,
@@ -85,7 +85,7 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
         if user_deleted_count > 0:
             user.email_user(
                 "Your links have been deleted",
-                "emails/links_deleted.html",
+                "emails/links/links_deleted.html",
                 links_count=user_deleted_count,
                 deleted_links_url=deleted_links_url,
             )

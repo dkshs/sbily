@@ -1,0 +1,68 @@
+<html>
+  <body>
+    <head>
+      <style>
+        .main {
+          font-size: medium;
+          font-weight: 500;
+        }
+        .main p {
+          margin: 0;
+        }
+        .bold {
+          font-weight: bold;
+        }
+
+        .title {
+          font-size: large;
+          font-weight: bold;
+        }
+        .content {
+          margin-top: 12px;
+        }
+        .content_info {
+          margin-top: 8px;
+        }
+        .didnt_request_this {
+          margin-top: 32px;
+        }
+        .footer {
+          margin-top: 18px;
+        }
+        {% block style %}{% endblock style %}
+      </style>
+    </head>
+
+    <div class="main">
+      {% block main %}
+        <h1 class="title">{% block title %}{% endblock title %}</h1>
+
+        <div class="content">
+          {% block content %}
+            <p>Hi, {{ name }}!</p>
+
+            <div class="content_info">
+              {% block content_info %}{% endblock content_info %}
+            </div>
+          {% endblock content %}
+        </div>
+
+        {% block request_this %}
+          <div class="didnt_request_this">
+            <p class="bold">Didn't request this?</p>
+            {% block request_this_text %}
+              <p>If you did not make this change, please reach out to an administrator for support.</p>
+            {% endblock request_this_text %}
+          </div>
+        {% endblock request_this %}
+
+        {% block footer %}
+          <div class="footer">
+            <p>Best regards,</p>
+            <p>The Sbily Team.</p>
+          </div>
+        {% endblock footer %}
+      {% endblock main %}
+    </div>
+  </body>
+</html>

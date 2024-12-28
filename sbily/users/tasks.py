@@ -28,7 +28,7 @@ def send_welcome_email(self, user_id: int) -> dict[str, Any]:
         name = user.get_short_name()
 
         subject = f"Welcome to Sbily, {name}!"
-        template = "emails/welcome.html"
+        template = "emails/users/welcome.html"
 
         user.email_user(subject, template)
         send_email_verification.apply_async([user.id], countdown=5)
@@ -71,7 +71,7 @@ def send_email_verification(self, user_id: int) -> dict[str, Any]:
         user = get_object_or_404(User, id=user_id)
 
         subject = "Verify your email address"
-        template = "emails/verify-email.html"
+        template = "emails/users/verify-email.html"
         verify_email_link = user.get_verify_email_link()
         user.email_user(
             subject,
@@ -117,7 +117,7 @@ def send_password_changed_email(self, user_id: int) -> dict[str, Any]:
         user = get_object_or_404(User, id=user_id)
 
         subject = "Your password has been changed!"
-        template = "emails/password-changed.html"
+        template = "emails/users/password-changed.html"
 
         user.email_user(subject, template)
     except Exception as exc:
