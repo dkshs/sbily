@@ -1,4 +1,5 @@
 import time
+from typing import Any
 
 from django.db import IntegrityError
 from django.db import transaction
@@ -11,19 +12,36 @@ from .utils import filter_dict
 
 
 @receiver(post_delete, sender=ShortenedLink)
-def post_delete_shortened_link(sender, instance, **kwargs):
-    """create a `DeleteShortenedLink` when a `ShortenedLink` is deleted"""
-    retries = 3
-    delay = 2  # seconds
-    for attempt in range(retries):
+def post_delete_shortened_link(sender: type, instance: ShortenedLink, **kwargs) -> None:
+    """
+    Create a DeletedShortenedLink record when a ShortenedLink is deleted.
+
+    Args:
+        sender: The model class that sent the signal
+        instance: The actual instance being deleted
+        **kwargs: Additional keyword arguments passed by the signal
+
+    Raises:
+        RuntimeError: If unable to create DeletedShortenedLink after retries
+    """
+    max_retries = 3
+    delay_seconds = 2
+
+    for attempt in range(max_retries):
         try:
             with transaction.atomic():
-                data = filter_dict(instance.__dict__.copy(), {"_state", "id"})
+                data: dict[str, Any] = filter_dict(
+                    instance.__dict__.copy(),
+                    {"_state", "id"},
+                )
                 DeletedShortenedLink.objects.create(**data)
-            break
+                break
         except IntegrityError as e:
-            if attempt < retries - 1:
-                time.sleep(delay)
+            if attempt < max_retries - 1:
+                time.sleep(delay_seconds)
             else:
-                msg = f"Failed to create DeletedShortenedLink after {retries} attempts: {e}"  # noqa: E501
+                msg = (
+                    f"Failed to create DeletedShortenedLink after "
+                    f"{max_retries} attempts: {e}"
+                )
                 raise RuntimeError(msg) from e
