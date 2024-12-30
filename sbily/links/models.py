@@ -206,5 +206,7 @@ class DeletedShortenedLink(AbstractShortenedLink):
     def restore(self) -> None:
         """Restore the deleted shortened link"""
         data = filter_dict(self.__dict__.copy(), {"_state", "id", "removed_at"})
+        if self.is_expired():
+            data["remove_at"] = timezone.now() + timezone.timedelta(days=1)
         ShortenedLink.objects.create(**data)
         self.delete()

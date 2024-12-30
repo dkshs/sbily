@@ -5,6 +5,7 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .models import DeletedShortenedLink
 from .models import ShortenedLink
@@ -34,6 +35,8 @@ def post_delete_shortened_link(sender: type, instance: ShortenedLink, **kwargs) 
                     instance.__dict__.copy(),
                     {"_state", "id"},
                 )
+                if instance.is_expired():
+                    data["remove_at"] = timezone.now() + timezone.timedelta(days=1)
                 DeletedShortenedLink.objects.create(**data)
                 break
         except IntegrityError as e:
