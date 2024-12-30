@@ -72,7 +72,7 @@ def sign_up(request):  # noqa: PLR0911
 def sign_in(request: HttpRequest):
     next_param = request.GET.get("next") or None
     if request.user.is_authenticated:
-        return redirect("home")
+        return redirect("my_account")
     if request.method == "POST":
         username = request.POST.get("username") or ""
         password = request.POST.get("password") or ""
@@ -83,7 +83,7 @@ def sign_in(request: HttpRequest):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect(next_param if next_param != "None" else "home")
+            return redirect(next_param if next_param != "None" else "my_account")
         messages.error(request, "Invalid username or password")
         return redirect("sign_in")
     return render(request, "sign_in.html", {"next_param": next_param})
