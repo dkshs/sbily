@@ -30,6 +30,7 @@ def future_date_validator(value: timezone.datetime) -> None:
 class AbstractShortenedLink(models.Model):
     SHORTENED_LINK_PATTERN = r"^[a-zA-Z0-9-_]*$"
     SHORTENED_LINK_MAX_LENGTH = 10
+    DEFAULT_EXPIRY = timezone.timedelta(days=1)
     MAX_RETRIES = 3
 
     original_link = models.URLField(
@@ -207,6 +208,6 @@ class DeletedShortenedLink(AbstractShortenedLink):
         """Restore the deleted shortened link"""
         data = filter_dict(self.__dict__.copy(), {"_state", "id", "removed_at"})
         if self.is_expired():
-            data["remove_at"] = timezone.now() + timezone.timedelta(days=1)
+            data["remove_at"] = timezone.now() + self.DEFAULT_EXPIRY
         ShortenedLink.objects.create(**data)
         self.delete()

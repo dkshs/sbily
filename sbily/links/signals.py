@@ -36,7 +36,7 @@ def post_delete_shortened_link(sender: type, instance: ShortenedLink, **kwargs) 
                     {"_state", "id"},
                 )
                 if instance.is_expired():
-                    data["remove_at"] = timezone.now() + timezone.timedelta(days=1)
+                    data["remove_at"] = timezone.now() + instance.DEFAULT_EXPIRY
                 DeletedShortenedLink.objects.create(**data)
                 break
         except IntegrityError as e:

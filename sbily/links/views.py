@@ -1,7 +1,4 @@
 # ruff: noqa: BLE001
-from datetime import UTC
-from datetime import datetime
-from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
@@ -11,6 +8,7 @@ from django.http import HttpRequest
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.utils import timezone
 
 from sbily.utils.data import validate
 
@@ -47,7 +45,7 @@ def create_link(request: HttpRequest) -> HttpResponse:
         }
 
         if is_temporary:
-            link_data["remove_at"] = datetime.now(UTC) + timedelta(days=1)
+            link_data["remove_at"] = timezone.now() + ShortenedLink.DEFAULT_EXPIRY
 
         link = ShortenedLink.objects.create(**link_data)
         messages.success(request, "Link created successfully")
@@ -146,7 +144,9 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
         link.shortened_link = form_data["shortened_link"]
         link.is_active = form_data["is_active"]
         link.remove_at = (
-            datetime.now(UTC) + timedelta(days=1) if form_data["is_temporary"] else None
+            timezone.now() + ShortenedLink.DEFAULT_EXPIRY
+            if form_data["is_temporary"]
+            else None
         )
 
         link.save()
