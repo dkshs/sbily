@@ -194,7 +194,7 @@ class DeletedShortenedLink(AbstractShortenedLink):
             if user.is_premium or user.is_admin
             else self.REGULAR_DELETE_DAYS
         )
-        return timezone.now() + timezone.timedelta(days=delete_links_days)
+        return self.removed_at + timezone.timedelta(days=delete_links_days)
 
     @property
     def time_until_permanent_deletion_formatted(self) -> str:
