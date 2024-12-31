@@ -15,6 +15,8 @@ auth_urlpatterns = [
     path("sign_out/", views.sign_out, name="sign_out"),
     path("verify_email/<str:token>/", views.verify_email, name="verify_email"),
     path("resend_verify_email/", views.resend_verify_email, name="resend_verify_email"),
+    path("forgot_password/", views.forgot_password, name="forgot_password"),
+    path("reset_password/<str:token>/", views.reset_password, name="reset_password"),
 ]
 
 urlpatterns = [

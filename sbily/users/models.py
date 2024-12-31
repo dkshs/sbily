@@ -136,6 +136,21 @@ class User(AbstractUser):
         path = reverse("verify_email", kwargs={"token": token.token})
         return urljoin(BASE_URL, path)
 
+    def get_reset_password_link(self) -> str:
+        """Generate password reset link for user"""
+        if not self.email:
+            raise ValidationError(_("User has no email address"), code="no_email")
+
+        token = self.tokens.filter(
+            type=Token.TYPE_PASSWORD_RESET,
+        ).first() or self.tokens.create(type=Token.TYPE_PASSWORD_RESET)
+
+        if token.is_expired():
+            token.renew()
+
+        path = reverse("reset_password", kwargs={"token": token.token})
+        return urljoin(BASE_URL, path)
+
     def email_user(
         self,
         subject: str,

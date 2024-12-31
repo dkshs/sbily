@@ -141,3 +141,44 @@ def send_password_changed_email(self, user_id: int) -> dict[str, Any]:
         f"Password changed email sent to {user.username}.",
         user_id=user_id,
     )
+
+
+@shared_task(
+    bind=True,
+    name="send_password_reset_email",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_password_reset_email(self, user_id: int) -> dict[str, Any]:
+    try:
+        user = get_object_or_404(User, id=user_id)
+
+        subject = "Reset your password"
+        template = "emails/users/reset-password.html"
+        reset_password_link = user.get_reset_password_link()
+        user.email_user(
+            subject,
+            template,
+            reset_password_link=reset_password_link,
+        )
+    except Exception as exc:
+        try:
+            self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            return get_task_response(
+                "FAILED",
+                f"Failed to send password reset to user {user_id} after max retries.",
+                str(exc),
+                user_id=user_id,
+            )
+        return get_task_response(
+            "RETRY",
+            f"Retrying password reset email for user {user_id}",
+            str(exc),
+            user_id=user_id,
+        )
+    return get_task_response(
+        "COMPLETED",
+        f"Password reset email sent to {user.username}.",
+        user_id=user_id,
+    )

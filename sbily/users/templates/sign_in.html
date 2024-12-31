@@ -15,9 +15,14 @@
         <label for="username" class="label">Username:</label>
         <input type="text" id="username" name="username" class="input" required />
       </div>
-      <div class="flex flex-col gap-2 mb-6">
+      <div class="flex flex-col gap-2 mb-5">
         <label for="password" class="label">Password:</label>
         <input type="password" id="password" name="password" class="input" required />
+      </div>
+      <div class="flex justify-end">
+        <a href="{% url "forgot_password" %}" class="text-primary text-sm hover:underline">
+          Forgot your password?
+        </a>
       </div>
       <button type="submit" class="mt-2 w-full button-primary">Sign In</button>
       <p class="mt-4 text-sm text-center">

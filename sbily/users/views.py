@@ -15,6 +15,7 @@ from sbily.utils.data import validate
 
 from .tasks import send_email_verification
 from .tasks import send_password_changed_email
+from .tasks import send_password_reset_email
 from .tasks import send_welcome_email
 
 MIN_PASSWORD_LENGTH = 8
@@ -212,3 +213,76 @@ def delete_account(request: HttpRequest):
     request.user.delete()
     messages.success(request, "User deleted successfully")
     return redirect("sign_in")
+
+
+def forgot_password(request: HttpRequest):
+    if request.user.is_authenticated:
+        return redirect("my_account")
+    if request.method == "POST":
+        email = request.POST.get("email") or ""
+        if not validate([email]):
+            messages.error(request, "Please fill in all fields")
+            return redirect("forgot_password")
+        try:
+            user = User.objects.get(email=email)
+            send_password_reset_email.delay_on_commit(user.id)
+            messages.success(request, "Password reset email sent successfully")
+            return redirect("sign_in")
+        except User.DoesNotExist:
+            messages.error(request, "User does not exist")
+            return redirect("forgot_password")
+        except Exception as e:  # noqa: BLE001
+            messages.error(request, f"Error sending password reset email: {e}")
+            return redirect("forgot_password")
+    return render(request, "forgot_password.html")
+
+
+def reset_password(request: HttpRequest, token: str):  # noqa: PLR0911
+    if request.user.is_authenticated:
+        return redirect("my_account")
+    if request.method != "POST":
+        return render(request, "reset_password.html", {"token": token})
+
+    password = request.POST.get("password") or ""
+    confirm_password = request.POST.get("confirm_password") or ""
+
+    if not validate([password, confirm_password]):
+        messages.error(request, "Please fill in all fields")
+        return redirect("reset_password", token=token)
+
+    if len(password.strip()) < MIN_PASSWORD_LENGTH:
+        messages.error(
+            request,
+            f"Password must be at least {MIN_PASSWORD_LENGTH} characters",
+        )
+        return redirect("reset_password", token=token)
+
+    if " " in password:
+        messages.error(request, "Password cannot contain spaces")
+        return redirect("reset_password", token=token)
+
+    if password.strip() != confirm_password.strip():
+        messages.error(request, "Passwords do not match")
+        return redirect("reset_password", token=token)
+
+    try:
+        obj_token = Token.objects.get(token=token, type=Token.TYPE_PASSWORD_RESET)
+
+        if obj_token.is_expired():
+            messages.error(request, "Token has expired! Please request a new one")
+            return redirect("forgot_password")
+
+        user = obj_token.user
+        user.set_password(password)
+        user.save()
+        obj_token.delete()
+        send_password_changed_email.delay_on_commit(user.id)
+        messages.success(request, "Password reset successfully")
+        return redirect("sign_in")
+
+    except Token.DoesNotExist:
+        messages.error(request, "Invalid token")
+        return redirect("forgot_password")
+    except Exception as e:  # noqa: BLE001
+        messages.error(request, f"Error resetting password: {e}")
+        return redirect("forgot_password")
