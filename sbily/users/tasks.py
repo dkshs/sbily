@@ -4,9 +4,11 @@ from typing import Any
 from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from sbily.utils.tasks import get_task_response
 
+from .models import Token
 from .models import User
 
 
@@ -181,4 +183,23 @@ def send_password_reset_email(self, user_id: int) -> dict[str, Any]:
         "COMPLETED",
         f"Password reset email sent to {user.username}.",
         user_id=user_id,
+    )
+
+
+@shared_task(
+    bind=True,
+    name="cleanup_expired_tokens",
+    acks_late=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    max_retries=3,
+)
+def cleanup_expired_tokens(self) -> dict[str, str | int]:
+    """Delete expired tokens from database."""
+    tokens = Token.objects.filter(expires_at__lt=timezone.now())
+    num_deleted = tokens.delete()[0]
+    return get_task_response(
+        "COMPLETED",
+        f"Deleted {num_deleted} expired tokens.",
+        num_deleted=num_deleted,
     )
