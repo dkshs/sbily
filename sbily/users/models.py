@@ -240,6 +240,7 @@ class Token(models.Model):
             self.expires_at = timezone.now() + self.DEFAULT_EXPIRY
         if not self.token:
             self.token = generate_token()
+        super().full_clean()
         super().save(*args, **kwargs)
 
     def renew(self):
@@ -265,7 +266,7 @@ class Token(models.Model):
                 _("This email has already been verified."),
                 code="verified",
             )
-        if self.type == self.TYPE_PASSWORD_RESET and not self.user.email_verified:
+        if self.type == self.TYPE_SIGN_IN_WITH_EMAIL and not self.user.email_verified:
             raise ValidationError(
                 _("This email has not been verified."),
                 code="unverified",

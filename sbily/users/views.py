@@ -231,7 +231,7 @@ def my_account(request: HttpRequest):
 
 
 @login_required
-def change_password(request: HttpRequest):
+def change_password(request: HttpRequest):  # noqa: PLR0911
     if request.method == "POST":
         old_password = request.POST.get("old_password") or ""
         new_password = request.POST.get("new_password") or ""
@@ -251,6 +251,9 @@ def change_password(request: HttpRequest):
             messages.error(request, "The old and new password cannot be the same")
             return redirect("change_password")
         user = request.user
+        if not user.email_verified:
+            messages.error(request, "Please verify your email first")
+            return redirect("change_password")
         if not user.check_password(old_password):
             messages.error(request, "The old password is incorrect")
             return redirect("change_password")
@@ -263,6 +266,9 @@ def change_password(request: HttpRequest):
 
 @login_required
 def delete_account(request: HttpRequest):
+    if not request.user.email_verified:
+        messages.error(request, "Please verify your email first")
+        return redirect("my_account")
     request.user.delete()
     messages.success(request, "User deleted successfully")
     return redirect("sign_in")
