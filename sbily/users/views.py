@@ -16,6 +16,7 @@ from sbily.utils.data import validate
 from .tasks import send_email_verification
 from .tasks import send_password_changed_email
 from .tasks import send_password_reset_email
+from .tasks import send_sign_in_with_email
 from .tasks import send_welcome_email
 
 MIN_PASSWORD_LENGTH = 8
@@ -90,6 +91,55 @@ def sign_in(request: HttpRequest):
     return render(request, "sign_in.html", {"next_param": next_param})
 
 
+def sign_in_with_email(request: HttpRequest, token: str | None = None):  # noqa: C901, PLR0911
+    if request.user.is_authenticated:
+        return redirect("my_account")
+    if token is not None:
+        try:
+            token = Token.objects.get(token=token, type=Token.TYPE_SIGN_IN_WITH_EMAIL)
+            if token.is_expired():
+                messages.error(request, "Token has expired! Please request a new one")
+                return redirect("sign_in")
+            if not token.user.email_verified:
+                messages.error(request, "Please verify your email first")
+                return redirect("sign_in")
+            if not token.user.login_with_email:
+                messages.error(request, "Please enable login with email")
+                return redirect("sign_in")
+            login(request, token.user)
+            token.delete()
+            return redirect("my_account")
+        except Token.DoesNotExist:
+            messages.error(request, "Invalid token")
+            return redirect("sign_in")
+    if request.method == "POST":
+        email = request.POST.get("email") or ""
+        if not validate([email]):
+            messages.error(request, "Please fill in all fields")
+            return redirect("sign_in_with_email")
+        try:
+            user = User.objects.get(email=email)
+            if not user.email_verified:
+                messages.error(request, "Please verify your email first")
+                return redirect("sign_in_with_email")
+            if not user.login_with_email:
+                messages.error(request, "Please enable login with email")
+                return redirect("sign_in_with_email")
+            send_sign_in_with_email.delay_on_commit(user.id)
+            messages.success(
+                request,
+                "Please check your email for a sign in link",
+            )
+            return redirect("sign_in")
+        except User.DoesNotExist:
+            messages.error(request, "User does not exist")
+            return redirect("sign_in_with_email")
+        except Exception as e:  # noqa: BLE001
+            messages.error(request, f"Error sending sign in link: {e}")
+            return redirect("sign_in_with_email")
+    return render(request, "sign_in_with_email.html", {"token": token})
+
+
 def sign_out(request):
     logout(request)
     return redirect("sign_in")
@@ -147,6 +197,7 @@ def my_account(request: HttpRequest):
         last_name = request.POST.get("last_name") or ""
         username = request.POST.get("username") or ""
         email = request.POST.get("email") or ""
+        login_with_email = request.POST.get("login_with_email") == "on"
         if not validate([username, email]):
             messages.error(request, "Username and email are required")
             return redirect("my_account")
@@ -155,6 +206,7 @@ def my_account(request: HttpRequest):
             and user.email == email
             and user.first_name == first_name
             and user.last_name == last_name
+            and user.login_with_email == login_with_email
         ):
             messages.warning(request, "There were no changes")
             return redirect("my_account")
@@ -162,6 +214,7 @@ def my_account(request: HttpRequest):
         user.last_name = last_name
         user.username = username
         user.email = email
+        user.login_with_email = login_with_email
         user.save()
         messages.success(request, "User updated successfully")
     links = ShortenedLink.objects.filter(user=user).order_by("-updated_at")

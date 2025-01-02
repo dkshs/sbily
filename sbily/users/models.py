@@ -41,6 +41,11 @@ class User(AbstractUser):
         default=False,
         help_text=_("Designates whether the user has verified their email address."),
     )
+    login_with_email = models.BooleanField(
+        _("login with email"),
+        default=False,
+        help_text=_("Designates whether the user can login with email."),
+    )
     max_num_links = models.PositiveIntegerField(
         _("max number of links"),
         default=MAX_NUM_LINKS_PER_USER,
@@ -179,10 +184,12 @@ class Token(models.Model):
 
     DEFAULT_EXPIRY = timezone.timedelta(hours=2)
     TYPE_EMAIL_VERIFICATION = "email_verification"
+    TYPE_SIGN_IN_WITH_EMAIL = "sign_in_with_email"
     TYPE_PASSWORD_RESET = "password_reset"  # noqa: S105
 
     TOKEN_TYPE = [
         (TYPE_EMAIL_VERIFICATION, _("Email Verification")),
+        (TYPE_SIGN_IN_WITH_EMAIL, _("Sign In With Email")),
         (TYPE_PASSWORD_RESET, _("Password Reset")),
     ]
 

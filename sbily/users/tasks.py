@@ -1,15 +1,20 @@
 # ruff: noqa: BLE001
 from typing import Any
+from urllib.parse import urljoin
 
 from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
+from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 
 from sbily.utils.tasks import get_task_response
 
 from .models import Token
 from .models import User
+
+BASE_URL = settings.BASE_URL or ""
 
 
 @shared_task(
@@ -182,6 +187,58 @@ def send_password_reset_email(self, user_id: int) -> dict[str, Any]:
     return get_task_response(
         "COMPLETED",
         f"Password reset email sent to {user.username}.",
+        user_id=user_id,
+    )
+
+
+@shared_task(
+    bind=True,
+    name="send_sign_in_with_email",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_sign_in_with_email(self, user_id: int) -> dict[str, Any]:
+    try:
+        user = get_object_or_404(User, id=user_id)
+
+        token = user.tokens.filter(
+            type=Token.TYPE_SIGN_IN_WITH_EMAIL,
+        ).first() or user.tokens.create(type=Token.TYPE_SIGN_IN_WITH_EMAIL)
+        if token.is_expired():
+            token.renew()
+
+        sign_in_with_email_path = reverse(
+            "sign_in_with_email",
+            kwargs={"token": token.token},
+        )
+        sign_in_with_email_link = urljoin(BASE_URL, sign_in_with_email_path)
+
+        subject = "Sign in to your account"
+        template = "emails/users/sign-in-with-email.html"
+        user.email_user(
+            subject,
+            template,
+            sign_in_with_email_link=sign_in_with_email_link,
+        )
+    except Exception as exc:
+        try:
+            self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            return get_task_response(
+                "FAILED",
+                f"Failed to send sign in with email to user {user_id} after max retries.",  # noqa: E501
+                str(exc),
+                user_id=user_id,
+            )
+        return get_task_response(
+            "RETRY",
+            f"Retrying sign in with email for user {user_id}",
+            str(exc),
+            user_id=user_id,
+        )
+    return get_task_response(
+        "COMPLETED",
+        f"Sign in with email sent to {user.username}.",
         user_id=user_id,
     )
 

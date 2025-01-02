@@ -1,5 +1,6 @@
 from django.urls import include
 from django.urls import path
+from django.urls import re_path
 
 from . import views
 
@@ -12,6 +13,11 @@ account_urlpatterns = [
 auth_urlpatterns = [
     path("sign_up/", views.sign_up, name="sign_up"),
     path("sign_in/", views.sign_in, name="sign_in"),
+    re_path(
+        r"^sign_in_with_email(?:/(?P<token>[^/]+))?/$",
+        views.sign_in_with_email,
+        name="sign_in_with_email",
+    ),
     path("sign_out/", views.sign_out, name="sign_out"),
     path("verify_email/<str:token>/", views.verify_email, name="verify_email"),
     path("resend_verify_email/", views.resend_verify_email, name="resend_verify_email"),

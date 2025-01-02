@@ -65,6 +65,15 @@
             Email Not Verified
           {% endif %}
         </span>
+        <div class="flex items-center gap-2">
+          <label for="login_with_email" class="label">Login with email:</label>
+          <input
+            type="checkbox"
+            id="login_with_email"
+            name="login_with_email"
+            {% if user.login_with_email %}checked{% endif %}
+          />
+        </div>
         <div class="text-lg flex items-center gap-2">
           Password: <span class="font-bold">****</span>
           <a href="{% url 'change_password' %}" class="button py-0 px-2 gap-2 hover:underline">

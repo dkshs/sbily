@@ -19,7 +19,10 @@
         <label for="password" class="label">Password:</label>
         <input type="password" id="password" name="password" class="input" required />
       </div>
-      <div class="flex justify-end">
+      <div class="flex justify-between">
+        <a href="{% url "sign_in_with_email" %}" class="text-primary text-sm hover:underline">
+          Sign in with email
+        </a>
         <a href="{% url "forgot_password" %}" class="text-primary text-sm hover:underline">
           Forgot your password?
         </a>
