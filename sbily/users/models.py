@@ -254,11 +254,10 @@ class Token(models.Model):
 
     def is_expired(self):
         """Check if token is expired"""
-        return timezone.now() > self.expires_at
+        return self.expires_at and timezone.now() > self.expires_at
 
     def clean(self):
         """Validate token instance"""
-        super().clean()
         if self.is_expired():
             raise ValidationError(_("This token has expired."), code="expired")
         if self.type == self.TYPE_EMAIL_VERIFICATION and self.user.email_verified:
@@ -271,3 +270,4 @@ class Token(models.Model):
                 _("This email has not been verified."),
                 code="unverified",
             )
+        super().clean()
