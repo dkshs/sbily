@@ -1,5 +1,8 @@
 # ruff: noqa: BLE001
 
+
+import re
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -31,6 +34,7 @@ def create_link(request: HttpRequest) -> HttpResponse:
     next_path = request.POST.get("next_path", "home")
     original_link = request.POST.get("original_link", "").strip()
     shortened_link = request.POST.get("shortened_link", "").strip()
+    remove_at = request.POST.get("remove_at", "").strip()
     is_temporary = request.POST.get("is_temporary") == "on"
 
     if not validate([original_link]):
@@ -46,6 +50,10 @@ def create_link(request: HttpRequest) -> HttpResponse:
 
         if is_temporary:
             link_data["remove_at"] = timezone.now() + ShortenedLink.DEFAULT_EXPIRY
+        if remove_at:
+            link_data["remove_at"] = timezone.datetime.fromisoformat(
+                f"{remove_at}+00:00",
+            )
 
         link = ShortenedLink.objects.create(**link_data)
         messages.success(request, "Link created successfully")
@@ -94,6 +102,7 @@ def link(request: HttpRequest, shortened_link: str) -> HttpResponse:
             )
             return redirect("my_account")
 
+        link.remove_at = re.sub(r"\+\d{2}:\d{2}", "", f"{link.remove_at}")
         return render(
             request,
             "link.html",
@@ -123,8 +132,8 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
         form_data = {
             "original_link": request.POST.get("original_link", "").strip(),
             "shortened_link": request.POST.get("shortened_link", "").strip(),
+            "remove_at": request.POST.get("remove_at", "").strip(),
             "is_active": request.POST.get("is_active") == "on",
-            "is_temporary": request.POST.get("is_temporary") == "on",
         }
 
         if not validate([form_data["original_link"]]):
@@ -134,20 +143,20 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
         if (
             form_data["original_link"] == link.original_link
             and form_data["shortened_link"] == link.shortened_link
+            and form_data["remove_at"] == str(link.remove_at)
             and form_data["is_active"] == link.is_active
-            and form_data["is_temporary"] == bool(link.remove_at)
         ):
             messages.warning(request, "No changes were made")
             return redirect("link", old_shortened_link)
 
         link.original_link = form_data["original_link"]
         link.shortened_link = form_data["shortened_link"]
+        link.remove_at = None
+        if form_data["remove_at"]:
+            link.remove_at = timezone.datetime.fromisoformat(
+                f"{form_data['remove_at']}+00:00",
+            )
         link.is_active = form_data["is_active"]
-        link.remove_at = (
-            timezone.now() + ShortenedLink.DEFAULT_EXPIRY
-            if form_data["is_temporary"]
-            else None
-        )
 
         link.save()
 

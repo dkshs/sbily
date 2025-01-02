@@ -23,7 +23,7 @@
       {% endif %}
     </span>
   </div>
-  <div class="flex flex-col gap-3 mb-6">
+  <div class="flex flex-col gap-2.5 mb-4">
     <label for="original_link" class="label">Enter where this link goes:</label>
     <input
       type="url"
@@ -34,8 +34,10 @@
       required
     />
   </div>
-  <div class="flex flex-col mb-4">
-    <label for="shortened_link" class="label mb-3">Enter how you want your link:</label>
+  <div class="flex flex-col mb-5">
+    <label for="shortened_link" class="label mb-2.5">
+      Shortened URL <span class="text-sm font-medium text-foreground/80">(Optional)</span>:
+    </label>
     <div class="flex items-center">
       <label
         class="border-l border-y h-10 flex items-center rounded-l-md px-3 py-2"
@@ -51,21 +53,24 @@
         placeholder="my_link"
       />
     </div>
-    <p class="text-sm font-medium w-fit text-foreground/80 mt-0.5 ml-0.5">*Optional</p>
+    <p class="text-xs font-medium w-fit text-foreground/80 ml-0.5">
+      The shortened URL path.
+    </p>
   </div>
-  <div class="flex flex-col mb-6 gap-1">
-    <div class="flex gap-1">
-      <label for="is_temporary" class="label">Temporary link:</label>
-      <input
-        type="checkbox"
-        id="is_temporary"
-        name="is_temporary"
-        {% if user.link_num_left.temp_links < 1 %}disabled{% endif %}
-      />
-    </div>
-    <span class="text-xs font-medium text-foreground/80">
-      NOTE: The link will be valid for 1 day.
-    </span>
+  <div class="flex flex-col mb-6">
+    <label for="remove_at" class="label mb-2.5">
+      Remove At <span class="text-sm font-medium text-foreground/80">(Optional)</span>:
+    </label>
+    <input
+      type="datetime-local"
+      id="remove_at"
+      name="remove_at"
+      class="input"
+      {% if user.link_num_left.temp_links < 1 %}disabled{% endif %}
+    />
+    <p class="text-xs font-medium w-fit text-foreground/80 mt-1 ml-0.5">
+      When this link should be automatically removed.
+    </p>
   </div>
   <button
     type="submit"

@@ -21,9 +21,12 @@ SITE_BASE_URL = settings.BASE_URL or ""
 
 
 def future_date_validator(value: timezone.datetime) -> None:
-    if value <= timezone.now() + timezone.timedelta(minutes=1):
+    one_minute_from_now = timezone.now() + timezone.timedelta(minutes=1)
+    time_difference = timezone.localtime(value) - one_minute_from_now
+    if time_difference.total_seconds() < 0:
         raise ValidationError(
-            _("The removal date must be at least 1 minute in the future from now."),
+            _("You must put %(value)s in the future.")
+            % {"value": timesince(value, one_minute_from_now)},
         )
 
 
