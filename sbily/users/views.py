@@ -260,7 +260,8 @@ def change_password(request: HttpRequest):  # noqa: PLR0911
         user.set_password(new_password)
         user.save()
         send_password_changed_email.delay_on_commit(request.user.id)
-        messages.success(request, "Successful updated password")
+        messages.success(request, "Successful updated password! Please re-login")
+        return redirect("my_account")
     return render(request, "change_password.html")
 
 
