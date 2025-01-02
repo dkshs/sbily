@@ -3,8 +3,10 @@
 {% block title %}Your links have been deleted{% endblock title %}
 
 {% block content_info %}
-  <p>This is an automatic notification to inform you that a total</p>
-  <p>of {{ links_count }} links have been deleted due to exceeding your account limits.</p>
+  <p>
+    This is an automatic notification to inform you that a total of {{ links_count }} links
+    have been deleted due to exceeding your account limits.
+  </p>
   <p>Please upgrade your account to a higher level or purchase more links!</p>
   <a href="{{ deleted_links_url }}">View your deleted links here!</a>
 {% endblock content_info %}

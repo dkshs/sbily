@@ -3,8 +3,9 @@
 {% block title %}Your links have expired{% endblock title %}
 
 {% block content_info %}
-  <p>This is an automatic notification to inform you that your</p>
-  <p>expired links have been automatically removed.</p>
+  <p>
+    This is an automatic notification to inform you that your expired links have been automatically removed.
+  </p>
   <p>There are a total of {{ links_count }} links removed, here they are:</p>
   <ol>
     {% for link in links %}
