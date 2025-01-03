@@ -38,4 +38,5 @@ urlpatterns = [
     # Include sub-patterns
     path("link/<str:shortened_link>/", include(link_urlpatterns)),
     path("deleted_links/", include(deleted_links_urlpatterns)),
+    path("handle_link_actions/", views.handle_link_actions, name="handle_link_actions"),
 ]

@@ -241,3 +241,56 @@ def remove_deleted_link(request: HttpRequest, shortened_link: str) -> HttpRespon
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
         return redirect("deleted_links")
+
+
+@login_required
+def handle_link_actions(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return redirect("my_account")
+    try:
+        user = request.user
+        actions_accepted = [
+            "delete_selected",
+            "activate_selected",
+            "deactivate_selected",
+            "restore_selected",
+            "delete_selected_deleted_links",
+        ]
+        action = request.POST.get("action")
+        link_ids = request.POST.getlist("_selected_action")
+        next_path = request.POST.get("next_path", "my_account")
+
+        if action not in actions_accepted:
+            messages.error(request, "Invalid action")
+            return redirect(next_path)
+        if not link_ids:
+            messages.error(request, "No links selected")
+            return redirect(next_path)
+
+        if action == "delete_selected":
+            ShortenedLink.objects.filter(id__in=link_ids, user=user).delete()
+        if action == "activate_selected":
+            ShortenedLink.objects.filter(id__in=link_ids, user=user).update(
+                is_active=True,
+            )
+        if action == "deactivate_selected":
+            ShortenedLink.objects.filter(id__in=link_ids, user=user).update(
+                is_active=False,
+            )
+        if action == "restore_selected":
+            DeletedShortenedLink.objects.filter(id__in=link_ids, user=user).restore()
+        if action == "delete_selected_deleted_links":
+            DeletedShortenedLink.objects.filter(id__in=link_ids, user=user).delete()
+
+        success_msg = f"Links {action.split('_')[0]}d successfully"
+        messages.success(request, success_msg)
+        return redirect(next_path)
+    except ValidationError as e:
+        messages.error(
+            request,
+            str(e) if isinstance(e.messages, str) else e.messages[0],
+        )
+        return redirect(next_path)
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        return redirect(next_path)

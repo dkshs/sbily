@@ -92,6 +92,10 @@
   .separator {
     @apply shrink-0 bg-border h-[1px] w-full;
   }
+  /* Table */
+  .selected {
+    @apply bg-muted/80;
+  }
 
   /* Toast */
   .toast-list {
