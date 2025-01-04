@@ -1,12 +1,12 @@
 # ruff: noqa: BLE001
 
-
 import re
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.http import HttpRequest
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -128,6 +128,7 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
             shortened_link=shortened_link,
             user=request.user,
         )
+        link.remove_at = re.sub(r"\+\d{2}:\d{2}", "", f"{link.remove_at}")
 
         form_data = {
             "original_link": request.POST.get("original_link", "").strip(),
@@ -140,6 +141,8 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
             msg = "Please enter a valid original link"
             raise ValidationError(msg)  # noqa: TRY301
 
+        if form_data["remove_at"]:
+            form_data["remove_at"] = f'{form_data["remove_at"].replace("T", " ")}:00'
         if (
             form_data["original_link"] == link.original_link
             and form_data["shortened_link"] == link.shortened_link
@@ -247,44 +250,37 @@ def remove_deleted_link(request: HttpRequest, shortened_link: str) -> HttpRespon
 def handle_link_actions(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return redirect("my_account")
-    try:
-        user = request.user
-        actions_accepted = [
-            "delete_selected",
-            "activate_selected",
-            "deactivate_selected",
-            "restore_selected",
-            "delete_selected_deleted_links",
-        ]
-        action = request.POST.get("action")
-        link_ids = request.POST.getlist("_selected_action")
-        next_path = request.POST.get("next_path", "my_account")
 
-        if action not in actions_accepted:
-            messages.error(request, "Invalid action")
-            return redirect(next_path)
-        if not link_ids:
-            messages.error(request, "No links selected")
-            return redirect(next_path)
+    user = request.user
+    next_path = request.POST.get("next_path", "my_account")
+    link_ids = request.POST.getlist("_selected_action")
+    action = request.POST.get("action")
 
-        if action == "delete_selected":
-            ShortenedLink.objects.filter(id__in=link_ids, user=user).delete()
-        if action == "activate_selected":
-            ShortenedLink.objects.filter(id__in=link_ids, user=user).update(
-                is_active=True,
-            )
-        if action == "deactivate_selected":
-            ShortenedLink.objects.filter(id__in=link_ids, user=user).update(
-                is_active=False,
-            )
-        if action == "restore_selected":
-            DeletedShortenedLink.objects.filter(id__in=link_ids, user=user).restore()
-        if action == "delete_selected_deleted_links":
-            DeletedShortenedLink.objects.filter(id__in=link_ids, user=user).delete()
+    filters = Q(id__in=link_ids, user=user)
+    shortened_links = ShortenedLink.objects.filter(filters)
+    deleted_links = DeletedShortenedLink.objects.filter(filters)
 
-        success_msg = f"Links {action.split('_')[0]}d successfully"
-        messages.success(request, success_msg)
+    actions = {
+        "delete_selected": shortened_links.delete,
+        "activate_selected": shortened_links.update,
+        "deactivate_selected": shortened_links.update,
+        "restore_selected": deleted_links.restore,
+        "delete_selected_deleted_links": deleted_links.delete,
+    }
+
+    if not action or action not in actions:
+        messages.error(request, "Invalid action")
         return redirect(next_path)
+    if not link_ids:
+        messages.error(request, "No links selected")
+        return redirect(next_path)
+
+    try:
+        if action in ("activate_selected", "deactivate_selected"):
+            actions[action](is_active=action == "activate_selected")
+        else:
+            actions[action]()
+        messages.success(request, f"Links {action.split('_')[0]}d successfully")
     except ValidationError as e:
         messages.error(
             request,
@@ -294,3 +290,4 @@ def handle_link_actions(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
         return redirect(next_path)
+    return redirect(next_path)
