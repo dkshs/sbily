@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 
 from sbily.users.models import User
 
+from .managers import DeletedShortenedLinkManager
 from .utils import filter_dict
 from .utils import user_can_create_link
 
@@ -164,21 +165,6 @@ class ShortenedLink(AbstractShortenedLink):
     def clean(self) -> None:
         user_can_create_link(self.id, self.remove_at, self.user)
         super().clean()
-
-
-class DeletedShortenedLinkQuerySet(models.QuerySet):
-    def restore(self):
-        for obj in self:
-            data = filter_dict(obj.__dict__.copy(), {"_state", "id", "removed_at"})
-            if obj.is_expired():
-                data["remove_at"] = timezone.now() + obj.DEFAULT_EXPIRY
-            ShortenedLink.objects.create(**data)
-            obj.delete()
-
-
-class DeletedShortenedLinkManager(models.Manager):
-    def get_queryset(self):
-        return DeletedShortenedLinkQuerySet(self.model, using=self._db)
 
 
 class DeletedShortenedLink(AbstractShortenedLink):
