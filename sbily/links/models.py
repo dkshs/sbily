@@ -182,8 +182,8 @@ class DeletedShortenedLinkManager(models.Manager):
 
 
 class DeletedShortenedLink(AbstractShortenedLink):
-    PREMIUM_DELETE_DAYS = 30
-    REGULAR_DELETE_DAYS = 7
+    PREMIUM_DELETE_DAYS = 6
+    REGULAR_DELETE_DAYS = 3
 
     user = models.ForeignKey(
         User,
