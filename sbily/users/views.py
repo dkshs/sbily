@@ -12,15 +12,13 @@ from sbily.links.models import ShortenedLink
 from sbily.users.models import Token
 from sbily.users.models import User
 from sbily.utils.data import validate
+from sbily.utils.data import validate_password
 
 from .tasks import send_email_verification
 from .tasks import send_password_changed_email
 from .tasks import send_password_reset_email
 from .tasks import send_sign_in_with_email
 from .tasks import send_welcome_email
-
-MIN_PASSWORD_LENGTH = 8
-
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 ADMIN_URL = f"{settings.BASE_URL}{settings.ADMIN_URL}"
@@ -35,17 +33,12 @@ def sign_up(request):  # noqa: PLR0911
         username = request.POST.get("username") or ""
         email = request.POST.get("email") or ""
         password = request.POST.get("password") or ""
-        if not validate([username, email, password]):
+        if not validate([username, email]):
             messages.error(request, "Please fill in all fields")
             return redirect("sign_up")
-        if len(password.strip()) < MIN_PASSWORD_LENGTH:
-            messages.error(
-                request,
-                f"Password must be at least {MIN_PASSWORD_LENGTH} characters",
-            )
-            return redirect("sign_up")
-        if " " in password:
-            messages.error(request, "Password cannot contain spaces")
+        password_id_valid = validate_password(password)
+        if not password_id_valid[0]:
+            messages.error(request, password_id_valid[1])
             return redirect("sign_up")
         if User.objects.filter(username=username).exists():
             messages.error(request, "User already exists")
@@ -232,37 +225,33 @@ def my_account(request: HttpRequest):
 
 @login_required
 def change_password(request: HttpRequest):  # noqa: PLR0911
-    if request.method == "POST":
-        old_password = request.POST.get("old_password") or ""
-        new_password = request.POST.get("new_password") or ""
-        if not validate([old_password, new_password]):
-            messages.error(request, "Please fill in all fields")
-            return redirect("change_password")
-        if len(new_password.strip()) < MIN_PASSWORD_LENGTH:
-            messages.error(
-                request,
-                f"Password must be at least {MIN_PASSWORD_LENGTH} characters",
-            )
-            return redirect("change_password")
-        if " " in new_password:
-            messages.error(request, "Password cannot contain spaces")
-            return redirect("change_password")
-        if old_password.strip() == new_password.strip():
-            messages.error(request, "The old and new password cannot be the same")
-            return redirect("change_password")
-        user = request.user
-        if not user.email_verified:
-            messages.error(request, "Please verify your email first")
-            return redirect("change_password")
-        if not user.check_password(old_password):
-            messages.error(request, "The old password is incorrect")
-            return redirect("change_password")
-        user.set_password(new_password)
-        user.save()
-        send_password_changed_email.delay_on_commit(request.user.id)
-        messages.success(request, "Successful updated password! Please re-login")
-        return redirect("my_account")
-    return render(request, "change_password.html")
+    if request.method != "POST":
+        return render(request, "change_password.html")
+
+    old_password = request.POST.get("old_password") or ""
+    new_password = request.POST.get("new_password") or ""
+    if not validate([old_password, new_password]):
+        messages.error(request, "Please fill in all fields")
+        return redirect("change_password")
+    if old_password.strip() == new_password.strip():
+        messages.error(request, "The old and new password cannot be the same")
+        return redirect("change_password")
+    password_id_valid = validate_password(new_password)
+    if not password_id_valid[0]:
+        messages.error(request, password_id_valid[1])
+        return redirect("change_password")
+    user = request.user
+    if not user.email_verified:
+        messages.error(request, "Please verify your email first")
+        return redirect("change_password")
+    if not user.check_password(old_password):
+        messages.error(request, "The old password is incorrect")
+        return redirect("change_password")
+    user.set_password(new_password)
+    user.save()
+    send_password_changed_email.delay_on_commit(request.user.id)
+    messages.success(request, "Successful updated password! Please re-login")
+    return redirect("my_account")
 
 
 @login_required
@@ -309,20 +298,13 @@ def reset_password(request: HttpRequest, token: str):  # noqa: PLR0911
     if not validate([password, confirm_password]):
         messages.error(request, "Please fill in all fields")
         return redirect("reset_password", token=token)
-
-    if len(password.strip()) < MIN_PASSWORD_LENGTH:
-        messages.error(
-            request,
-            f"Password must be at least {MIN_PASSWORD_LENGTH} characters",
-        )
-        return redirect("reset_password", token=token)
-
-    if " " in password:
-        messages.error(request, "Password cannot contain spaces")
-        return redirect("reset_password", token=token)
-
     if password.strip() != confirm_password.strip():
         messages.error(request, "Passwords do not match")
+        return redirect("reset_password", token=token)
+
+    password_id_valid = validate_password(password)
+    if not password_id_valid[0]:
+        messages.error(request, password_id_valid[1])
         return redirect("reset_password", token=token)
 
     try:
