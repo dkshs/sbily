@@ -62,7 +62,7 @@ def delete_expired_links(self) -> dict[str, str | int]:
 )
 def delete_excess_user_links(self) -> dict[str, str | int]:
     """Delete excess links for users that have exceeded their link limit."""
-    users = User.objects.filter(is_superuser=False).select_related()
+    users = User.objects.prefetch_related("shortened_links").all()
     total_deleted_count = 0
     deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
 
@@ -106,9 +106,7 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
 )
 def cleanup_deleted_shortened_links(self) -> dict[str, str | int]:
     """Permanently deletes links that have been deleted."""
-    links_to_delete = DeletedShortenedLink.objects.filter(
-        user__is_superuser=False,
-    )
+    links_to_delete = DeletedShortenedLink.objects.all()
     deleted_count = sum(
         link.delete()[0]
         for link in links_to_delete
