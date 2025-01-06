@@ -122,6 +122,8 @@ def resend_verify_email(request: HttpRequest):
 
 @login_required
 def delete_account(request: HttpRequest):
+    if request.method != "POST":
+        return render(request, "delete_account.html")
     try:
         if not request.user.email_verified:
             bad_request_error("Please verify your email first")
