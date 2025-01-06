@@ -8,7 +8,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import HttpRequest
-from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils import timezone
@@ -22,12 +21,12 @@ LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 
 
 @login_required
-def home(request: HttpRequest) -> HttpResponse:
+def home(request: HttpRequest):
     return render(request, "home.html", {"LINK_BASE_URL": LINK_BASE_URL})
 
 
 @login_required
-def create_link(request: HttpRequest) -> HttpResponse:
+def create_link(request: HttpRequest):
     if request.method != "POST":
         return redirect("home")
 
@@ -66,7 +65,7 @@ def create_link(request: HttpRequest) -> HttpResponse:
         return redirect(next_path)
 
 
-def redirect_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+def redirect_link(request: HttpRequest, shortened_link: str):
     try:
         link = ShortenedLink.objects.get(shortened_link=shortened_link)
         if not link.is_functional():
@@ -84,7 +83,7 @@ def redirect_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
 
 
 @login_required
-def link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+def link(request: HttpRequest, shortened_link: str):
     try:
         link = ShortenedLink.objects.get(
             shortened_link=shortened_link,
@@ -102,7 +101,7 @@ def link(request: HttpRequest, shortened_link: str) -> HttpResponse:
             )
             return redirect("my_account")
 
-        link.remove_at = re.sub(r"\+\d{2}:\d{2}", "", f"{link.remove_at}")
+        link.remove_at = re.sub(r".\d*\+\d{2}:\d{2}", "", f"{link.remove_at}")
         return render(
             request,
             "link.html",
@@ -117,7 +116,7 @@ def link(request: HttpRequest, shortened_link: str) -> HttpResponse:
 
 
 @login_required
-def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+def update_link(request: HttpRequest, shortened_link: str):
     if request.method != "POST":
         return redirect("my_account")
 
@@ -128,7 +127,7 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
             shortened_link=shortened_link,
             user=request.user,
         )
-        link.remove_at = re.sub(r"\+\d{2}:\d{2}", "", f"{link.remove_at}")
+        link.remove_at = re.sub(r".\d*\+\d{2}:\d{2}", "", f"{link.remove_at}")
 
         form_data = {
             "original_link": request.POST.get("original_link", "").strip(),
@@ -160,12 +159,10 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
                 f"{form_data['remove_at']}+00:00",
             )
         link.is_active = form_data["is_active"]
-
         link.save()
 
         messages.success(request, "Link updated successfully")
         return redirect("link", link.shortened_link)
-
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
         return redirect("my_account")
@@ -181,7 +178,7 @@ def update_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
 
 
 @login_required
-def delete_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+def delete_link(request: HttpRequest, shortened_link: str):
     try:
         link = ShortenedLink.objects.get(
             shortened_link=shortened_link,
@@ -199,13 +196,13 @@ def delete_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
 
 
 @login_required
-def deleted_links(request: HttpRequest) -> HttpResponse:
+def deleted_links(request: HttpRequest):
     links = DeletedShortenedLink.objects.filter(user=request.user)
     return render(request, "deleted_links.html", {"links": links})
 
 
 @login_required
-def restore_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+def restore_link(request: HttpRequest, shortened_link: str):
     try:
         link = DeletedShortenedLink.objects.get(
             shortened_link=shortened_link,
@@ -229,7 +226,7 @@ def restore_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
 
 
 @login_required
-def remove_deleted_link(request: HttpRequest, shortened_link: str) -> HttpResponse:
+def remove_deleted_link(request: HttpRequest, shortened_link: str):
     try:
         link = DeletedShortenedLink.objects.get(
             shortened_link=shortened_link,
@@ -247,7 +244,7 @@ def remove_deleted_link(request: HttpRequest, shortened_link: str) -> HttpRespon
 
 
 @login_required
-def handle_link_actions(request: HttpRequest) -> HttpResponse:
+def handle_link_actions(request: HttpRequest):
     if request.method != "POST":
         return redirect("my_account")
 
