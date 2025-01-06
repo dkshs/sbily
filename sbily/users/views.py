@@ -1,3 +1,4 @@
+# ruff: noqa: BLE001
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate
@@ -58,7 +59,7 @@ def sign_up(request):  # noqa: PLR0911
             login(request, user)
             send_welcome_email.delay_on_commit(user.id)
             return redirect("home")
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messages.error(request, f"Error creating user: {e}")
             return redirect("sign_up")
     return render(request, "sign_up.html")
@@ -84,53 +85,60 @@ def sign_in(request: HttpRequest):
     return render(request, "sign_in.html", {"next_param": next_param})
 
 
-def sign_in_with_email(request: HttpRequest, token: str | None = None):  # noqa: C901, PLR0911
+def sign_in_with_email(request: HttpRequest):  # noqa: PLR0911
     if request.user.is_authenticated:
         return redirect("my_account")
-    if token is not None:
-        try:
-            token = Token.objects.get(token=token, type=Token.TYPE_SIGN_IN_WITH_EMAIL)
-            if token.is_expired():
-                messages.error(request, "Token has expired! Please request a new one")
-                return redirect("sign_in")
-            if not token.user.email_verified:
-                messages.error(request, "Please verify your email first")
-                return redirect("sign_in")
-            if not token.user.login_with_email:
-                messages.error(request, "Please enable login with email")
-                return redirect("sign_in")
-            login(request, token.user)
-            token.delete()
-            return redirect("my_account")
-        except Token.DoesNotExist:
-            messages.error(request, "Invalid token")
-            return redirect("sign_in")
-    if request.method == "POST":
-        email = request.POST.get("email") or ""
-        if not validate([email]):
-            messages.error(request, "Please fill in all fields")
+    if request.method != "POST":
+        return render(request, "sign_in_with_email.html")
+
+    email = request.POST.get("email") or ""
+    if not validate([email]):
+        messages.error(request, "Please fill in all fields")
+        return redirect("sign_in_with_email")
+
+    try:
+        user = User.objects.get(email=email)
+        if not user.email_verified:
+            messages.error(request, "Please verify your email first")
             return redirect("sign_in_with_email")
-        try:
-            user = User.objects.get(email=email)
-            if not user.email_verified:
-                messages.error(request, "Please verify your email first")
-                return redirect("sign_in_with_email")
-            if not user.login_with_email:
-                messages.error(request, "Please enable login with email")
-                return redirect("sign_in_with_email")
-            send_sign_in_with_email.delay_on_commit(user.id)
-            messages.success(
-                request,
-                "Please check your email for a sign in link",
-            )
-            return redirect("sign_in")
-        except User.DoesNotExist:
-            messages.error(request, "User does not exist")
+        if not user.login_with_email:
+            messages.error(request, "Please enable login with email")
             return redirect("sign_in_with_email")
-        except Exception as e:  # noqa: BLE001
-            messages.error(request, f"Error sending sign in link: {e}")
+
+        send_sign_in_with_email.delay_on_commit(user.id)
+        messages.success(request, "Please check your email for a sign in link")
+        return redirect("sign_in")
+    except User.DoesNotExist:
+        messages.error(request, "User does not exist")
+        return redirect("sign_in_with_email")
+    except Exception as e:
+        messages.error(request, f"Error sending sign in link: {e}")
+        return redirect("sign_in_with_email")
+
+
+def sign_in_with_email_verify(request: HttpRequest, token: str):
+    if request.user.is_authenticated:
+        return redirect("my_account")
+    try:
+        token = Token.objects.get(token=token, type=Token.TYPE_SIGN_IN_WITH_EMAIL)
+
+        if token.is_expired():
+            messages.error(request, "Token has expired! Please request a new one")
             return redirect("sign_in_with_email")
-    return render(request, "sign_in_with_email.html", {"token": token})
+        if not token.user.login_with_email:
+            messages.error(request, "Please enable login with email")
+            return redirect("sign_in_with_email")
+
+        token.delete()
+        login(request, token.user)
+        messages.success(request, "Signed in successfully")
+        return redirect("my_account")
+    except Token.DoesNotExist:
+        messages.error(request, "Invalid token")
+        return redirect("sign_in_with_email")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        return redirect("sign_in_with_email")
 
 
 def sign_out(request):
@@ -162,7 +170,7 @@ def verify_email(request: HttpRequest, token: str):
     except Token.DoesNotExist:
         messages.error(request, "Invalid token")
         return redirect(redirect_url_name)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         messages.error(request, f"Error verifying email: {e}")
         return redirect(redirect_url_name)
 
@@ -177,7 +185,7 @@ def resend_verify_email(request: HttpRequest):
         send_email_verification.delay_on_commit(user.id)
         messages.success(request, "Verification email sent successfully")
         return redirect("my_account")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         messages.error(request, f"Error sending verification email: {e}")
         return redirect("my_account")
 
@@ -280,7 +288,7 @@ def forgot_password(request: HttpRequest):
         except User.DoesNotExist:
             messages.error(request, "User does not exist")
             return redirect("forgot_password")
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             messages.error(request, f"Error sending password reset email: {e}")
             return redirect("forgot_password")
     return render(request, "forgot_password.html")
@@ -325,6 +333,6 @@ def reset_password(request: HttpRequest, token: str):  # noqa: PLR0911
     except Token.DoesNotExist:
         messages.error(request, "Invalid token")
         return redirect("forgot_password")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         messages.error(request, f"Error resetting password: {e}")
         return redirect("forgot_password")

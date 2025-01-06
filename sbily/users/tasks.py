@@ -208,7 +208,7 @@ def send_sign_in_with_email(self, user_id: int) -> dict[str, Any]:
             token.renew()
 
         sign_in_with_email_path = reverse(
-            "sign_in_with_email",
+            "sign_in_with_email_verify",
             kwargs={"token": token.token},
         )
         sign_in_with_email_link = urljoin(BASE_URL, sign_in_with_email_path)
