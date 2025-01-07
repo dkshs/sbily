@@ -7,7 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from sbily.users.models import User
-from sbily.utils.tasks import get_task_response
+from sbily.utils.tasks import default_task_params
+from sbily.utils.tasks import task_response
 
 from .models import DeletedShortenedLink
 from .models import ShortenedLink
@@ -15,16 +16,9 @@ from .models import ShortenedLink
 SITE_BASE_URL = settings.BASE_URL or ""
 
 
-@shared_task(
-    bind=True,
-    name="delete_expired_links",
-    acks_late=True,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    max_retries=3,
-)
-def delete_expired_links(self) -> dict[str, str | int]:
-    """Delete expired links from the database"""
+@shared_task(**default_task_params("delete_expired_links", acks_late=True))
+def delete_expired_links(self):
+    """Delete expired links from the database."""
     expired_links = ShortenedLink.objects.select_related("user").filter(
         remove_at__lte=timezone.now(),
     )
@@ -45,22 +39,15 @@ def delete_expired_links(self) -> dict[str, str | int]:
                 links_count=len(links),
                 deleted_links_url=deleted_links_url,
             )
-    return get_task_response(
+    return task_response(
         "COMPLETED",
         f"Deleted {deleted_count} expired links.",
         deleted_count=deleted_count,
     )
 
 
-@shared_task(
-    bind=True,
-    name="delete_excess_user_links",
-    acks_late=True,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    max_retries=3,
-)
-def delete_excess_user_links(self) -> dict[str, str | int]:
+@shared_task(**default_task_params("delete_excess_user_links", acks_late=True))
+def delete_excess_user_links(self):
     """Delete excess links for users that have exceeded their link limit."""
     users = User.objects.prefetch_related("shortened_links").all()
     total_deleted_count = 0
@@ -90,21 +77,14 @@ def delete_excess_user_links(self) -> dict[str, str | int]:
                 deleted_links_url=deleted_links_url,
             )
 
-    return get_task_response(
+    return task_response(
         "COMPLETED",
         f"Deleted {total_deleted_count} excess links for users.",
     )
 
 
-@shared_task(
-    bind=True,
-    name="cleanup_deleted_shortened_links",
-    acks_late=True,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    max_retries=3,
-)
-def cleanup_deleted_shortened_links(self) -> dict[str, str | int]:
+@shared_task(**default_task_params("cleanup_deleted_shortened_links", acks_late=True))
+def cleanup_deleted_shortened_links(self):
     """Permanently deletes links that have been deleted."""
     links_to_delete = DeletedShortenedLink.objects.all()
     deleted_count = sum(
@@ -112,7 +92,7 @@ def cleanup_deleted_shortened_links(self) -> dict[str, str | int]:
         for link in links_to_delete
         if link.time_until_permanent_deletion <= timezone.now()
     )
-    return get_task_response(
+    return task_response(
         "COMPLETED",
         f"Permanently deleted {deleted_count} deleted links.",
         deleted_count=deleted_count,
