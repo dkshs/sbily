@@ -1,0 +1,21 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Account deactivated{% endblock title %}
+
+{% block content_info %}
+  <p>
+    This is an automatic notification to inform you that
+    your account "{{ user.username }}" has been deactivated
+    and will be completely deleted within 7 days.
+  </p>
+  <p>
+    If you want to activate your account, click
+    <a href="{{ account_activation_link }}" target="_blank" rel="noopener noreferrer">
+      here
+    </a>!
+  </p>
+{% endblock content_info %}
+
+{% block request_this_text %}
+  <p>If you did not make this change, please reach out to an administrator for support.</p>
+{% endblock request_this_text %}

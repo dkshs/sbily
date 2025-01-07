@@ -156,6 +156,24 @@ class User(AbstractUser):
         path = reverse("reset_password", kwargs={"token": token.token})
         return urljoin(BASE_URL, path)
 
+    def get_account_activation_link(self) -> str:
+        """Generate account activation link for user"""
+        if not self.email:
+            raise ValidationError(_("User has no email address"), code="no_email")
+
+        token = self.tokens.filter(
+            type=Token.TYPE_ACTIVATE_ACCOUNT,
+        ).first() or self.tokens.create(
+            type=Token.TYPE_ACTIVATE_ACCOUNT,
+            expires_at=timezone.now() + timezone.timedelta(days=7),
+        )
+
+        if token.is_expired():
+            token.renew()
+
+        path = reverse("activate_account_verify", kwargs={"token": token.token})
+        return urljoin(BASE_URL, path)
+
     def email_user(
         self,
         subject: str,
@@ -186,11 +204,13 @@ class Token(models.Model):
     TYPE_EMAIL_VERIFICATION = "email_verification"
     TYPE_SIGN_IN_WITH_EMAIL = "sign_in_with_email"
     TYPE_PASSWORD_RESET = "password_reset"  # noqa: S105
+    TYPE_ACTIVATE_ACCOUNT = "activate_account"
 
     TOKEN_TYPE = [
         (TYPE_EMAIL_VERIFICATION, _("Email Verification")),
         (TYPE_SIGN_IN_WITH_EMAIL, _("Sign In With Email")),
         (TYPE_PASSWORD_RESET, _("Password Reset")),
+        (TYPE_ACTIVATE_ACCOUNT, _("Activate Account")),
     ]
 
     token = models.CharField(
@@ -260,6 +280,16 @@ class Token(models.Model):
         """Validate token instance"""
         if self.is_expired():
             raise ValidationError(_("This token has expired."), code="expired")
+        if not self.user.is_active and self.type != self.TYPE_ACTIVATE_ACCOUNT:
+            raise ValidationError(
+                _("This user is not active."),
+                code="inactive",
+            )
+        if self.type == self.TYPE_ACTIVATE_ACCOUNT and self.user.is_active:
+            raise ValidationError(
+                _("This account has already been activated."),
+                code="activated",
+            )
         if self.type == self.TYPE_EMAIL_VERIFICATION and self.user.email_verified:
             raise ValidationError(
                 _("This email has already been verified."),

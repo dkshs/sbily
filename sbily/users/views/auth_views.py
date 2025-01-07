@@ -9,6 +9,7 @@ from django.shortcuts import render
 
 from sbily.users.models import Token
 from sbily.users.models import User
+from sbily.users.tasks import send_account_activation_email
 from sbily.users.tasks import send_password_changed_email
 from sbily.users.tasks import send_password_reset_email
 from sbily.users.tasks import send_sign_in_with_email
@@ -105,6 +106,8 @@ def sign_in_with_email(request: HttpRequest):
             bad_request_error("Please fill in all fields")
 
         user = User.objects.get(email=email)
+        if not user.is_active:
+            bad_request_error("User is not active! Activate your account first")
         if not user.email_verified:
             bad_request_error("Please verify your email first")
         if not user.login_with_email:
@@ -200,6 +203,9 @@ def forgot_password(request: HttpRequest):
             bad_request_error("Please fill in all fields")
 
         user = User.objects.get(email=email)
+        if not user.is_active:
+            bad_request_error("User is not active! Activate your account first")
+
         send_password_reset_email.delay_on_commit(user.id)
         messages.success(request, "Password reset email sent successfully")
         return redirect("sign_in")
@@ -260,3 +266,58 @@ def reset_password(request: HttpRequest, token: str):
     except Exception as e:
         messages.error(request, f"Error resetting password: {e}")
         return redirect("forgot_password")
+
+
+def activate_account(request: HttpRequest):
+    if request.user.is_authenticated:
+        return redirect("my_account")
+    if request.method != "POST":
+        return render(request, "activate_account.html")
+
+    email = request.POST.get("email", "")
+
+    try:
+        if not validate([email]):
+            bad_request_error("Please fill in all fields")
+
+        user = User.objects.get(email=email)
+        if user.is_active:
+            bad_request_error("User is already active")
+        send_account_activation_email.delay_on_commit(user.id)
+        messages.success(request, "Account activation email sent successfully")
+        return redirect("sign_in")
+    except User.DoesNotExist:
+        messages.error(request, "User does not exist")
+        return redirect("activate_account")
+    except BadRequestError as e:
+        messages.error(request, e.message)
+        return redirect("activate_account")
+    except Exception as e:
+        messages.error(request, f"Error sending account activation email: {e}")
+        return redirect("activate_account")
+
+
+def activate_account_verify(request: HttpRequest, token: str):
+    if request.user.is_authenticated:
+        return redirect("my_account")
+
+    try:
+        obj_token = Token.objects.get(token=token, type=Token.TYPE_ACTIVATE_ACCOUNT)
+        if obj_token.is_expired():
+            bad_request_error("Token has expired! Please request a new one")
+
+        user = obj_token.user
+        user.is_active = True
+        user.save()
+        obj_token.delete()
+        messages.success(request, "Account activated successfully!")
+        return redirect("sign_in")
+    except Token.DoesNotExist:
+        messages.error(request, "Invalid token")
+        return redirect("activate_account")
+    except BadRequestError as e:
+        messages.error(request, e.message)
+        return redirect("activate_account")
+    except Exception as e:
+        messages.error(request, f"Error activating account: {e}")
+        return redirect("activate_account")

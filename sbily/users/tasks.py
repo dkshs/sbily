@@ -13,7 +13,6 @@ from sbily.utils.tasks import get_task_response
 
 from .models import Token
 from .models import User
-from .utils.email import send_email
 
 BASE_URL = settings.BASE_URL or ""
 
@@ -246,38 +245,127 @@ def send_sign_in_with_email(self, user_id: int) -> dict[str, Any]:
 
 @shared_task(
     bind=True,
-    name="send_deleted_account_email",
+    name="send_deactivated_account_email",
     max_retries=3,
     default_retry_delay=60,
 )
-def send_deleted_account_email(self, user_email: str, username: str) -> dict[str, Any]:
-    """Send email informing user that their account has been deleted."""
+def send_deactivated_account_email(self, user_id: int) -> dict[str, Any]:
+    """Send email informing user that their account has been deactivated."""
     try:
-        subject = "Your account has been deleted"
-        template = "emails/users/deleted-account.html"
-        context = {"username": username, "name": username}
+        user = get_object_or_404(User, id=user_id)
 
-        send_email(subject, template, [user_email], **context)
+        subject = "Your account has been deactivated"
+        template = "emails/users/deactivated-account.html"
+        account_activation_link = user.get_account_activation_link()
+
+        user.email_user(
+            subject,
+            template,
+            account_activation_link=account_activation_link,
+        )
+        user.shortened_links.update(is_active=False)
+        user.deleted_shortened_links.update(is_active=False)
     except Exception as exc:
         try:
             self.retry(exc=exc)
         except MaxRetriesExceededError:
             return get_task_response(
                 "FAILED",
-                f"Failed to send deleted account email to {user_email} after max retries.",  # noqa: E501
+                f"Failed to send deactivated account email to user {user_id} after max retries.",  # noqa: E501
                 str(exc),
-                user_email=user_email,
+                user_id=user_id,
             )
         return get_task_response(
             "RETRY",
-            f"Retrying deleted account email for {user_email}",
+            f"Retrying deactivated account email for user {user_id}",
             str(exc),
-            user_email=user_email,
+            user_id=user_id,
         )
     return get_task_response(
         "COMPLETED",
-        f"Deleted account email sent to {user_email}.",
-        user_email=user_email,
+        f"Deactivated account email sent to {user.username}.",
+        user_id=user_id,
+    )
+
+
+@shared_task(
+    bind=True,
+    name="send_account_activation_email",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_account_activation_email(self, user_id: int) -> dict[str, Any]:
+    """Send account activation email."""
+    try:
+        user = get_object_or_404(User, id=user_id)
+
+        subject = "Activate your account"
+        template = "emails/users/activate-account.html"
+        account_activation_link = user.get_account_activation_link()
+
+        user.email_user(
+            subject,
+            template,
+            account_activation_link=account_activation_link,
+        )
+    except Exception as exc:
+        try:
+            self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            return get_task_response(
+                "FAILED",
+                f"Failed to send account activation email to user {user_id} after max retries.",  # noqa: E501
+                str(exc),
+                user_id=user_id,
+            )
+        return get_task_response(
+            "RETRY",
+            f"Retrying account activation email for user {user_id}",
+            str(exc),
+            user_id=user_id,
+        )
+    return get_task_response(
+        "COMPLETED",
+        f"Account activation email sent to {user.username}.",
+        user_id=user_id,
+    )
+
+
+@shared_task(
+    bind=True,
+    name="send_activated_account_email",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_activated_account_email(self, user_id: int) -> dict[str, Any]:
+    """Send email informing user that their account has been activated."""
+    try:
+        user = get_object_or_404(User, id=user_id)
+
+        subject = "Your account has been activated"
+        template = "emails/users/activated-account.html"
+
+        user.email_user(subject, template)
+    except Exception as exc:
+        try:
+            self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            return get_task_response(
+                "FAILED",
+                f"Failed to send activated account email to user {user_id} after max retries.",  # noqa: E501
+                str(exc),
+                user_id=user_id,
+            )
+        return get_task_response(
+            "RETRY",
+            f"Retrying activated account email for user {user_id}",
+            str(exc),
+            user_id=user_id,
+        )
+    return get_task_response(
+        "COMPLETED",
+        f"Activated account email sent to {user.username}.",
+        user_id=user_id,
     )
 
 
@@ -296,5 +384,37 @@ def cleanup_expired_tokens(self) -> dict[str, str | int]:
     return get_task_response(
         "COMPLETED",
         f"Deleted {num_deleted} expired tokens.",
+        num_deleted=num_deleted,
+    )
+
+
+@shared_task(
+    bind=True,
+    name="cleanup_deactivated_users",
+    acks_late=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    max_retries=3,
+)
+def cleanup_deactivated_users(self) -> dict[str, str | int]:
+    """Delete deactivated users from database"""
+    tokens = Token.objects.filter(
+        expires_at__lt=timezone.now(),
+        type=Token.TYPE_ACTIVATE_ACCOUNT,
+    )
+    users = User.objects.filter(
+        is_active=False,
+        tokens__in=tokens,
+    )
+    num_deleted = 0
+    for user in users:
+        user.email_user(
+            "Your account has been deleted",
+            "emails/users/account-deleted.html",
+        )
+        num_deleted += user.delete()[0]
+    return get_task_response(
+        "COMPLETED",
+        f"Deleted {num_deleted} deactivated users.",
         num_deleted=num_deleted,
     )

@@ -83,7 +83,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-2 mt-2">
           <button type="submit" class="button-primary w-fit">Update my informations</button>
-          <a href="{% url "delete_account" %}" class="button-destructive">Delete Account</a>
+          <a href="{% url "deactivate_account" %}" class="button-destructive">Deactivate Account</a>
         </div>
         {% if not user.email_verified %}
           <a href="{% url "resend_verify_email" %}" class="w-fit button-outline">

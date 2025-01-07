@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 
 from sbily.links.models import ShortenedLink
-from sbily.users.tasks import send_deleted_account_email
+from sbily.users.tasks import send_deactivated_account_email
 from sbily.users.tasks import send_email_verification
 from sbily.users.tasks import send_password_changed_email
 from sbily.utils.data import validate
@@ -122,20 +122,21 @@ def resend_verify_email(request: HttpRequest):
 
 
 @login_required
-def delete_account(request: HttpRequest):
+def deactivate_account(request: HttpRequest):
     if request.method != "POST":
-        return render(request, "delete_account.html")
+        return render(request, "deactivate_account.html")
     user = request.user
     try:
         if not user.email_verified:
             bad_request_error("Please verify your email first")
-        user.delete()
-        send_deleted_account_email.delay_on_commit(user.email, user.username)
-        messages.success(request, "User deleted successfully")
+        user.is_active = False
+        user.save()
+        send_deactivated_account_email.delay_on_commit(user.id)
+        messages.success(request, "Account deactivate successfully")
         return redirect("sign_in")
     except BadRequestError as e:
         messages.error(request, e.message)
         return redirect("my_account")
     except Exception as e:
-        messages.error(request, f"Error deleting user: {e}")
+        messages.error(request, f"Error deactivating account: {e}")
         return redirect("my_account")
