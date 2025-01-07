@@ -13,6 +13,7 @@ from sbily.utils.tasks import get_task_response
 
 from .models import Token
 from .models import User
+from .utils.email import send_email
 
 BASE_URL = settings.BASE_URL or ""
 
@@ -240,6 +241,43 @@ def send_sign_in_with_email(self, user_id: int) -> dict[str, Any]:
         "COMPLETED",
         f"Sign in with email sent to {user.username}.",
         user_id=user_id,
+    )
+
+
+@shared_task(
+    bind=True,
+    name="send_deleted_account_email",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_deleted_account_email(self, user_email: str, username: str) -> dict[str, Any]:
+    """Send email informing user that their account has been deleted."""
+    try:
+        subject = "Your account has been deleted"
+        template = "emails/users/deleted-account.html"
+        context = {"username": username, "name": username}
+
+        send_email(subject, template, [user_email], **context)
+    except Exception as exc:
+        try:
+            self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            return get_task_response(
+                "FAILED",
+                f"Failed to send deleted account email to {user_email} after max retries.",  # noqa: E501
+                str(exc),
+                user_email=user_email,
+            )
+        return get_task_response(
+            "RETRY",
+            f"Retrying deleted account email for {user_email}",
+            str(exc),
+            user_email=user_email,
+        )
+    return get_task_response(
+        "COMPLETED",
+        f"Deleted account email sent to {user_email}.",
+        user_email=user_email,
     )
 
 

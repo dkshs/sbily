@@ -4,6 +4,28 @@ from django.template.loader import render_to_string
 from sbily.users.models import User
 
 
+def send_email(subject: str, template: str, recipient_list: list[str], **kwargs):
+    """Send an email to a list of recipients.
+
+    Args:
+        subject: Email subject line
+        template: Email template to use
+        recipient_list: List of email addresses to send to
+        **kwargs: Additional context data for the email template
+    """
+
+    message = render_to_string(template, kwargs)
+
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=None,
+        recipient_list=recipient_list,
+        fail_silently=False,
+        html_message=message,
+    )
+
+
 def send_email_to_user(user: User, subject: str, template: str, **kwargs):
     """Send an email to a user.
 
@@ -25,12 +47,4 @@ def send_email_to_user(user: User, subject: str, template: str, **kwargs):
     context = {"user": user, "name": user.get_short_name()}
     context.update(kwargs)
 
-    message = render_to_string(template, context)
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=None,
-        recipient_list=[user.email],
-        fail_silently=False,
-        html_message=message,
-    )
+    send_email(subject, template, [user.email], **context)
