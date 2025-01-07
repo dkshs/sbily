@@ -397,7 +397,7 @@ def cleanup_expired_tokens(self) -> dict[str, str | int]:
     max_retries=3,
 )
 def cleanup_deactivated_users(self) -> dict[str, str | int]:
-    """Delete deactivated users from database"""
+    """Delete deactivated users from database."""
     tokens = Token.objects.filter(
         expires_at__lt=timezone.now(),
         type=Token.TYPE_ACTIVATE_ACCOUNT,
