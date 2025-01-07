@@ -7,6 +7,8 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
+from sbily.users.models import User
+
 from .models import DeletedShortenedLink
 from .models import ShortenedLink
 from .utils import filter_dict
@@ -35,6 +37,9 @@ def post_delete_shortened_link(sender: type, instance: ShortenedLink, **kwargs) 
                     instance.__dict__.copy(),
                     {"_state", "id"},
                 )
+                origin = kwargs.get("origin")
+                if origin and isinstance(origin, User):
+                    break
                 if instance.is_expired():
                     data["remove_at"] = timezone.now() + instance.DEFAULT_EXPIRY
                 DeletedShortenedLink.objects.create(**data)
