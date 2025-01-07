@@ -1,12 +1,10 @@
 # ruff: noqa: BLE001
 from typing import Any
-from urllib.parse import urljoin
 
 from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 
 from sbily.utils.tasks import get_task_response
@@ -201,17 +199,10 @@ def send_sign_in_with_email(self, user_id: int) -> dict[str, Any]:
     try:
         user = get_object_or_404(User, id=user_id)
 
-        token = user.tokens.filter(
-            type=Token.TYPE_SIGN_IN_WITH_EMAIL,
-        ).first() or user.tokens.create(type=Token.TYPE_SIGN_IN_WITH_EMAIL)
-        if token.is_expired():
-            token.renew()
-
-        sign_in_with_email_path = reverse(
+        sign_in_with_email_link = user.get_token_link(
+            Token.TYPE_SIGN_IN_WITH_EMAIL,
             "sign_in_with_email_verify",
-            kwargs={"token": token.token},
         )
-        sign_in_with_email_link = urljoin(BASE_URL, sign_in_with_email_path)
 
         subject = "Sign in to your account"
         template = "emails/users/sign-in-with-email.html"

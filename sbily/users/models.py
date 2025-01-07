@@ -5,7 +5,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
-from django.utils import timezone
+from django.utils.timezone import datetime
+from django.utils.timezone import now
+from django.utils.timezone import timedelta
 from django.utils.translation import gettext_lazy as _
 
 from .utils.data import generate_token
@@ -14,6 +16,8 @@ BASE_URL = settings.BASE_URL or ""
 
 
 class User(AbstractUser):
+    DEACTIVATED_USER_RETENTION = 7  # days
+
     ROLE_ADMIN = "admin"
     ROLE_USER = "user"
     ROLE_PREMIUM = "premium"
@@ -36,6 +40,7 @@ class User(AbstractUser):
         default=ROLE_USER,
         help_text=_("User role"),
     )
+    email = models.EmailField(_("email address"), unique=True, blank=False, null=False)
     email_verified = models.BooleanField(
         _("email verified"),
         default=False,
@@ -124,55 +129,78 @@ class User(AbstractUser):
         """Return user's short name or username if not set"""
         return super().get_short_name() or self.username
 
-    def get_verify_email_link(self) -> str:
-        """Generate email verification link for user"""
-        if not self.email:
-            raise ValidationError(_("User has no email address"), code="no_email")
-        if self.email_verified:
-            raise ValidationError(_("User email is already verified"), code="verified")
+    def get_token(
+        self,
+        token_type: str,
+        expires_at: None | datetime = None,
+    ) -> str:
+        """Gets a token of the given type.
 
-        token = self.tokens.filter(
-            type=Token.TYPE_EMAIL_VERIFICATION,
-        ).first() or self.tokens.create(type=Token.TYPE_EMAIL_VERIFICATION)
+        Args:
+            token_type: Type of token to get/create
+            expires_at: Optional expiry time for the token
 
-        if token.is_expired():
-            token.renew()
+        Returns:
+            str: The token string
 
-        path = reverse("verify_email", kwargs={"token": token.token})
-        return urljoin(BASE_URL, path)
+        Raises:
+            ValueError: If token_type is not valid
+        """
+        if token_type not in dict(Token.TOKEN_TYPE):
+            msg = f"Invalid token type: {token_type}"
+            raise ValueError(msg)
 
-    def get_reset_password_link(self) -> str:
-        """Generate password reset link for user"""
-        if not self.email:
-            raise ValidationError(_("User has no email address"), code="no_email")
-
-        token = self.tokens.filter(
-            type=Token.TYPE_PASSWORD_RESET,
-        ).first() or self.tokens.create(type=Token.TYPE_PASSWORD_RESET)
-
-        if token.is_expired():
-            token.renew()
-
-        path = reverse("reset_password", kwargs={"token": token.token})
-        return urljoin(BASE_URL, path)
-
-    def get_account_activation_link(self) -> str:
-        """Generate account activation link for user"""
-        if not self.email:
-            raise ValidationError(_("User has no email address"), code="no_email")
-
-        token = self.tokens.filter(
-            type=Token.TYPE_ACTIVATE_ACCOUNT,
-        ).first() or self.tokens.create(
-            type=Token.TYPE_ACTIVATE_ACCOUNT,
-            expires_at=timezone.now() + timezone.timedelta(days=7),
+        token = self.tokens.filter(type=token_type).first() or self.tokens.create(
+            type=token_type,
+            expires_at=expires_at,
         )
 
         if token.is_expired():
             token.renew()
 
-        path = reverse("activate_account_verify", kwargs={"token": token.token})
+        return token.token
+
+    def get_token_link(
+        self,
+        token_type: str,
+        url_name: str,
+        expires_at: None | datetime = None,
+    ) -> str:
+        """Gets a link for a token of the given type.
+
+        Args:
+            token_type: Type of token to get/create
+            url_name: Name of URL pattern to generate link
+            expires_at: Optional expiry time for the token
+
+        Returns:
+            str: Full URL containing the token
+        """
+        token = self.get_token(token_type, expires_at)
+        path = reverse(url_name, kwargs={"token": token})
         return urljoin(BASE_URL, path)
+
+    def get_verify_email_link(self) -> str:
+        """Generate email verification link for user"""
+        if self.email_verified:
+            raise ValidationError(_("User email is already verified"), code="verified")
+
+        return self.get_token_link(Token.TYPE_EMAIL_VERIFICATION, "verify_email")
+
+    def get_reset_password_link(self) -> str:
+        """Generate password reset link for user"""
+        return self.get_token_link(Token.TYPE_PASSWORD_RESET, "reset_password")
+
+    def get_account_activation_link(self) -> str:
+        """Generate account activation link for user"""
+        deactivated_user_retention = timedelta(
+            days=self.DEACTIVATED_USER_RETENTION,
+        )
+        return self.get_token_link(
+            Token.TYPE_ACTIVATE_ACCOUNT,
+            "activate_account_verify",
+            expires_at=now() + deactivated_user_retention,
+        )
 
     def email_user(
         self,
@@ -198,9 +226,7 @@ class User(AbstractUser):
 
 
 class Token(models.Model):
-    """Token model for email verification and password reset"""
-
-    DEFAULT_EXPIRY = timezone.timedelta(hours=2)
+    DEFAULT_EXPIRY = timedelta(hours=2)
     TYPE_EMAIL_VERIFICATION = "email_verification"
     TYPE_SIGN_IN_WITH_EMAIL = "sign_in_with_email"
     TYPE_PASSWORD_RESET = "password_reset"  # noqa: S105
@@ -257,7 +283,7 @@ class Token(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.expires_at:
-            self.expires_at = timezone.now() + self.DEFAULT_EXPIRY
+            self.expires_at = now() + self.DEFAULT_EXPIRY
         if not self.token:
             self.token = generate_token()
         super().full_clean()
@@ -266,15 +292,13 @@ class Token(models.Model):
     def renew(self):
         """Renew token by updating token and timestamps"""
         self.token = generate_token()
-        now = timezone.now()
-        self.created_at = now
-        self.expires_at = now + self.DEFAULT_EXPIRY
+        self.expires_at = now() + self.DEFAULT_EXPIRY
         self.save()
         return self.token
 
     def is_expired(self):
         """Check if token is expired"""
-        return self.expires_at and timezone.now() > self.expires_at
+        return self.expires_at and now() > self.expires_at
 
     def clean(self):
         """Validate token instance"""
