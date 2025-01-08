@@ -1,5 +1,5 @@
 function verifyToastOl() {
-  let toastOl = document.querySelector("#toast-ol");
+  let toastOl = document.getElementById("toast-ol");
   if (!toastOl) {
     toastOl = document.createElement("ol");
     toastOl.setAttribute("id", "toast-ol");
@@ -12,7 +12,7 @@ function verifyToastOl() {
 
 function closeToast(id, time = 3000) {
   setTimeout(() => {
-    const toast = document.querySelector(`#${id}`);
+    const toast = document.getElementById(id);
     if (!toast) return;
     toast.classList.add("toast-close");
     setTimeout(() => toast.remove(), 600);
@@ -20,23 +20,22 @@ function closeToast(id, time = 3000) {
 }
 
 function getToastIcon(tag) {
+  const icon = (i) => `<i class="ph-fill ph-${i} toast-icon"></i>`;
   switch (tag) {
     case "toast-success":
-      return '<i class="ph-fill ph-check-circle toast-icon"></i>';
+      return icon("check-circle");
     case "toast-warning":
-      return '<i class="ph-fill ph-warning toast-icon"></i>';
+      return icon("warning");
     case "toast-error":
-      return '<i class="ph-fill ph-warning-circle toast-icon"></i>';
+      return icon("warning-circle");
     default:
-      return '<i class="ph-fill ph-info toast-icon"></i>';
+      return icon("info");
   }
 }
 
 function toast(msg, className, time = 3000) {
   const toastOl = verifyToastOl();
-  const id =
-    Math.random().toString(36).slice(2, 15) +
-    Math.random().toString(36).slice(2, 15);
+  const id = `toast-${Date.now()}`;
   toastOl.insertAdjacentHTML(
     "beforeend",
     `<li class="toast-open ${className}" id="${id}" role="alert" aria-live="assertive" aria-atomic="true" tabindex="0">
@@ -46,10 +45,6 @@ function toast(msg, className, time = 3000) {
         class="toast-close-btn"
         aria-label="Close toast"
         data-dismiss="toast"
-        aria-hidden="true"
-        tabindex="-1"
-        role="button"
-        aria-label="Close"
       >
         <span aria-hidden="true">&times;</span>
       </button>
