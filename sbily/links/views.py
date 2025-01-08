@@ -13,6 +13,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from sbily.utils.data import validate
+from sbily.utils.urls import redirect_with_params
 
 from .models import DeletedShortenedLink
 from .models import ShortenedLink
@@ -20,12 +21,10 @@ from .models import ShortenedLink
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 
 
-@login_required
 def home(request: HttpRequest):
     return render(request, "home.html", {"LINK_BASE_URL": LINK_BASE_URL})
 
 
-@login_required
 def create_link(request: HttpRequest):
     if request.method != "POST":
         return redirect("home")
@@ -39,6 +38,9 @@ def create_link(request: HttpRequest):
     if not validate([original_link]):
         messages.error(request, "Please enter a valid original link")
         return redirect(next_path)
+
+    if not request.user.is_authenticated:
+        return redirect_with_params("sign_in", {"original_link": original_link})
 
     try:
         link_data = {

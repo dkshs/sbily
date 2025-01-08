@@ -6,7 +6,8 @@
   <div class="mt-16 flex flex-col items-center justify-center max-w-md mx-auto p-6 border rounded-md">
     <form method="post" action="{% url 'sign_in' %}" class="w-full">
       {% csrf_token %}
-      <input hidden type="hidden" name="next" value="{{ next_param }}" />
+      <input hidden type="hidden" name="original_link" value="{{ original_link }}" />
+      <input hidden type="hidden" name="next" value="{{ next }}" />
       <div class="text-center mb-8 mt-2">
         <h2 class="text-3xl font-bold">Sign In</h2>
         <p class="text-base font-medium mt-1">Welcome back! Please sign in to continue</p>

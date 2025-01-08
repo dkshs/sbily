@@ -3,10 +3,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.shortcuts import render
 
+from sbily.links.models import ShortenedLink
 from sbily.users.models import Token
 from sbily.users.models import User
 from sbily.users.tasks import send_account_activation_email
@@ -14,10 +17,12 @@ from sbily.users.tasks import send_password_changed_email
 from sbily.users.tasks import send_password_reset_email
 from sbily.users.tasks import send_sign_in_with_email
 from sbily.users.tasks import send_welcome_email
+from sbily.utils.data import is_none
 from sbily.utils.data import validate
 from sbily.utils.data import validate_password
 from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
+from sbily.utils.urls import redirect_with_params
 
 
 def sign_up(request: HttpRequest):
@@ -67,13 +72,18 @@ def sign_in(request: HttpRequest):
     if request.user.is_authenticated:
         return redirect("my_account")
 
-    next_param = request.GET.get("next", None)
     if request.method != "POST":
-        return render(request, "sign_in.html", {"next_param": next_param})
+        next_param = request.GET.get("next", "my_account")
+        original_link = request.GET.get("original_link", None)
+        context = {"next": next_param, "original_link": original_link}
+        return render(request, "sign_in.html", context)
 
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    next_param = request.POST.get("next", None)
+
+    next_param = request.POST.get("next", "my_account")
+    original_link = request.POST.get("original_link", None)
+    context = {"next": next_param, "original_link": original_link}
 
     try:
         if not validate([username, password]):
@@ -84,13 +94,22 @@ def sign_in(request: HttpRequest):
             bad_request_error("Invalid username or password")
 
         login(request, user)
-        return redirect(next_param if next_param != "None" else "my_account")
+        if is_none(original_link):
+            return redirect("my_account" if is_none(next_param) else next_param)
+        url_validate = URLValidator()
+        try:
+            url_validate(original_link)
+            link = ShortenedLink.objects.create(original_link=original_link, user=user)
+            messages.success(request, "Link created successfully")
+            return redirect("link", shortened_link=link.shortened_link)
+        except ValidationError:
+            bad_request_error("Invalid original link.")
     except BadRequestError as e:
         messages.error(request, e.message)
-        return redirect("sign_in")
+        return redirect_with_params("sign_in", context)
     except Exception as e:
         messages.error(request, f"Error signing in: {e}")
-        return redirect("sign_in")
+        return redirect_with_params("sign_in", context)
 
 
 def sign_in_with_email(request: HttpRequest):

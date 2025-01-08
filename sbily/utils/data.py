@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 MIN_PASSWORD_LENGTH = 8
 
@@ -16,6 +17,13 @@ def validate(fields: list[str]) -> bool:
         False otherwise.
     """
     return all(str(field).strip() != "" for field in fields)
+
+
+def is_none(value: Any) -> bool:
+    """Checks if a value is None or a string representing a None-like value."""
+    if isinstance(value, str):
+        return value.strip() in ("", "None", "null", "undefined")
+    return value is None
 
 
 def validate_password(password: str) -> tuple[bool, str]:
