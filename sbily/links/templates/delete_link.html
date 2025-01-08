@@ -1,24 +1,12 @@
-{% extends "base.html" %}
+{% extends "are_you_sure.html" %}
 
-{% block title %}Are you sure?{% endblock title %}
+{% block content_info %}
+  <p class="break-words">Are you sure you want to delete the "{{ link }}" link?</p>
+  <ul class="list-disc list-inside">
+    <li>Link: <a href="{% url "link" link.shortened_link %}" class="link-primary">{{ link }}</a></li>
+  </ul>
+{% endblock content_info %}
 
-{% block content %}
-  <div class="mt-16 flex flex-col items-center max-w-lg mx-auto p-6 border rounded-md">
-    <div class="flex flex-col gap-4">
-      <h1 class="text-3xl font-bold text-center">Are you sure?</h1>
-      <p class="break-words">Are you sure you want to delete the "{{ link }}" link?</p>
-      <ul class="list-disc list-inside">
-        <li>Link: <a href="{% url "link" link.shortened_link %}" class="link-primary">{{ link }}</a></li>
-      </ul>
-    </div>
-    <form
-      method="post"
-      action="{% url 'delete_link' link.shortened_link %}"
-      class="mt-4 w-full flex items-center gap-2"
-    >
-      {% csrf_token %}
-      <button type="submit" class="button-destructive">Yes, I’m sure</button>
-      <a href="{% url "my_account" %}" class="button-outline">No, take me back</a>
-    </form>
-  </div>
-{% endblock content %}
+{% block form_action %}{% url 'delete_link' link.shortened_link %}{% endblock form_action %}
+
+{% block go_back %}{% url "my_account" %}{% endblock go_back %}
