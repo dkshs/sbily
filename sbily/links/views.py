@@ -186,6 +186,10 @@ def delete_link(request: HttpRequest, shortened_link: str):
             shortened_link=shortened_link,
             user=request.user,
         )
+
+        if request.method != "POST":
+            return render(request, "delete_link.html", {"link": link})
+
         link.delete()
         messages.success(request, "Link deleted successfully")
         return redirect("my_account")
@@ -234,6 +238,10 @@ def remove_deleted_link(request: HttpRequest, shortened_link: str):
             shortened_link=shortened_link,
             user=request.user,
         )
+
+        if request.method != "POST":
+            return render(request, "remove_deleted_link.html", {"link": link})
+
         link.delete()
         messages.success(request, "Link deleted successfully")
         return redirect("deleted_links")
