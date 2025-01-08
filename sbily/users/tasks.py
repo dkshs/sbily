@@ -1,6 +1,7 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 
 from sbily.utils.tasks import default_task_params
@@ -193,6 +194,8 @@ def cleanup_expired_tokens(self):
 @shared_task(**default_task_params("cleanup_deactivated_users", acks_late=True))
 def cleanup_deactivated_users(self):
     """Delete deactivated users from database."""
+    batch_size = 1000
+
     expired_tokens = Token.objects.filter(
         expires_at__lt=timezone.now(),
         type=Token.TYPE_ACTIVATE_ACCOUNT,
@@ -204,19 +207,24 @@ def cleanup_deactivated_users(self):
     )
 
     num_deleted = 0
+    num_failed = 0
     subject = "Your account has been deleted"
     template = "emails/users/account-deleted.html"
 
-    for user in users.iterator():
+    for user_batch in users.iterator(chunk_size=batch_size):
         try:
-            user.email_user(subject, template)
-            num_deleted += user.delete()[0]
+            with transaction.atomic():
+                logger.info("Attempting to delete user %u", user_batch.username)
+                user_batch.email_user(subject, template)
+                num_deleted += user_batch.delete()[0]
         except Exception:
-            logger.exception("Error deleting user %s", user.username)
+            num_failed += 1
+            logger.exception("Error deleting user %s", user_batch.username)
             continue
 
     return task_response(
         "COMPLETED",
-        f"Deleted {num_deleted} deactivated users.",
+        f"Deleted {num_deleted} deactivated users. Failed to delete {num_failed} users.",  # noqa: E501
         num_deleted=num_deleted,
+        num_failed=num_failed,
     )
