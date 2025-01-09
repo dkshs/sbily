@@ -2,6 +2,8 @@ import re
 from typing import Any
 
 MIN_PASSWORD_LENGTH = 8
+SPECIAL_CHARS = r"[!@#$%^&*(),.?\":{}|<>]"
+PASSWORD_PATTERN = rf"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*{SPECIAL_CHARS})"
 
 
 def validate(fields: list[str]) -> bool:
@@ -16,13 +18,15 @@ def validate(fields: list[str]) -> bool:
         bool: True if all fields are not empty after stripping whitespace,
         False otherwise.
     """
+    if not isinstance(fields, list):
+        return False
     return all(str(field).strip() != "" for field in fields)
 
 
 def is_none(value: Any) -> bool:
     """Checks if a value is None or a string representing a None-like value."""
     if isinstance(value, str):
-        return value.strip() in ("", "None", "null", "undefined")
+        return value.strip().lower() in ("", "none", "null", "undefined")
     return value is None
 
 
@@ -33,7 +37,7 @@ def validate_password(password: str) -> tuple[bool, str]:
     - Contains at least one digit
     - Contains at least one uppercase letter
     - Contains at least one lowercase letter
-    - Contains at least one special character
+    - Contains at least one special character (!@#$%^&*(),.?":{}|<>)
 
     Args:
         password: A string representing the password to be validated.
@@ -42,18 +46,23 @@ def validate_password(password: str) -> tuple[bool, str]:
         tuple[bool, str]: A tuple containing:
             - bool: True if password is valid, False otherwise
             - str: Empty string if valid, error message if invalid
+
+    Examples:
+        >>> validate_password("Ab1!defgh")
+        (True, "")
+        >>> validate_password("abc")
+        (False, "Password must be at least 8 characters.")
     """
     if not isinstance(password, str):
-        return False, "Password must be a string"
+        return False, "Password must be a string."
 
     if not password.strip():
-        return False, "Password cannot be empty"
+        return False, "Password cannot be empty."
 
     if len(password) < MIN_PASSWORD_LENGTH:
-        return False, f"Password must be at least {MIN_PASSWORD_LENGTH} characters"
+        return False, f"Password must be at least {MIN_PASSWORD_LENGTH} characters."
 
-    pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?\":{}|<>])"
-    if not re.search(pattern, password):
+    if not re.search(PASSWORD_PATTERN, password):
         return False, (
             "Password must contain at least one digit, one uppercase letter, "
             "one lowercase letter, and one special character."

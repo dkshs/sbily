@@ -11,24 +11,20 @@ def redirect_with_params(
     url_name: str,
     params: dict | None = None,
 ) -> HttpResponseRedirect:
-    """
-    Simulates a redirect to a given URL with parameters.
-
-    This function takes a URL and a dictionary of parameters, and returns a redirect response
-    with the parameters appended as a query string.
+    """Redirects to a URL with optional query parameters.
 
     Args:
-        url_name (str): Name of the URL pattern to redirect to
-        params (dict | None): A dictionary of parameter key-value pairs to be appended to the URL.
+        url_name: The name of the URL pattern.
+        params: A dictionary of query parameters.
 
     Returns:
-        HttpResponseRedirect: A redirect response with parameters.
+        An HTTP redirect response.
 
     Example:
         >>> redirect_with_params("sign_in", {"next": "/account/me/"})
         HttpResponseRedirect("/auth/sign_in/?next=/account/me/")
-    """  # noqa: E501
-    if params is None:
+    """
+    if not params:
         return redirect(url_name)
 
     filtered_params = {k: v for k, v in params.items() if not is_none(v)}

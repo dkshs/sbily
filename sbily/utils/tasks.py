@@ -5,26 +5,24 @@ def task_response(
     status: str,
     message: str = "",
     error: str | None = None,
-    **kwargs,
+    **data,
 ) -> dict[str, Any]:
-    """Helper function to standardize task responses
+    """Helper function to standardize task responses.
 
     Args:
-        status: Status of the task (e.g. 'success', 'error', 'pending')
-        message: Description or details about the task result
-        error: Error message if task failed
-        **kwargs: Additional data to include in response
+        status: Status of the task (e.g. 'success', 'error', 'pending').
+        message: Description or details about the task result.
+        error: Error message if task failed.
+        **data: Additional data to include in response.
 
     Returns:
-        Dict containing standardized response with status, message and data
+        Dict containing standardized response with status, message and data.
     """
-    response = {
-        "status": status,
-        "message": message,
-        "data": kwargs or None,
-    }
+    response = {"status": status, "message": message}
     if error:
         response["error"] = error
+    if data:
+        response["data"] = data
     return response
 
 
@@ -33,13 +31,13 @@ def default_task_params(name: str, **kwargs) -> dict[str, Any]:
     Get common Celery task parameters for tasks.
 
     Args:
-        name: Name of the task
-        **kwargs: Additional task parameters to override defaults
+        name: Name of the task.
+        **kwargs: Additional task parameters to override defaults.
 
     Returns:
-        Dict of common task parameters with standard retry settings
+        Dict of common task parameters with standard retry settings.
     """
-    return {
+    base_params = {
         "bind": True,
         "name": name,
         "max_retries": 5,
@@ -48,4 +46,5 @@ def default_task_params(name: str, **kwargs) -> dict[str, Any]:
         "retry_backoff": True,
         "retry_backoff_max": 900,
         "retry_jitter": True,
-    } | kwargs
+    }
+    return base_params | kwargs

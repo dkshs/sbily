@@ -6,17 +6,15 @@ from django.utils.translation import gettext_lazy as _
 from sbily.users.models import User
 
 
-def user_can_create_link(
-    link_id: int,
-    link_remove_at: datetime | None,
-    user: User,
-) -> None:
-    """Checks if the user can create a new link or modify an existing link's temporary
-    status according to their account permissions.
+def validate_link_creation(is_temporary: bool, user: User) -> None:  # noqa: FBT001
+    """Helper function to validate link creation permissions.
+
+    Args:
+        is_temporary: Whether the link being created is temporary.
+        user: User instance to validate permissions for.
 
     Raises:
-        ValidationError: If the user has reached the maximum number of links allowed
-        for their account.
+        ValidationError: If user lacks required permissions.
     """
 
     error_message = _(
@@ -25,32 +23,53 @@ def user_can_create_link(
     )
     error_code = "max_links_reached"
 
-    link = user.shortened_links.get(id=link_id) if link_id else None
+    if (is_temporary and not user.can_create_temporary_link()) or (
+        not is_temporary and not user.can_create_link()
+    ):
+        raise ValidationError(error_message, code=error_code)
 
-    def validate_link_creation(is_temporary: bool) -> None:  # noqa: FBT001
-        if is_temporary and not user.can_create_temporary_link():
-            raise ValidationError(error_message, code=error_code)
-        if not is_temporary and not user.can_create_link():
-            raise ValidationError(error_message, code=error_code)
 
-    if link is None:
-        validate_link_creation(is_temporary=link_remove_at is not None)
+def user_can_create_link(
+    link_id: int | None,
+    link_remove_at: datetime | None,
+    user: User,
+) -> None:
+    """Checks if the user can create a new link or modify an existing link's temporary
+    status according to their account permissions.
+
+    Args:
+        link_id: ID of existing link to modify, or None for new link.
+        link_remove_at: Removal datetime for temporary link, or None for permanent link.
+        user: User attempting to create/modify the link.
+
+    Raises:
+        ValidationError: If the user has reached the maximum number of links allowed
+        for their account.
+    """
+    if not link_id:
+        validate_link_creation(is_temporary=bool(link_remove_at), user=user)
         return
 
-    if (link_remove_at is not None) == (link.remove_at is not None):
+    try:
+        link = user.shortened_links.get(id=link_id)
+    except User.shortened_links.model.DoesNotExist:
+        validate_link_creation(is_temporary=bool(link_remove_at), user=user)
         return
 
-    validate_link_creation(is_temporary=link_remove_at is not None)
+    # Skip validation if temporary status is not changing
+    is_temporary_status_changed = bool(link_remove_at) != bool(link.remove_at)
+    if is_temporary_status_changed:
+        validate_link_creation(is_temporary=bool(link_remove_at), user=user)
 
 
-def filter_dict(data: dict, exclude_keys: set) -> dict:
+def filter_dict(data: dict, exclude_keys: set[str]) -> dict:
     """Remove specified keys from a dictionary.
 
     Args:
-        data (dict): The original dictionary.
-        exclude_keys (set): A set of keys to exclude from the dictionary.
+        data: The original dictionary.
+        exclude_keys: Set of string keys to exclude from the dictionary.
 
     Returns:
-        dict: The filtered dictionary without the specified keys.
+        The filtered dictionary without the specified keys.
     """
     return {k: v for k, v in data.items() if k not in exclude_keys}

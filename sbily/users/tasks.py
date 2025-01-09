@@ -17,7 +17,11 @@ logger = get_task_logger(__name__)
 
 @shared_task(**default_task_params("send_welcome_email"))
 def send_welcome_email(self, user_id: int):
-    """Send welcome email to newly registered user."""
+    """
+    Send a welcome email to a newly registered user.
+
+    Also schedules a verification email to be sent after a 5-second delay.
+    """
     user = User.objects.get(id=user_id)
     name = user.get_short_name()
 
@@ -121,7 +125,11 @@ def send_sign_in_with_email(self, user_id: int):
 
 @shared_task(**default_task_params("send_deactivated_account_email"))
 def send_deactivated_account_email(self, user_id: int):
-    """Send email informing user that their account has been deactivated."""
+    """
+    Send email informing user that their account has been deactivated.
+
+    Also deactivates the user's shortened and deleted shortened links.
+    """
     user = User.objects.get(id=user_id)
 
     subject = "Your account has been deactivated"
@@ -144,7 +152,7 @@ def send_deactivated_account_email(self, user_id: int):
 
 @shared_task(**default_task_params("send_account_activation_email"))
 def send_account_activation_email(self, user_id: int):
-    """Send account activation email."""
+    """Send account activation email to the user."""
     user = User.objects.get(id=user_id)
 
     subject = "Activate your account"
@@ -193,34 +201,40 @@ def cleanup_expired_tokens(self):
 
 @shared_task(**default_task_params("cleanup_deactivated_users", acks_late=True))
 def cleanup_deactivated_users(self):
-    """Delete deactivated users from database."""
-    batch_size = 1000
+    """
+    Delete deactivated users from the database.
 
+    Sends an account deletion email to each user before deleting their account.
+    Processes users in batches to improve efficiency. Logs successes and failures.
+    """
     expired_tokens = Token.objects.filter(
         expires_at__lt=timezone.now(),
         type=Token.TYPE_ACTIVATE_ACCOUNT,
     )
-    users = (
-        User.objects.select_for_update()
-        .filter(is_active=False, tokens__in=expired_tokens)
-        .distinct()
-    )
+    users = User.objects.filter(
+        is_active=False,
+        tokens__in=expired_tokens,
+    ).distinct()
 
     num_deleted = 0
     num_failed = 0
-    subject = "Your account has been deleted"
-    template = "emails/users/account-deleted.html"
+    email_params = {
+        "subject": "Your account has been deleted",
+        "template": "emails/users/account-deleted.html",
+    }
 
-    for user_batch in users.iterator(chunk_size=batch_size):
+    for user in users.iterator():
         try:
             with transaction.atomic():
-                logger.info("Attempting to delete user %u", user_batch.username)
-                user_batch.email_user(subject, template)
-                num_deleted += user_batch.delete()[0]
+                user.email_user(**email_params)
+                num_deleted += user.delete()[0]
         except Exception:
             num_failed += 1
-            logger.exception("Error deleting user %s", user_batch.username)
-            continue
+            logger.exception(
+                "Error deleting user %s (ID: %s)",
+                user.username,
+                user.id,
+            )
 
     return task_response(
         "COMPLETED",
