@@ -143,7 +143,7 @@ def update_link(request: HttpRequest, shortened_link: str):
             raise ValidationError(msg)  # noqa: TRY301
 
         if form_data["remove_at"]:
-            form_data["remove_at"] = f'{form_data["remove_at"].replace("T", " ")}:00'
+            form_data["remove_at"] = f"{form_data['remove_at'].replace('T', ' ')}:00"
         if (
             form_data["original_link"] == link.original_link
             and form_data["shortened_link"] == link.shortened_link

@@ -215,7 +215,7 @@ class User(AbstractUser):
             template: Path to the email template
             **kwargs: Additional context data for the email template
         """
-        from .utils.email import send_email_to_user
+        from .utils.emails import send_email_to_user
 
         send_email_to_user(
             self,
