@@ -94,6 +94,20 @@
         {% endfor %}
       </script>
     {% endif %}
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        formdata = new FormData();
+        const csrfToken = '{% csrf_token %}'.split("value=")[1].replaceAll('"', "").replace(">", "");
+        formdata.append("csrfmiddlewaretoken", csrfToken);
+        formdata.append("timezone", timezone);
+
+        fetch(
+          "{% url 'set_user_timezone' %}",
+          { method: "POST", body: formdata },
+        ).catch(e => console.error(e));
+      });
+    </script>
     {% block js %}{% endblock js %}
   </body>
 </html>

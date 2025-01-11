@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 
@@ -138,3 +139,9 @@ def deactivate_account(request: HttpRequest):
     except Exception as e:
         messages.error(request, f"Error deactivating account: {e}")
         return redirect("my_account")
+
+
+def set_user_timezone(request: HttpRequest):
+    if "timezone" in request.POST:
+        request.session["user_timezone"] = request.POST["timezone"]
+    return JsonResponse({"status": "ok"})

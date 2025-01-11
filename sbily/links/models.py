@@ -113,6 +113,9 @@ class AbstractShortenedLink(models.Model):
 
     @transaction.atomic
     def save(self, *args, **kwargs) -> None:
+        if self.remove_at:
+            current_timezone = timezone.get_current_timezone()
+            self.remove_at = self.remove_at.replace(tzinfo=current_timezone)
         self.full_clean()
         if not self.shortened_link:
             self._generate_unique_shortened_link()
@@ -159,6 +162,13 @@ class AbstractShortenedLink(models.Model):
         if not self.remove_at or self.is_expired():
             return None
         return self.remove_at - timezone.now()
+
+    @property
+    def time_until_expiration_formatted(self) -> str:
+        """Returns the time remaining until link expiration in a human-readable format"""  # noqa: E501
+        if not self.remove_at or self.is_expired():
+            return _("Permanent")
+        return timesince(timezone.now(), self.remove_at)
 
 
 class ShortenedLink(AbstractShortenedLink):

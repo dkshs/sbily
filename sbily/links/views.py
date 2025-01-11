@@ -19,6 +19,7 @@ from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
+LINK_REMOVE_AT_EXCLUDE = r".\d*\+\d{2}:\d{2}"
 
 
 def home(request: HttpRequest):
@@ -103,11 +104,15 @@ def link(request: HttpRequest, shortened_link: str):
             )
             return redirect("my_account")
 
-        link.remove_at = re.sub(r".\d*\+\d{2}:\d{2}", "", f"{link.remove_at}")
+        link_remove_at = re.sub(LINK_REMOVE_AT_EXCLUDE, "", f"{link.remove_at}")
         return render(
             request,
             "link.html",
-            {"link": link, "LINK_BASE_URL": LINK_BASE_URL},
+            {
+                "link": link,
+                "link_remove_at": link_remove_at,
+                "LINK_BASE_URL": LINK_BASE_URL,
+            },
         )
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
@@ -129,7 +134,7 @@ def update_link(request: HttpRequest, shortened_link: str):
             shortened_link=shortened_link,
             user=request.user,
         )
-        link.remove_at = re.sub(r".\d*\+\d{2}:\d{2}", "", f"{link.remove_at}")
+        link.remove_at = re.sub(LINK_REMOVE_AT_EXCLUDE, "", f"{link.remove_at}")
 
         form_data = {
             "original_link": request.POST.get("original_link", "").strip(),
@@ -143,7 +148,7 @@ def update_link(request: HttpRequest, shortened_link: str):
             raise ValidationError(msg)  # noqa: TRY301
 
         if form_data["remove_at"]:
-            form_data["remove_at"] = f"{form_data['remove_at'].replace('T', ' ')}:00"
+            form_data["remove_at"] = f"{form_data['remove_at'].replace('T', ' ')}"
         if (
             form_data["original_link"] == link.original_link
             and form_data["shortened_link"] == link.shortened_link

@@ -212,7 +212,11 @@
               </thead>
               <tbody id="tbody">
                 {% for link in links %}
-                  <tr class="border-b duration-200 hover:bg-muted/50" id="{{ link.id }}">
+                  <tr
+                    {% if link.is_expired %}title="The link has expired!"{% endif %}
+                    class="border-b duration-200 hover:bg-muted/50"
+                    id="{{ link.id }}"
+                  >
                     <td class="text-center align-middle font-medium">
                       <input
                         type="checkbox"
