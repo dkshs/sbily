@@ -77,6 +77,15 @@
   .link {
     @apply inline-flex items-center rounded-md justify-center font-medium ring-offset-background underline-offset-4 duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring active:opacity-70;
   }
+  .dialog {
+    @apply z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%];
+  }
+  .dialog-overlay {
+    @apply opacity-0 bg-black/60 fixed z-[9999] inset-0;
+  }
+  .dialog-close {
+    @apply absolute button-outline p-2 border-0 rounded-xl right-4 top-4;
+  }
   .dropdown-menu-item {
     @apply link hover:no-underline hover:bg-background/40 duration-200 h-10;
   }

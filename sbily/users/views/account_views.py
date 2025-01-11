@@ -123,10 +123,8 @@ def resend_verify_email(request: HttpRequest):
 
 @login_required
 def deactivate_account(request: HttpRequest):
-    if request.method != "POST":
-        return render(request, "deactivate_account.html")
-    user = request.user
     try:
+        user = request.user
         if not user.email_verified:
             bad_request_error("Please verify your email first")
         user.is_active = False

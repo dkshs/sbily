@@ -4,7 +4,7 @@
 {% block title %}{{ user.username }}{% endblock title %}
 
 {% block content %}
-  <div class="my-16 flex flex-col justify-center max-w-xl mx-auto gap-4">
+  <div class="py-16 flex flex-col justify-center max-w-xl mx-auto gap-4">
     <div class="flex flex-col justify-center p-6 border rounded-md">
       <div class="flex items-center gap-2">
         <h1 class="text-2xl font-bold text-center">My informations</h1>
@@ -83,7 +83,14 @@
         </div>
         <div class="flex flex-wrap items-center gap-2 mt-2">
           <button type="submit" class="button-primary w-fit">Update my informations</button>
-          <a href="{% url "deactivate_account" %}" class="button-destructive">Deactivate Account</a>
+          <button
+            type="button"
+            class="button-destructive"
+            data-jswc-dialog
+            data-jswc-target="deactivate-dialog"
+          >
+            Deactivate Account
+          </button>
         </div>
         {% if not user.email_verified %}
           <a href="{% url "resend_verify_email" %}" class="w-fit button-outline">
@@ -94,6 +101,63 @@
           <a href="{{ ADMIN_URL }}" class="mt-1 link-primary self-start">Access admin</a>
         {% endif %}
       </form>
+      <div
+        id="deactivate-dialog"
+        class="hidden opacity-0 dialog aria-hidden:animate-dialog-close aria-[hidden=false]:animate-dialog-show outline-none focus-visible:border-primary"
+        data-jswc-dialog-animation="true"
+      >
+        <div class="flex flex-col">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold">Are you sure?</h2>
+          </div>
+          <div class="flex flex-col gap-4 mt-2">
+            <p>Are you sure you want to deactivate user "{{ user.username }}"?
+              All of the following related items will be deactivated now and deleted within 7 days:
+            </p>
+            <ul class="list-disc list-inside">
+              <li>
+                User: {{ user.username }}
+                <ul class="list-disc list-inside pl-2 sm:pl-6">
+                  {% for link in user.shortened_links.all %}
+                    <li>
+                      Link:
+                      <a href="{% url "link" link.shortened_link %}" class="link-primary">{{ link }}</a>
+                    </li>
+                  {% endfor %}
+                  {% for link in user.deleted_shortened_links.all %}
+                    <li>Deleted Link: <span class="text-primary">{{ link }}</span></li>
+                  {% endfor %}
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <form
+              method="post"
+              action="{% url "deactivate_account" %}"
+              class="mt-4 w-full flex items-center gap-2 flex-wrap"
+            >
+              {% csrf_token %}
+              <button type="submit" class="button-destructive w-full sm:w-auto">Yes, I’m sure</button>
+              <button
+                type="button"
+                class="button-outline w-full sm:w-auto"
+                data-jswc-dialog-close
+              >
+                No, take me back
+              </button>
+            </form>
+          </div>
+          <button
+            type="button"
+            class="absolute button-outline p-2 border-0 rounded-xl right-4 top-4"
+            aria-label="Close"
+            data-jswc-dialog-close
+          >
+            <i class="ph-bold ph-x"></i>
+          </button>
+        </div>
+      </div>
     </div>
     {% include "partials/create_link_form.html" with width="full" %}
     <div class="flex flex-col justify-center p-6 border rounded-md relative">
@@ -215,10 +279,16 @@
                             <i class="ph-bold ph-check-circle text-green-600 text-lg"></i> Activate
                           {% endif %}
                         </a>
-                        <a href="{% url 'delete_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                        <button
+                          type="button"
+                          class="dropdown-menu-item gap-1 p-2"
+                          data-jswc-dialog
+                          data-jswc-target="remove-link-{{ link.id }}-dialog"
+                        >
                           <i class="ph-bold ph-trash text-red-600 text-lg"></i> Delete
-                        </a>
+                        </button>
                       </div>
+                      {% include "partials/delete_link_dialog.html" %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -233,4 +303,5 @@
 
 {% block js %}
   <script src="{% static "js/links/select.js" %}"></script>
+  <script src="{% static "js/dialog.js" %}"></script>
 {% endblock js %}

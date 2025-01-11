@@ -88,10 +88,16 @@
                         <a href="{% url 'restore_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
                           <i class="ph-bold ph-clock-clockwise text-primary text-lg"></i> Restore link
                         </a>
-                        <a href="{% url 'remove_deleted_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                        <button
+                          type="button"
+                          class="dropdown-menu-item gap-1 p-2"
+                          data-jswc-dialog
+                          data-jswc-target="remove-link-{{ link.id }}-dialog"
+                        >
                           <i class="ph-bold ph-trash text-red-600 text-lg"></i> Delete
-                        </a>
+                        </button>
                       </div>
+                      {% include "partials/delete_link_dialog.html" with is_deleted=True %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -106,4 +112,5 @@
 
 {% block js %}
   <script src="{% static "js/links/select.js" %}"></script>
+  <script src="{% static "js/dialog.js" %}"></script>
 {% endblock js %}
