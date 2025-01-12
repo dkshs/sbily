@@ -78,7 +78,7 @@
     @apply inline-flex items-center rounded-md justify-center font-medium ring-offset-background underline-offset-4 duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring active:opacity-70;
   }
   .dialog {
-    @apply z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%];
+    @apply opacity-0 z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%] aria-hidden:animate-dialog-close aria-[hidden=false]:animate-dialog-show outline-none focus-visible:border-primary;
   }
   .dialog-overlay {
     @apply opacity-0 bg-black/60 fixed z-[9999] inset-0;
