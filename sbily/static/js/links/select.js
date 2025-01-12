@@ -1,6 +1,39 @@
 const tbody = document.getElementById("tbody");
 const check_all_links_checkbox = document.getElementById("check_all_links");
 
+document.getElementById("link_action_go").addEventListener("click", (event) => {
+  const action = document.getElementById("action").value;
+  if (action === "" || action === "------------") {
+    toast("No action selected!", "toast-warning");
+    return;
+  };
+
+  const checked_links = tbody.querySelectorAll("input:checked");
+  if (checked_links.length === 0) {
+    toast("No links selected!", "toast-warning");
+    return;
+  };
+
+  const action_text = action.split("_")[0];
+  document.getElementById("action_text").innerText = action_text;
+  document.getElementById("action_text_f").innerText = `${action_text}d`;
+
+  const links_selected_ul = document.getElementById("links_selected_ul");
+  links_selected_ul.innerHTML = "";
+  checked_links.forEach((link) => {
+    const li = document.createElement("li");
+    const content = document.createElement("span");
+    content.innerText = link.getAttribute("data-link");
+    content.classList.add("text-primary");
+    li.innerHTML = `Link: ${content.outerHTML}`;
+    links_selected_ul.appendChild(li);
+  });
+
+  const dialog_target = event.target.getAttribute("data-jswc-target");
+  const target_element = document.getElementById(dialog_target);
+  dialog(target_element);
+});
+
 function update_action_counter() {
   const actionCounter = document.getElementById("action_counter");
   const checked_links = tbody.querySelectorAll("input:checked");

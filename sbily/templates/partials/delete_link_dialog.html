@@ -6,7 +6,14 @@
     <div class="flex flex-col gap-4 mt-2">
       <p>Are you sure you want to delete the "{{ link }}" link{% if is_deleted %} permanently{% endif %}?</p>
       <ul class="list-disc list-inside">
-        <li>Link: <a href="{% url "link" link.shortened_link %}" class="link-primary">{{ link }}</a></li>
+        <li>
+          Link:
+          {% if is_deleted %}
+            <span class="text-primary">{{ link }}</span>
+          {% else %}
+            <a href="{% url "link" link.shortened_link %}" class="link-primary">{{ link }}</a>
+          {% endif %}
+        </li>
       </ul>
     </div>
     <div class="mt-4 w-full flex items-center gap-2 flex-wrap">
