@@ -11,12 +11,16 @@ function verifyToastOl() {
 }
 
 function closeToast(id, time = 3000) {
-  setTimeout(() => {
-    const toast = document.getElementById(id);
-    if (!toast) return;
+  const toast = document.getElementById(id);
+  if (!toast) return;
+
+  const timeout = setTimeout(() => {
     toast.classList.add("toast-close");
     setTimeout(() => toast.remove(), 600);
   }, time);
+
+  toast.addEventListener("mouseenter", () => clearTimeout(timeout));
+  toast.addEventListener("mouseleave", () => closeToast(id, time));
 }
 
 function getToastIcon(tag) {
