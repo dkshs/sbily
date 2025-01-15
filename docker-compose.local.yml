@@ -1,6 +1,7 @@
 volumes:
   sbily_local_postgres_data: {}
   sbily_local_postgres_data_backups: {}
+  sbily_local_redis_data: {}
 
 services:
   django: &django
@@ -43,6 +44,8 @@ services:
   redis:
     image: redis:7
     container_name: sbily_local_redis
+    volumes:
+      - sbily_local_redis_data:/data
 
   celeryworker:
     <<: *django
