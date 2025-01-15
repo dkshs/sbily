@@ -87,12 +87,3 @@ services:
       # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
       - /app/node_modules
     command: npm run dev
-
-  # pg_admin:
-  #   image: dpage/pgadmin4
-  #   container_name: sbily_local_pgadmin
-  #   environment:
-  #     - PGADMIN_DEFAULT_EMAIL=postgres@email.com
-  #     - PGADMIN_DEFAULT_PASSWORD=postgres
-  #   ports:
-  #     - 5050:80
