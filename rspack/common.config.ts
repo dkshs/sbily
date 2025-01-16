@@ -4,17 +4,25 @@ import { rspack } from "@rspack/core";
 import * as BundleTracker from "webpack-bundle-tracker";
 
 // Target browsers, see: https://github.com/browserslist/browserslist
-const targets = ["chrome >= 87", "edge >= 88", "firefox >= 78", "safari >= 14"];
+const BROWSER_TARGETS = [
+  "chrome >= 87",
+  "edge >= 88",
+  "firefox >= 78",
+  "safari >= 14",
+];
+
+const BASE_PATH = path.join(__dirname, "../");
+const SBILY_PATH = path.join(BASE_PATH, "sbily");
 
 export const commonConfig = defineConfig({
   target: "web",
-  context: path.join(__dirname, "../"),
+  context: BASE_PATH,
   entry: {
-    main: path.resolve(__dirname, "../sbily/src/index.ts"),
-    vendors: path.resolve(__dirname, "../sbily/src/vendors.ts"),
+    main: path.resolve(SBILY_PATH, "src/index.ts"),
+    vendors: path.resolve(SBILY_PATH, "src/vendors.ts"),
   },
   output: {
-    path: path.resolve(__dirname, "../sbily/static/rspack_bundles/"),
+    path: path.resolve(SBILY_PATH, "static/rspack_bundles/"),
     publicPath: "/static/rspack_bundles/",
     filename: "js/[name]-[fullhash].js",
     chunkFilename: "js/[name]-[hash].js",
@@ -23,38 +31,27 @@ export const commonConfig = defineConfig({
   },
   plugins: [
     new BundleTracker({
-      path: path.resolve(path.join(__dirname, "../")),
+      path: path.resolve(BASE_PATH),
       filename: "webpack-stats.json",
     }),
   ],
   module: {
     rules: [
       {
-        test: /\.js$/,
-        use: [
-          {
-            loader: "builtin:swc-loader",
-            options: {
-              jsc: { parser: { syntax: "ecmascript" } },
-              env: { targets },
-            },
-          },
-        ],
-      },
-      {
-        test: /\.ts$/,
+        test: /\.[jt]s$/,
         use: [
           {
             loader: "builtin:swc-loader",
             options: {
               jsc: { parser: { syntax: "typescript" } },
-              env: { targets },
+              env: { targets: BROWSER_TARGETS },
             },
           },
         ],
       },
       {
         test: /\.css$/,
+        type: "css",
         use: [
           {
             loader: "postcss-loader",
@@ -67,14 +64,14 @@ export const commonConfig = defineConfig({
         ],
       },
       {
-        test: /\.(png|jpe?g|gif|svg)$/i,
+        test: /\.(png|jpe?g|gif|svg|webp)$/i,
         type: "asset/resource",
         generator: {
           filename: "images/[name][ext]",
         },
       },
       {
-        test: /\.(ttf|woff|woff2)$/i,
+        test: /\.(ttf|woff|woff2|eot)$/i,
         type: "asset/resource",
         generator: {
           filename: "fonts/[name][ext]",
@@ -86,7 +83,7 @@ export const commonConfig = defineConfig({
     minimizer: [
       new rspack.SwcJsMinimizerRspackPlugin(),
       new rspack.LightningCssMinimizerRspackPlugin({
-        minimizerOptions: { targets },
+        minimizerOptions: { targets: BROWSER_TARGETS },
       }),
     ],
   },
