@@ -78,10 +78,10 @@
     @apply inline-flex items-center rounded-md justify-center font-medium ring-offset-background underline-offset-4 duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring active:opacity-70;
   }
   .dialog {
-    @apply opacity-0 z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%] aria-hidden:animate-dialog-close aria-[hidden=false]:animate-dialog-show outline-none focus-visible:border-primary;
+    @apply z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%] outline-none focus-visible:border-primary fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-95 aria-[hidden=false]:zoom-in-95 aria-hidden:slide-out-to-left-1/2 aria-hidden:slide-out-to-top-[48%] aria-[hidden=false]:slide-in-from-left-1/2 aria-[hidden=false]:slide-in-from-top-[48%];
   }
   .dialog-overlay {
-    @apply opacity-0 bg-black/60 fixed z-[9999] inset-0;
+    @apply bg-black/60 fixed z-[9999] inset-0 fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:backdrop-blur-none aria-[hidden=false]:backdrop-blur-sm;
   }
   .dialog-close {
     @apply absolute button-outline p-2 border-0 rounded-xl right-4 top-4;
@@ -114,10 +114,10 @@
     @apply relative p-6 z-[99999] bg-background font-medium flex flex-col rounded-md duration-200 border-2 [&_div]:gap-3;
   }
   .toast-open {
-    @apply toast animate-toast-show;
+    @apply toast fill-mode-forwards animate-in fade-in-0 slide-in-from-top duration-500;
   }
   .toast-close {
-    @apply toast animate-toast-hide;
+    @apply toast fill-mode-forwards animate-out fade-out-0 slide-out-to-right duration-500;
   }
   .toast-close-btn {
     @apply p-2 text-lg absolute -top-1 right-1 text-foreground/80 hover:text-foreground duration-200;

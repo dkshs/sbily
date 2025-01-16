@@ -59,14 +59,6 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
-        "toast-show": {
-          from: { opacity: "0", transform: "translateY(-2rem)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "toast-hide": {
-          from: { opacity: "1", transform: "translateX(0)" },
-          to: { opacity: "0", transform: "translateX(2rem)" },
-        },
         "dropdown-show": {
           to: { opacity: "1", transform: "translateY(0)" },
         },
@@ -74,34 +66,15 @@ const config: Config = {
           from: { opacity: "1", transform: "translateY(0)" },
           to: { opacity: "0", transform: "translateY(0)" },
         },
-        "dialog-show": {
-          to: { opacity: "1" },
-        },
-        "dialog-close": {
-          from: { opacity: "1" },
-          to: { opacity: "0" },
-        },
-        "dialog-overlay-show": {
-          to: { opacity: "1", "backdrop-filter": "blur(0.5rem)" },
-        },
-        "dialog-overlay-close": {
-          from: { opacity: "1", "backdrop-filter": "blur(0.5rem)" },
-          to: { opacity: "0", "backdrop-filter": "blur(0px)" },
-        },
       },
       animation: {
-        "toast-show": "toast-show 0.5s",
-        "toast-hide": "toast-hide 0.5s forwards",
         "dropdown-show": "dropdown-show 0.5s forwards",
         "dropdown-close": "dropdown-close 0.5s forwards",
-        "dialog-show": "dialog-show 0.5s forwards",
-        "dialog-close": "dialog-close 0.5s forwards",
-        "dialog-overlay-show": "dialog-overlay-show 0.5s forwards",
-        "dialog-overlay-close": "dialog-overlay-close 0.5s forwards",
       },
     },
   },
-  plugins: [],
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  plugins: [require("tailwindcss-animate")],
 };
 
 export default config;
