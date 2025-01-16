@@ -2,9 +2,9 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    "./sbily/tailwind.css",
+    "./sbily/src/index.css",
+    "./sbily/src/**/*.ts",
     "./sbily/**/*.html",
-    "./sbily/static/js/**/*.js",
   ],
   theme: {
     container: {
@@ -57,19 +57,6 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      keyframes: {
-        "dropdown-show": {
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "dropdown-close": {
-          from: { opacity: "1", transform: "translateY(0)" },
-          to: { opacity: "0", transform: "translateY(0)" },
-        },
-      },
-      animation: {
-        "dropdown-show": "dropdown-show 0.5s forwards",
-        "dropdown-close": "dropdown-close 0.5s forwards",
       },
     },
   },

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}{{ user.username }}{% endblock title %}
 
@@ -184,11 +183,11 @@
               <option value="deactivate_selected">Deactivate selected Links</option>
             </select>
           </div>
-          <button id="link_action_go" type="button" class="button-primary" data-jswc-target="handle_link_action_dialog">
+          <button id="link-action-go" type="button" class="button-primary" data-jswc-target="handle-link-action-dialog">
             Go
           </button>
           <div
-            id="handle_link_action_dialog"
+            id="handle-link-action-dialog"
             class="hidden dialog"
             data-jswc-dialog-animation="true"
             aria-hidden="true"
@@ -200,10 +199,10 @@
               </div>
               <div class="flex flex-col gap-4 mt-2">
                 <p>
-                  Are you sure you want to <span id="action_text"></span> the selected links?
-                  All of the following items will be <span id="action_text_f"></span>:
+                  Are you sure you want to <span id="action-text"></span> the selected links?
+                  All of the following items will be <span id="action-text-f"></span>:
                 </p>
-                <ul class="list-disc list-inside" id="links_selected_ul"></ul>
+                <ul class="list-disc list-inside" id="links-selected-ul"></ul>
               </div>
               <div class="mt-4 w-full flex items-center gap-2 flex-wrap">
                 <button type="submit" class="button-destructive w-full sm:w-auto">
@@ -228,7 +227,7 @@
             </div>
           </div>
           <span class="ml-1.5">
-            <span id="action_counter">0</span>
+            <span id="action-counter">0</span>
             of {{ links|length }} selected
           </span>
         </div>
@@ -241,7 +240,7 @@
               <thead>
                 <tr class="border-b duration-200 hover:bg-muted/50">
                   <th class="h-12 px-4 align-middle font-medium text-muted-foreground">
-                    <input type="checkbox" id="check_all_links" />
+                    <input type="checkbox" id="check-all-links" />
                   </th>
                   <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
                   <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
@@ -253,15 +252,12 @@
                   <tr
                     {% if link.is_expired %}title="The link has expired!"{% endif %}
                     class="border-b duration-200 hover:bg-muted/50"
-                    id="{{ link.id }}"
                   >
                     <td class="text-center align-middle font-medium">
                       <input
                         type="checkbox"
                         name="_selected_action"
                         value="{{ link.id }}"
-                        id="check_link_{{ link.id }}"
-                        onchange="check_link({{ link.id }})"
                         data-link="{{ link }}"
                       />
                     </td>
@@ -290,8 +286,8 @@
                       <button
                         type="button"
                         class="button-outline p-2"
-                        onclick="handle_menu('dropdown-menu-content-{{ link.id }}')"
-                        aria-expanded="false"
+                        data-jswc-dropdown
+                        data-jswc-target="dropdown-menu-content-{{ link.id }}"
                         aria-label="Open action menu for link {{ link.shortened_link }}"
                         title="Open action menu for link {{ link.shortened_link }}"
                       >
@@ -299,7 +295,8 @@
                       </button>
                       <div
                         id="dropdown-menu-content-{{ link.id }}"
-                        class="hidden absolute right-0 flex-col z-20 p-1 border bg-secondary rounded-md w-40 opacity-0 sm:right-4"
+                        class="hidden dropdown-menu right-0 sm:right-4"
+                        data-jswc-dropdown-animation="true"
                       >
                         <button
                           type="button"
@@ -343,8 +340,3 @@
     </div>
   </div>
 {% endblock content %}
-
-{% block js %}
-  <script src="{% static "js/dialog.js" %}"></script>
-  <script src="{% static "js/links/select.js" %}"></script>
-{% endblock js %}

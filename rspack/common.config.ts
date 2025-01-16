@@ -90,6 +90,9 @@ export const commonConfig = defineConfig({
   resolve: {
     modules: ["node_modules"],
     extensions: ["...", ".ts"],
+    alias: {
+      "@": path.resolve(SBILY_PATH, "src"),
+    },
   },
   experiments: {
     css: true,

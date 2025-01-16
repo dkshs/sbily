@@ -1,20 +1,16 @@
 {
   "compilerOptions": {
-    // Language and Environment
     "target": "ES2020",
     "lib": ["DOM", "ES2020"],
     "useDefineForClassFields": true,
-
-    // Modules
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./sbily/src/*"]
+    },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
-
-    // Type Checking
     "strict": true,
-
-    // Output and Interoperability
     "noEmit": true,
     "isolatedModules": true,
     "skipLibCheck": true

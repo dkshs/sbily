@@ -44,16 +44,17 @@
           <button
             type="button"
             class="absolute end-0 mr-4 md:mr-12 text-2xl flex md:hidden button-primary z-20"
-            onclick="handle_menu('nav__dropdown-content');"
-            aria-expanded="false"
+            data-jswc-dropdown
+            data-jswc-target="nav__dropdown-content"
             aria-label="Open navigation menu."
             title="Open navigation menu."
           >
             <i class="ph-fill ph-list"></i>
           </button>
           <div
-            class="hidden absolute flex-col z-20 p-1 bg-secondary right-3 rounded-md end-0 top-16 -translate-y-8 w-40 opacity-0"
+            class="hidden dropdown-menu right-3 top-14"
             id="nav__dropdown-content"
+            data-jswc-dropdown-animation="true"
           >
             {% if request.user.is_authenticated %}
               <a href="{% url 'my_account' %}" class="dropdown-nav-link">My Account</a>
@@ -81,18 +82,14 @@
     <div role="region" aria-label="Notifications" tabindex="-1">
       <ol tabindex="-1" id="toast-ol" class="toast-list"></ol>
     </div>
-    <script src="{% static 'js/toast.js' %}"></script>
-    <script src="{% static 'js/copy.js' %}"></script>
-    <script src="{% static 'js/dropdown_menu.js' %}"></script>
-    {% if messages %}
-      <script>
-        {% for message in messages %}
-          toast("{{ message }}", "{{ message.tags }}");
-        {% endfor %}
-      </script>
-    {% endif %}
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        {% if messages %}
+          {% for message in messages %}
+        toast("{{ message }}", "{{ message.tags }}");
+          {% endfor %}
+        {% endif %}
+
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         formdata = new FormData();
         const csrfToken = '{% csrf_token %}'.split("value=")[1].replaceAll('"', "").replace(">", "");

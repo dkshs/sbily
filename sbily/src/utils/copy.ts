@@ -1,11 +1,16 @@
-function copy(value, btnId) {
-  const button = document.querySelector(`#${btnId}`);
+import { toast } from "@/components/toast";
+
+export function copy(value: string, btnId: string) {
+  const button = document.getElementById(btnId);
+  if (!button) return;
+
   const buttonContent = button.innerHTML;
-  button.setAttribute("disabled", true);
+  button.setAttribute("disabled", "true");
   const successIcon = `<i class="ph-bold ph-check"></i>`;
   const errorIcon = `<i class="ph-bold ph-x"></i>`;
 
   try {
+    // eslint-disable-next-line node/no-unsupported-features/node-builtins
     navigator.clipboard.writeText(value);
     button.innerHTML = `${successIcon} Copied`;
     toast("Copied to clipboard", "toast-success");

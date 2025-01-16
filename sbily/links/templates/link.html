@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}Link - {{ link.shortened_link }}{% endblock title %}
 
@@ -109,7 +108,3 @@
     </div>
   </div>
 {% endblock content %}
-
-{% block js %}
-  <script src="{% static "js/dialog.js" %}"></script>
-{% endblock js %}

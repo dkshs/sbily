@@ -1,5 +1,9 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const dialogButtons = document.querySelectorAll("[data-jswc-dialog]");
+import { isMobile } from "@/utils/isMobile";
+
+export function initDialog() {
+  const dialogButtons = document.querySelectorAll(
+    "[data-jswc-dialog]",
+  ) as unknown as HTMLElement[];
 
   dialogButtons.forEach((button) => {
     const target = button.dataset.jswcTarget;
@@ -8,14 +12,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetElement = document.getElementById(target);
     if (!targetElement) return;
 
-    targetElement.ariaHidden = "true";
-    targetElement.tabIndex = "-1";
+    targetElement.setAttribute("aria-hidden", "true");
+    targetElement.setAttribute("tabindex", "-1");
 
     button.addEventListener("click", () => dialog(targetElement));
   });
-});
+}
 
-function create_overlay(targetElement) {
+function create_overlay(targetElement: HTMLElement) {
   const overlayId = `dialog-overlay-${targetElement.id}`;
 
   let overlay = document.getElementById(overlayId);
@@ -30,13 +34,10 @@ function create_overlay(targetElement) {
   return overlay;
 }
 
-/**
- * @param {HTMLElement} targetElement The dialog element to toggle.
- */
-function dialog(targetElement) {
+export function dialog(targetElement: HTMLElement) {
   let overlay = create_overlay(targetElement);
 
-  const isOpen = targetElement.ariaHidden != "true";
+  const isOpen = targetElement.ariaHidden !== "true";
 
   const closeButtons = targetElement.querySelectorAll(
     "[data-jswc-dialog-close]",
@@ -46,14 +47,12 @@ function dialog(targetElement) {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key == "Escape") {
-      dialog(targetElement);
-    }
+    if (event.key === "Escape") dialog(targetElement);
   });
   document.addEventListener(
     "focus",
     (event) => {
-      if (!targetElement.contains(event.target)) {
+      if (!targetElement.contains(event.target as Node)) {
         event.stopPropagation();
         targetElement.focus();
       }
@@ -61,10 +60,10 @@ function dialog(targetElement) {
     true,
   );
 
-  const addAnimation = targetElement.dataset.jswcDialogAnimation == "true";
+  const addAnimation = targetElement.dataset.jswcDialogAnimation === "true";
 
   if (!isOpen) {
-    if (document.body.scrollHeight > window.innerHeight) {
+    if (!isMobile() && document.body.scrollHeight > window.innerHeight) {
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = "17px";
     }

@@ -10,7 +10,23 @@ function verifyToastOl() {
   return toastOl;
 }
 
-function closeToast(id, time = 3000) {
+function getIcon(iconName: string) {
+  return `<i class="ph-fill ph-${iconName} toast-icon"></i>`;
+}
+function getToastIcon(tag: string) {
+  switch (tag) {
+    case "toast-success":
+      return getIcon("check-circle");
+    case "toast-warning":
+      return getIcon("warning");
+    case "toast-error":
+      return getIcon("warning-circle");
+    default:
+      return getIcon("info");
+  }
+}
+
+export function closeToast(id: string, time = 3000) {
   const toast = document.getElementById(id);
   if (!toast) return;
 
@@ -23,21 +39,7 @@ function closeToast(id, time = 3000) {
   toast.addEventListener("mouseleave", () => closeToast(id, time));
 }
 
-function getToastIcon(tag) {
-  const icon = (i) => `<i class="ph-fill ph-${i} toast-icon"></i>`;
-  switch (tag) {
-    case "toast-success":
-      return icon("check-circle");
-    case "toast-warning":
-      return icon("warning");
-    case "toast-error":
-      return icon("warning-circle");
-    default:
-      return icon("info");
-  }
-}
-
-function toast(msg, className, time = 3000) {
+export function toast(msg: string, className: string, time = 3000) {
   const toastOl = verifyToastOl();
   const id = `toast-${Date.now()}`;
   toastOl.insertAdjacentHTML(
