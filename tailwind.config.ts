@@ -1,5 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from "tailwindcss";
+
+const config: Config = {
   content: [
     "./sbily/tailwind.css",
     "./sbily/**/*.html",
@@ -59,33 +60,33 @@ module.exports = {
       },
       keyframes: {
         "toast-show": {
-          from: { opacity: 0, transform: "translateY(-2rem)" },
-          to: { opacity: 1, transform: "translateY(0)" },
+          from: { opacity: "0", transform: "translateY(-2rem)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "toast-hide": {
-          from: { opacity: 1, transform: "translateX(0)" },
-          to: { opacity: 0, transform: "translateX(2rem)" },
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(2rem)" },
         },
         "dropdown-show": {
-          to: { opacity: 1, transform: "translateY(0)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "dropdown-close": {
-          from: { opacity: 1, transform: "translateY(0)" },
-          to: { opacity: 0, transform: "translateY(0)" },
+          from: { opacity: "1", transform: "translateY(0)" },
+          to: { opacity: "0", transform: "translateY(0)" },
         },
         "dialog-show": {
-          to: { opacity: 1 },
+          to: { opacity: "1" },
         },
         "dialog-close": {
-          from: { opacity: 1 },
-          to: { opacity: 0 },
+          from: { opacity: "1" },
+          to: { opacity: "0" },
         },
         "dialog-overlay-show": {
-          to: { opacity: 1, "backdrop-filter": "blur(0.5rem)" },
+          to: { opacity: "1", "backdrop-filter": "blur(0.5rem)" },
         },
         "dialog-overlay-close": {
-          from: { opacity: 1, "backdrop-filter": "blur(0.5rem)" },
-          to: { opacity: 0, "backdrop-filter": "blur(0px)" },
+          from: { opacity: "1", "backdrop-filter": "blur(0.5rem)" },
+          to: { opacity: "0", "backdrop-filter": "blur(0px)" },
         },
       },
       animation: {
@@ -102,3 +103,5 @@ module.exports = {
   },
   plugins: [],
 };
+
+export default config;

@@ -62,6 +62,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "django_celery_beat",
     "django_cleanup.apps.CleanupConfig",
+    "webpack_loader",
 ]
 LOCAL_APPS = [
     "sbily.links",
@@ -275,3 +276,14 @@ CELERY_WORKER_MAX_MEMORY_PER_CHILD = config(
     default=5 * 1024 * 1024,  # 5 GB
     cast=int,
 )
+
+# django-webpack-loader
+# ------------------------------------------------------------------------------
+WEBPACK_LOADER = {
+    "DEFAULT": {
+        "CACHE": not DEBUG,
+        "STATS_FILE": BASE_DIR / "webpack-stats.json",
+        "POLL_INTERVAL": 0.1,
+        "IGNORE": [r".+\.hot-update.js", r".+\.map"],
+    },
+}

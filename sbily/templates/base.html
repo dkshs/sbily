@@ -1,4 +1,5 @@
 {% load static %}
+{% load render_bundle from webpack_loader %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,6 +7,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Shorten your links with Sbily." />
+    <title>{% block title %}{% endblock title %} • Sbily</title>
     <meta name="keywords" content="study, programming" />
     <link href="{% static 'images/favicons/logo.jpg' %}" rel="icon" />
 
@@ -26,8 +28,8 @@
       href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"
     />
 
-    <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
-    <title>{% block title %}{% endblock title %} • Sbily</title>
+    {% render_bundle "main" "css" %}
+    {% render_bundle "main" "js" attrs="defer" %}
     {% block head %}{% endblock head %}
   </head>
   <body>

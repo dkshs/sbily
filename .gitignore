@@ -138,3 +138,20 @@ dist
 
 .devcontainer/zsh_history
 .venv/
+
+# Local
+.DS_Store
+*.local
+*.log*
+
+# Dist
+dist/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+sbily/static/rspack_bundles/
+webpack-stats.json
+.mypy_cache/

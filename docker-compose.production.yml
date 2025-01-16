@@ -9,6 +9,8 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
+      args:
+        - DJANGO_GCP_STORAGE_BUCKET_NAME=${DJANGO_GCP_STORAGE_BUCKET_NAME}
     image: sbily_production_django
     depends_on:
       - postgres

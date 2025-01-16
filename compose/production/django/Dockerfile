@@ -8,7 +8,10 @@ RUN npm install && npm cache clean --force
 
 COPY . ${APP_HOME}
 
-RUN npm run tailwind:build
+ARG DJANGO_GCP_STORAGE_BUCKET_NAME
+ENV DJANGO_GCP_STORAGE_BUCKET_NAME=${DJANGO_GCP_STORAGE_BUCKET_NAME}
+
+RUN npm run build
 
 # define an alias for the specific python version used in this file.
 FROM python:3.12.8-slim-bookworm AS python
