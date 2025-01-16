@@ -17,19 +17,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"
-    />
 
     {% render_bundle "main" "css" %}
+    {% render_bundle "vendors" "css" %}
+
+    <!-- Vendor dependencies bundled as one file -->
+    {% render_bundle "vendors" "js" attrs="defer" %}
     {% render_bundle "main" "js" attrs="defer" %}
+
     {% block head %}{% endblock head %}
   </head>
   <body>

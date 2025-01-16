@@ -11,21 +11,20 @@ export const commonConfig = defineConfig({
   context: path.join(__dirname, "../"),
   entry: {
     main: path.resolve(__dirname, "../sbily/src/index.ts"),
+    vendors: path.resolve(__dirname, "../sbily/src/vendors.ts"),
   },
   output: {
     path: path.resolve(__dirname, "../sbily/static/rspack_bundles/"),
     publicPath: "/static/rspack_bundles/",
     filename: "js/[name]-[fullhash].js",
     chunkFilename: "js/[name]-[hash].js",
+    cssFilename: "css/[name]-[contenthash].css",
     clean: true,
   },
   plugins: [
     new BundleTracker({
       path: path.resolve(path.join(__dirname, "../")),
       filename: "webpack-stats.json",
-    }),
-    new rspack.CssExtractRspackPlugin({
-      filename: "css/[name].[contenthash].css",
     }),
   ],
   module: {
@@ -57,8 +56,6 @@ export const commonConfig = defineConfig({
       {
         test: /\.css$/,
         use: [
-          rspack.CssExtractRspackPlugin.loader,
-          "css-loader",
           {
             loader: "postcss-loader",
             options: {
@@ -68,6 +65,20 @@ export const commonConfig = defineConfig({
             },
           },
         ],
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "images/[name][ext]",
+        },
+      },
+      {
+        test: /\.(ttf|woff|woff2)$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "fonts/[name][ext]",
+        },
       },
     ],
   },
@@ -80,6 +91,10 @@ export const commonConfig = defineConfig({
     ],
   },
   resolve: {
+    modules: ["node_modules"],
     extensions: ["...", ".ts"],
+  },
+  experiments: {
+    css: true,
   },
 });
