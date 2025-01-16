@@ -1,9 +1,21 @@
+import type { EventHandler } from "@/types";
 import { isMobile } from "@/utils/isMobile";
 
-export function initDialog() {
-  const dialogButtons = document.querySelectorAll(
-    "[data-jswc-dialog]",
-  ) as unknown as HTMLElement[];
+interface DialogOptions {
+  animation?: boolean;
+  closeOnEscape?: boolean;
+  closeOnOverlayClick?: boolean;
+}
+
+const DEFAULT_OPTIONS: DialogOptions = {
+  animation: false,
+  closeOnEscape: true,
+  closeOnOverlayClick: true,
+};
+
+export function initDialog(): void {
+  const dialogButtons =
+    document.querySelectorAll<HTMLElement>("[data-jswc-dialog]");
 
   dialogButtons.forEach((button) => {
     const target = button.dataset.jswcTarget;
@@ -14,83 +26,104 @@ export function initDialog() {
 
     targetElement.setAttribute("aria-hidden", "true");
     targetElement.setAttribute("tabindex", "-1");
+    targetElement.setAttribute("role", "dialog");
 
-    button.addEventListener("click", () => dialog(targetElement));
+    const options: DialogOptions = {
+      ...DEFAULT_OPTIONS,
+      animation: targetElement.dataset.jswcDialogAnimation === "true",
+    };
+
+    button.addEventListener("click", () => dialog(targetElement, options));
   });
 }
 
-function create_overlay(targetElement: HTMLElement) {
+function createOverlay(
+  targetElement: HTMLElement,
+  options: DialogOptions,
+): HTMLElement {
   const overlayId = `dialog-overlay-${targetElement.id}`;
 
-  let overlay = document.getElementById(overlayId);
-  if (overlay) return overlay;
+  const existingOverlay = document.getElementById(overlayId);
+  if (existingOverlay) return existingOverlay;
 
-  overlay = document.createElement("div");
+  const overlay = document.createElement("div");
   overlay.id = overlayId;
   overlay.classList.add("dialog-overlay");
   overlay.setAttribute("aria-hidden", "false");
-  overlay.addEventListener("click", () => dialog(targetElement));
+
+  if (options.closeOnOverlayClick) {
+    overlay.addEventListener("click", () => dialog(targetElement, options));
+  }
 
   return overlay;
 }
 
-export function dialog(targetElement: HTMLElement) {
-  let overlay = create_overlay(targetElement);
+export function dialog(
+  targetElement: HTMLElement,
+  options: DialogOptions = DEFAULT_OPTIONS,
+): void {
+  const handleKeydown: EventHandler<KeyboardEvent> = (event) => {
+    if (event.key === "Escape" && options.closeOnEscape) {
+      dialog(targetElement, options);
+    }
+  };
 
-  const isOpen = targetElement.ariaHidden !== "true";
+  const handleFocus: EventHandler<FocusEvent> = (event) => {
+    if (!targetElement.contains(event.target as Node)) {
+      event.stopPropagation();
+      targetElement.focus();
+    }
+  };
 
+  const cleanup = () => {
+    document.removeEventListener("keydown", handleKeydown);
+    document.removeEventListener("focus", handleFocus, true);
+  };
+
+  let overlay = createOverlay(targetElement, options);
+  const isOpen = targetElement.getAttribute("aria-hidden") !== "true";
   const closeButtons = targetElement.querySelectorAll(
     "[data-jswc-dialog-close]",
   );
+
   closeButtons.forEach((button) => {
-    button.addEventListener("click", () => dialog(targetElement));
+    button.addEventListener("click", () => dialog(targetElement, options));
   });
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") dialog(targetElement);
-  });
-  document.addEventListener(
-    "focus",
-    (event) => {
-      if (!targetElement.contains(event.target as Node)) {
-        event.stopPropagation();
-        targetElement.focus();
-      }
-    },
-    true,
-  );
-
-  const addAnimation = targetElement.dataset.jswcDialogAnimation === "true";
+  document.addEventListener("keydown", handleKeydown);
+  document.addEventListener("focus", handleFocus, true);
 
   if (!isOpen) {
     if (!isMobile() && document.body.scrollHeight > window.innerHeight) {
-      document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = "17px";
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.setProperty("overflow", "hidden");
+      document.body.style.setProperty("padding-right", `${scrollbarWidth}px`);
     }
     document.body.append(overlay);
 
-    targetElement.ariaHidden = "false";
-    targetElement.ariaModal = "true";
-    targetElement.role = "dialog";
-
+    targetElement.setAttribute("aria-hidden", "false");
+    targetElement.setAttribute("aria-modal", "true");
     targetElement.classList.replace("hidden", "block");
   } else {
-    targetElement.ariaHidden = "true";
+    targetElement.setAttribute("aria-hidden", "true");
     targetElement.removeAttribute("aria-modal");
-    targetElement.removeAttribute("role");
 
-    overlay = create_overlay(targetElement);
-    overlay.ariaHidden = "true";
+    overlay = createOverlay(targetElement, options);
+    overlay.setAttribute("aria-hidden", "true");
 
-    setTimeout(
-      () => {
-        document.body.style.removeProperty("overflow");
-        document.body.style.removeProperty("padding-right");
-        overlay.remove();
+    const closeDialog = () => {
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("padding-right");
+      overlay.remove();
+      targetElement.classList.replace("block", "hidden");
+      cleanup();
+    };
 
-        targetElement.classList.replace("block", "hidden");
-      },
-      addAnimation ? 200 : 0,
-    );
+    if (options.animation) {
+      setTimeout(() => requestAnimationFrame(closeDialog), 200);
+    } else {
+      closeDialog();
+    }
   }
 }

@@ -1,28 +1,42 @@
 import { toast } from "@/components/toast";
 
-export function copy(value: string, btnId: string) {
+export function copy(
+  value: string,
+  btnId: string,
+  timeout: number = 2000,
+): void {
   const button = document.getElementById(btnId);
   if (!button) return;
 
+  const ICONS = {
+    success: `<i class="ph-bold ph-check"></i>`,
+    error: `<i class="ph-bold ph-x"></i>`,
+  };
+  const MESSAGES = {
+    success: "Copied to clipboard",
+    error: "Failed to copy",
+  };
+
   const buttonContent = button.innerHTML;
   button.setAttribute("disabled", "true");
-  const successIcon = `<i class="ph-bold ph-check"></i>`;
-  const errorIcon = `<i class="ph-bold ph-x"></i>`;
 
-  try {
-    // eslint-disable-next-line node/no-unsupported-features/node-builtins
-    navigator.clipboard.writeText(value);
-    button.innerHTML = `${successIcon} Copied`;
-    toast("Copied to clipboard", "toast-success");
-  } catch (error) {
-    toast("Failed to copy", "toast-error");
-    button.innerHTML = `${errorIcon} Error`;
-    console.error(error);
-    return;
-  }
+  const copyToClipboard = async (): Promise<void> => {
+    try {
+      // eslint-disable-next-line node/no-unsupported-features/node-builtins
+      await navigator.clipboard.writeText(value);
+      button.innerHTML = `${ICONS.success} Copied`;
+      toast(MESSAGES.success, "toast-success");
+    } catch (error) {
+      toast(MESSAGES.error, "toast-error");
+      button.innerHTML = `${ICONS.error} Error`;
+      console.error("Clipboard copy failed:", error);
+    } finally {
+      setTimeout(() => {
+        button.innerHTML = buttonContent;
+        button.removeAttribute("disabled");
+      }, timeout);
+    }
+  };
 
-  setTimeout(() => {
-    button.innerHTML = buttonContent;
-    button.removeAttribute("disabled");
-  }, 2000);
+  copyToClipboard();
 }

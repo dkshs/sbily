@@ -1,20 +1,24 @@
 declare global {
   interface Window {
     opera: string;
-    MSStream: any;
+    MSStream: unknown;
   }
 }
 
-export function isMobile() {
-  // eslint-disable-next-line node/no-unsupported-features/node-builtins
-  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+export function isMobile(): boolean {
+  const userAgent: string =
+    // eslint-disable-next-line node/no-unsupported-features/node-builtins
+    navigator?.userAgent ?? navigator?.vendor ?? window?.opera ?? "";
 
-  if (/android/i.test(userAgent)) {
-    return true;
-  }
-  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-    return true;
-  }
+  const ANDROID_PATTERN = /android/i;
+  const IOS_PATTERN = /ip(?:ad|hone|od)/i;
+  const IE_MOBILE_PATTERN = /iemobile/i;
+  const MOBILE_PATTERN = /mobile/i;
 
-  return false;
+  return (
+    ANDROID_PATTERN.test(userAgent) ||
+    (IOS_PATTERN.test(userAgent) && !window.MSStream) ||
+    IE_MOBILE_PATTERN.test(userAgent) ||
+    MOBILE_PATTERN.test(userAgent)
+  );
 }

@@ -35,13 +35,26 @@ export function closeToast(id: string, time = 3000) {
     setTimeout(() => toast.remove(), 600);
   }, time);
 
-  toast.addEventListener("mouseenter", () => clearTimeout(timeout));
-  toast.addEventListener("mouseleave", () => closeToast(id, time));
+  const handleMouseEnter = () => clearTimeout(timeout);
+  const handleMouseLeave = () => closeToast(id, time);
+
+  toast.addEventListener("mouseenter", handleMouseEnter);
+  toast.addEventListener("mouseleave", handleMouseLeave);
+
+  setTimeout(() => {
+    toast.removeEventListener("mouseenter", handleMouseEnter);
+    toast.removeEventListener("mouseleave", handleMouseLeave);
+  }, time + 600);
 }
 
 export function toast(msg: string, className: string, time = 3000) {
   const toastOl = verifyToastOl();
   const id = `toast-${Date.now()}`;
+
+  if (toastOl.children.length >= 3) {
+    closeToast(toastOl.children[0].id, 0);
+  }
+
   toastOl.insertAdjacentHTML(
     "beforeend",
     `<li class="toast-open ${className}" id="${id}" role="alert" aria-live="assertive" aria-atomic="true" tabindex="0">

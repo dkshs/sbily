@@ -1,9 +1,22 @@
+import type { EventHandler } from "@/types";
 import { isMobile } from "@/utils/isMobile";
 
+interface DropdownMenuOptions {
+  animation?: boolean;
+  closeOnEscape?: boolean;
+  closeOnOverlayClick?: boolean;
+}
+
+const DEFAULT_OPTIONS: DropdownMenuOptions = {
+  animation: false,
+  closeOnEscape: true,
+  closeOnOverlayClick: true,
+};
+
 export function initDropdownMenu() {
-  const dropdownButtons = document.querySelectorAll(
+  const dropdownButtons = document.querySelectorAll<HTMLElement>(
     "[data-jswc-dropdown]",
-  ) as unknown as HTMLElement[];
+  );
 
   dropdownButtons.forEach((button) => {
     const target = button.dataset.jswcTarget;
@@ -15,73 +28,105 @@ export function initDropdownMenu() {
     button.setAttribute("aria-expanded", "false");
     targetElement.setAttribute("aria-hidden", "true");
     targetElement.setAttribute("tabindex", "-1");
+    targetElement.setAttribute("role", "menu");
 
-    button.addEventListener("click", () => dropdownMenu(targetElement));
+    const options: DropdownMenuOptions = {
+      ...DEFAULT_OPTIONS,
+      animation: targetElement.dataset.jswcDropdownAnimation === "true",
+    };
+
+    button.addEventListener("click", () =>
+      dropdownMenu(targetElement, options),
+    );
   });
 }
 
-function create_overlay(targetElement: HTMLElement) {
+function createOverlay(
+  targetElement: HTMLElement,
+  options: DropdownMenuOptions,
+): HTMLElement {
   const overlayId = `dropdown-overlay-${targetElement.id}`;
 
-  let overlay = document.getElementById(overlayId);
-  if (overlay) return overlay;
+  const existingOverlay = document.getElementById(overlayId);
+  if (existingOverlay) return existingOverlay;
 
-  overlay = document.createElement("div");
+  const overlay = document.createElement("div");
   overlay.id = overlayId;
   overlay.classList.add("dropdown-menu-overlay");
   overlay.setAttribute("aria-hidden", "false");
-  overlay.addEventListener("click", () => dropdownMenu(targetElement));
+
+  if (options.closeOnOverlayClick) {
+    overlay.addEventListener("click", () =>
+      dropdownMenu(targetElement, options),
+    );
+  }
 
   return overlay;
 }
 
-export function dropdownMenu(targetElement: HTMLElement) {
-  let overlay = create_overlay(targetElement);
+export function dropdownMenu(
+  targetElement: HTMLElement,
+  options: DropdownMenuOptions = DEFAULT_OPTIONS,
+): void {
+  const handleKeydown: EventHandler<KeyboardEvent> = (event) => {
+    if (event.key === "Escape") {
+      dropdownMenu(targetElement);
+    }
+  };
 
-  const isOpen = targetElement.ariaHidden !== "true";
-  const addAnimation = targetElement.dataset.jswcDropdownAnimation === "true";
-
-  const triggerButton = document.querySelector(
-    `[data-jswc-target="${targetElement.id}"]`,
-  ) as HTMLElement;
-  triggerButton?.setAttribute("aria-expanded", isOpen ? "false" : "true");
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") dropdownMenu(targetElement);
-  });
-  targetElement.addEventListener("focusout", (event) => {
+  const handleFocusout: EventHandler<FocusEvent> = (event) => {
     if (!targetElement.contains(event.relatedTarget as Node)) {
       dropdownMenu(targetElement);
     }
-  });
+  };
+
+  const cleanup = () => {
+    document.removeEventListener("keydown", handleKeydown);
+    document.removeEventListener("focus", handleFocusout, true);
+  };
+
+  let overlay = createOverlay(targetElement, options);
+  const isOpen = targetElement.getAttribute("aria-hidden") !== "true";
+  const triggerButton = document.querySelector<HTMLElement>(
+    `[data-jswc-target="${targetElement.id}"]`,
+  );
+
+  if (triggerButton) {
+    triggerButton.setAttribute("aria-expanded", (!isOpen).toString());
+  }
+
+  document.addEventListener("keydown", handleKeydown);
+  targetElement.addEventListener("focusout", handleFocusout);
 
   if (!isOpen) {
     if (!isMobile() && document.body.scrollHeight > window.innerHeight) {
-      document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = "17px";
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.setProperty("overflow", "hidden");
+      document.body.style.setProperty("padding-right", `${scrollbarWidth}px`);
     }
     document.body.append(overlay);
 
-    targetElement.ariaHidden = "false";
-    targetElement.role = "menu";
-
+    targetElement.setAttribute("aria-hidden", "false");
     targetElement.classList.replace("hidden", "flex");
   } else {
-    targetElement.ariaHidden = "true";
-    targetElement.removeAttribute("role");
+    targetElement.setAttribute("aria-hidden", "true");
 
-    overlay = create_overlay(targetElement);
-    overlay.ariaHidden = "true";
+    overlay = createOverlay(targetElement, options);
+    overlay.setAttribute("aria-hidden", "true");
 
-    setTimeout(
-      () => {
-        document.body.style.removeProperty("overflow");
-        document.body.style.removeProperty("padding-right");
-        overlay.remove();
+    const closeDropdownMenu = () => {
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("padding-right");
+      overlay.remove();
+      targetElement.classList.replace("flex", "hidden");
+      cleanup();
+    };
 
-        targetElement.classList.replace("flex", "hidden");
-      },
-      addAnimation ? 200 : 0,
-    );
+    if (options.animation) {
+      setTimeout(() => requestAnimationFrame(closeDropdownMenu), 200);
+    } else {
+      closeDropdownMenu();
+    }
   }
 }
