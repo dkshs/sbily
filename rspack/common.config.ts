@@ -1,7 +1,7 @@
 import * as path from "node:path";
 import { defineConfig } from "@rspack/cli";
 import { rspack } from "@rspack/core";
-import * as BundleTracker from "webpack-bundle-tracker";
+import BundleTracker from "webpack-bundle-tracker";
 
 // Target browsers, see: https://github.com/browserslist/browserslist
 const BROWSER_TARGETS = [

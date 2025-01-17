@@ -5,6 +5,7 @@ export default merge(commonConfig, {
   mode: "development",
   devtool: "inline-source-map",
   devServer: {
+    devMiddleware: { writeToDisk: true },
     port: 3000,
     proxy: [
       {
