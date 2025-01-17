@@ -67,14 +67,14 @@ export const commonConfig = defineConfig({
         test: /\.(png|jpe?g|gif|svg|webp)$/i,
         type: "asset/resource",
         generator: {
-          filename: "images/[name][ext]",
+          filename: "images/[name].[hash][ext]",
         },
       },
       {
         test: /\.(ttf|woff|woff2|eot)$/i,
         type: "asset/resource",
         generator: {
-          filename: "fonts/[name][ext]",
+          filename: "fonts/[name].[hash][ext]",
         },
       },
     ],
