@@ -1,5 +1,4 @@
 import type { EventHandler } from "@/types";
-import { isMobile } from "@/utils/isMobile";
 
 interface DropdownMenuOptions {
   animation?: boolean;
@@ -99,12 +98,6 @@ export function dropdownMenu(
   targetElement.addEventListener("focusout", handleFocusout);
 
   if (!isOpen) {
-    if (!isMobile() && document.body.scrollHeight > window.innerHeight) {
-      const scrollbarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.setProperty("overflow", "hidden");
-      document.body.style.setProperty("padding-right", `${scrollbarWidth}px`);
-    }
     document.body.append(overlay);
 
     targetElement.setAttribute("aria-hidden", "false");
@@ -116,8 +109,6 @@ export function dropdownMenu(
     overlay.setAttribute("aria-hidden", "true");
 
     const closeDropdownMenu = () => {
-      document.body.style.removeProperty("overflow");
-      document.body.style.removeProperty("padding-right");
       overlay.remove();
       targetElement.classList.replace("flex", "hidden");
       cleanup();

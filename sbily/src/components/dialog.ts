@@ -1,5 +1,4 @@
 import type { EventHandler } from "@/types";
-import { isMobile } from "@/utils/isMobile";
 
 interface DialogOptions {
   animation?: boolean;
@@ -94,12 +93,6 @@ export function dialog(
   document.addEventListener("focus", handleFocus, true);
 
   if (!isOpen) {
-    if (!isMobile() && document.body.scrollHeight > window.innerHeight) {
-      const scrollbarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.setProperty("overflow", "hidden");
-      document.body.style.setProperty("padding-right", `${scrollbarWidth}px`);
-    }
     document.body.append(overlay);
 
     targetElement.setAttribute("aria-hidden", "false");
@@ -113,8 +106,6 @@ export function dialog(
     overlay.setAttribute("aria-hidden", "true");
 
     const closeDialog = () => {
-      document.body.style.removeProperty("overflow");
-      document.body.style.removeProperty("padding-right");
       overlay.remove();
       targetElement.classList.replace("block", "hidden");
       cleanup();
