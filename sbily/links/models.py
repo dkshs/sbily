@@ -1,3 +1,4 @@
+import json
 import secrets
 from urllib.parse import urljoin
 
@@ -11,6 +12,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.utils.translation import gettext_lazy as _
+from django_celery_beat.models import ClockedSchedule
+from django_celery_beat.models import PeriodicTask
 
 from sbily.users.models import User
 
@@ -172,6 +175,29 @@ class AbstractShortenedLink(models.Model):
 
 
 class ShortenedLink(AbstractShortenedLink):
+    @transaction.atomic
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+
+        if self.remove_at:
+            schedule, _ = ClockedSchedule.objects.get_or_create(
+                clocked_time=self.remove_at,
+            )
+            PeriodicTask.objects.update_or_create(
+                name=f"Remove link {self.id}",
+                defaults={
+                    "task": "delete_link_by_id",
+                    "args": json.dumps([self.pk]),
+                    "clocked": schedule,
+                    "one_off": True,
+                    "expires": self.remove_at + timezone.timedelta(minutes=1),
+                    "start_time": self.remove_at,
+                    "enabled": True,
+                },
+            )
+        else:
+            PeriodicTask.objects.filter(name=f"Remove link {self.id}").delete()
+
     def clean(self) -> None:
         user_can_create_link(self.id, self.remove_at, self.user)
         super().clean()

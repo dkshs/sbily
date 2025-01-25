@@ -2,7 +2,9 @@ from collections import defaultdict
 from urllib.parse import urljoin
 
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 
@@ -14,6 +16,8 @@ from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 SITE_BASE_URL = settings.BASE_URL or ""
+
+logger = get_task_logger(__name__)
 
 
 @shared_task(**default_task_params("delete_expired_links", acks_late=True))
@@ -97,3 +101,30 @@ def cleanup_deleted_shortened_links(self):
         f"Permanently deleted {deleted_count} deleted links.",
         deleted_count=deleted_count,
     )
+
+
+@shared_task(**default_task_params("delete_link_by_id", acks_late=True))
+def delete_link_by_id(self, link_id: int):
+    """Delete a link by its ID."""
+    try:
+        with transaction.atomic():
+            link = ShortenedLink.objects.select_related("user").get(id=link_id)
+            user = link.user
+            deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
+            link.delete()
+
+            user.email_user(
+                "Your link has been deleted",
+                "emails/links/links_expired.html",
+                links=[link],
+                links_count=1,
+                deleted_links_url=deleted_links_url,
+            )
+
+            return task_response(
+                "COMPLETED",
+                f"Successfully deleted link with ID {link_id}",
+                deleted_count=1,
+            )
+    except ShortenedLink.DoesNotExist:
+        logger.warning("Attempted to delete non-existent link with ID %s", link_id)
