@@ -31,7 +31,7 @@ export function closeToast(id: string, time = 3000) {
   if (!toast) return;
 
   const timeout = setTimeout(() => {
-    toast.classList.add("toast-close");
+    toast.classList.replace("toast-open", "toast-close");
     setTimeout(() => toast.remove(), 600);
   }, time);
 
