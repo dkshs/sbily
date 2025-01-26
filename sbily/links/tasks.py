@@ -6,7 +6,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
-from django.utils import timezone
+from django.utils.timezone import now
 
 from sbily.users.models import User
 from sbily.utils.tasks import default_task_params
@@ -20,15 +20,24 @@ SITE_BASE_URL = settings.BASE_URL or ""
 logger = get_task_logger(__name__)
 
 
+def send_links_email(user: User, template: str, **kwargs) -> None:
+    """Helper function to send email notifications about deleted links."""
+    user.email_user(
+        "Your links have been deleted",
+        template,
+        deleted_links_url=urljoin(SITE_BASE_URL, reverse("deleted_links")),
+        **kwargs,
+    )
+
+
 @shared_task(**default_task_params("delete_expired_links", acks_late=True))
 def delete_expired_links(self):
     """Delete expired links from the database."""
     expired_links = ShortenedLink.objects.select_related("user").filter(
-        remove_at__lte=timezone.now(),
+        remove_at__lte=now(),
     )
     expired_links_backup = list(expired_links)
     deleted_count = expired_links.delete()[0]
-    deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
 
     if deleted_count > 0:
         user_links = defaultdict(list)
@@ -36,12 +45,11 @@ def delete_expired_links(self):
             user_links[link.user].append(link)
 
         for user, links in user_links.items():
-            user.email_user(
-                "Your links have expired",
+            send_links_email(
+                user,
                 "emails/links/links_expired.html",
                 links=links,
                 links_count=len(links),
-                deleted_links_url=deleted_links_url,
             )
     return task_response(
         "COMPLETED",
@@ -55,7 +63,6 @@ def delete_excess_user_links(self):
     """Delete excess links for users that have exceeded their link limit."""
     users = User.objects.prefetch_related("shortened_links").all()
     total_deleted_count = 0
-    deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
 
     for user in users:
         links = user.shortened_links.order_by("-updated_at")
@@ -73,12 +80,12 @@ def delete_excess_user_links(self):
             deleted = links.filter(pk__in=links_to_delete).delete()[0]
             user_deleted_count += deleted
             total_deleted_count += deleted
+
         if user_deleted_count > 0:
-            user.email_user(
-                "Your links have been deleted",
+            send_links_email(
+                user,
                 "emails/links/links_deleted.html",
                 links_count=user_deleted_count,
-                deleted_links_url=deleted_links_url,
             )
 
     return task_response(
@@ -90,12 +97,9 @@ def delete_excess_user_links(self):
 @shared_task(**default_task_params("cleanup_deleted_shortened_links", acks_late=True))
 def cleanup_deleted_shortened_links(self):
     """Permanently deletes links that have been deleted."""
-    links_to_delete = DeletedShortenedLink.objects.all()
-    deleted_count = sum(
-        link.delete()[0]
-        for link in links_to_delete
-        if link.time_until_permanent_deletion <= timezone.now()
-    )
+    deleted_count = DeletedShortenedLink.objects.filter(
+        time_until_permanent_deletion__lte=now(),
+    ).delete()[0]
     return task_response(
         "COMPLETED",
         f"Permanently deleted {deleted_count} deleted links.",
@@ -110,15 +114,13 @@ def delete_link_by_id(self, link_id: int):
         with transaction.atomic():
             link = ShortenedLink.objects.select_related("user").get(id=link_id)
             user = link.user
-            deleted_links_url = urljoin(SITE_BASE_URL, reverse("deleted_links"))
             link.delete()
 
-            user.email_user(
-                "Your link has been deleted",
+            send_links_email(
+                user,
                 "emails/links/links_expired.html",
                 links=[link],
                 links_count=1,
-                deleted_links_url=deleted_links_url,
             )
 
             return task_response(

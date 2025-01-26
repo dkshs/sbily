@@ -220,6 +220,14 @@ class DeletedShortenedLink(AbstractShortenedLink):
         db_index=True,
         help_text=_("When this shortened link was removed"),
     )
+    time_until_permanent_deletion = models.DateTimeField(
+        _("Time Until Permanent Deletion"),
+        null=True,
+        blank=True,
+        db_index=True,
+        editable=False,
+        help_text=_("When this shortened link will be permanently deleted"),
+    )
 
     objects = DeletedShortenedLinkManager()
 
@@ -229,12 +237,20 @@ class DeletedShortenedLink(AbstractShortenedLink):
         ordering = ["-removed_at"]
 
     def save(self, *args, **kwargs):
+        user = self.user
+        delete_links_days = (
+            self.PREMIUM_DELETE_DAYS
+            if user.is_premium or user.is_admin
+            else self.REGULAR_DELETE_DAYS
+        )
+        removed_at = self.removed_at or timezone.now()
+        deletion_time = removed_at + timezone.timedelta(days=delete_links_days)
+        self.time_until_permanent_deletion = deletion_time
         super().save(*args, **kwargs)
 
         with contextlib.suppress(PeriodicTask.DoesNotExist, IntegrityError):
-            time_until_permanent_deletion = self.time_until_permanent_deletion
             schedule, _ = ClockedSchedule.objects.get_or_create(
-                clocked_time=time_until_permanent_deletion,
+                clocked_time=deletion_time,
             )
             PeriodicTask.objects.update_or_create(
                 name=f"Remove deleted link {self.id}",
@@ -243,23 +259,11 @@ class DeletedShortenedLink(AbstractShortenedLink):
                     "args": json.dumps([self.pk]),
                     "clocked": schedule,
                     "one_off": True,
-                    "expires": time_until_permanent_deletion
-                    + timezone.timedelta(minutes=1),
-                    "start_time": time_until_permanent_deletion,
+                    "expires": deletion_time + timezone.timedelta(minutes=1),
+                    "start_time": deletion_time,
                     "enabled": True,
                 },
             )
-
-    @property
-    def time_until_permanent_deletion(self) -> timezone.timedelta:
-        """Returns the time remaining until permanent deletion"""
-        user = self.user
-        delete_links_days = (
-            self.PREMIUM_DELETE_DAYS
-            if user.is_premium or user.is_admin
-            else self.REGULAR_DELETE_DAYS
-        )
-        return self.removed_at + timezone.timedelta(days=delete_links_days)
 
     @property
     def time_until_permanent_deletion_formatted(self) -> str:
