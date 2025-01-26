@@ -128,3 +128,14 @@ def delete_link_by_id(self, link_id: int):
             )
     except ShortenedLink.DoesNotExist:
         logger.warning("Attempted to delete non-existent link with ID %s", link_id)
+
+
+@shared_task(**default_task_params("delete_deleted_link_by_id", acks_late=True))
+def delete_deleted_link_by_id(self, link_id: int):
+    DeletedShortenedLink.objects.filter(id=link_id).delete()
+
+    return task_response(
+        "COMPLETED",
+        f"Successfully deleted link with ID {link_id}",
+        deleted_count=1,
+    )

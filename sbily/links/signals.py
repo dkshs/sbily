@@ -16,6 +16,23 @@ from .models import ShortenedLink
 from .utils import filter_dict
 
 
+@receiver(pre_delete, sender=DeletedShortenedLink)
+def cancel_remove_deleted_link_task(
+    sender: type,
+    instance: DeletedShortenedLink,
+    **kwargs,
+) -> None:
+    """
+    Cancel the periodic task for removing a link when a DeletedShortenedLink is deleted.
+
+    Args:
+        sender: The model class that sent the signal
+        instance: The actual instance being deleted
+        **kwargs: Additional keyword arguments passed by the signal
+    """
+    PeriodicTask.objects.filter(name=f"Remove deleted link {instance.id}").delete()
+
+
 @receiver(pre_delete, sender=ShortenedLink)
 def cancel_remove_link_task(sender: type, instance: ShortenedLink, **kwargs) -> None:
     """

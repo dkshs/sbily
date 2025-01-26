@@ -1,3 +1,4 @@
+import contextlib
 import json
 import secrets
 from urllib.parse import urljoin
@@ -226,6 +227,28 @@ class DeletedShortenedLink(AbstractShortenedLink):
         verbose_name = _("Deleted Shortened Link")
         verbose_name_plural = _("Deleted Shortened Links")
         ordering = ["-removed_at"]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        with contextlib.suppress(PeriodicTask.DoesNotExist, IntegrityError):
+            time_until_permanent_deletion = self.time_until_permanent_deletion
+            schedule, _ = ClockedSchedule.objects.get_or_create(
+                clocked_time=time_until_permanent_deletion,
+            )
+            PeriodicTask.objects.update_or_create(
+                name=f"Remove deleted link {self.id}",
+                defaults={
+                    "task": "delete_deleted_link_by_id",
+                    "args": json.dumps([self.pk]),
+                    "clocked": schedule,
+                    "one_off": True,
+                    "expires": time_until_permanent_deletion
+                    + timezone.timedelta(minutes=1),
+                    "start_time": time_until_permanent_deletion,
+                    "enabled": True,
+                },
+            )
 
     @property
     def time_until_permanent_deletion(self) -> timezone.timedelta:
