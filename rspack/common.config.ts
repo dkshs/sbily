@@ -27,6 +27,7 @@ export const commonConfig = defineConfig({
     filename: "js/[name]-[fullhash].js",
     chunkFilename: "js/[name]-[hash].js",
     cssFilename: "css/[name]-[contenthash].css",
+    assetModuleFilename: "assets/[name]-[hash][ext]",
     clean: true,
   },
   plugins: [
@@ -62,20 +63,6 @@ export const commonConfig = defineConfig({
             },
           },
         ],
-      },
-      {
-        test: /\.(png|jpe?g|gif|svg|webp)$/i,
-        type: "asset/resource",
-        generator: {
-          filename: "images/[name].[hash][ext]",
-        },
-      },
-      {
-        test: /\.(ttf|woff|woff2|eot)$/i,
-        type: "asset/resource",
-        generator: {
-          filename: "fonts/[name].[hash][ext]",
-        },
       },
     ],
   },
