@@ -130,18 +130,18 @@
   }
   /* Toast Variants */
   .toast-debug {
-    @apply toast [&_i]:text-cyan-600;
+    @apply toast [&_svg]:text-cyan-600;
   }
   .toast-error {
-    @apply toast [&_i]:text-red-600;
+    @apply toast [&_svg]:text-red-600;
   }
   .toast-warning {
-    @apply toast [&_i]:text-yellow-600;
+    @apply toast [&_svg]:text-yellow-600;
   }
   .toast-success {
-    @apply toast [&_i]:text-green-600;
+    @apply toast [&_svg]:text-green-600;
   }
   .toast-info {
-    @apply toast [&_i]:text-blue-600;
+    @apply toast [&_svg]:text-blue-600;
   }
 }

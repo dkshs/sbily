@@ -1,3 +1,5 @@
+import { CircleAlert, CircleCheck, CircleX, createElement, Info } from "lucide";
+
 function verifyToastOl() {
   let toastOl = document.getElementById("toast-ol");
   if (!toastOl) {
@@ -10,19 +12,16 @@ function verifyToastOl() {
   return toastOl;
 }
 
-function getIcon(iconName: string) {
-  return `<i class="ph-fill ph-${iconName} toast-icon"></i>`;
-}
 function getToastIcon(tag: string) {
   switch (tag) {
     case "toast-success":
-      return getIcon("check-circle");
+      return createElement(CircleCheck);
     case "toast-warning":
-      return getIcon("warning");
+      return createElement(CircleAlert);
     case "toast-error":
-      return getIcon("warning-circle");
+      return createElement(CircleX);
     default:
-      return getIcon("info");
+      return createElement(Info);
   }
 }
 
@@ -54,6 +53,8 @@ export function toast(msg: string, className: string, time = 3000) {
   if (toastOl.children.length >= 3) {
     closeToast(toastOl.children[0].id, 0);
   }
+  const toastIcon = getToastIcon(className);
+  toastIcon.classList.add("toast-icon");
 
   toastOl.insertAdjacentHTML(
     "beforeend",
@@ -68,7 +69,7 @@ export function toast(msg: string, className: string, time = 3000) {
         <span aria-hidden="true">&times;</span>
       </button>
       <div class="flex items-center">
-        ${getToastIcon(className)}
+        ${toastIcon.outerHTML}
         <p
           class="toast-msg"
           role="alert"

@@ -1,19 +1,27 @@
 import { dkshs } from "@dkshs/eslint-config";
 
-export default dkshs({
-  ignores: ["**/*.html"],
-  javascript: {
-    overrides: {
-      "node/no-unsupported-features/node-builtins": [
-        "error",
-        { allowExperimental: true },
-      ],
+export default dkshs(
+  {
+    ignores: ["**/*.html"],
+    javascript: {
+      overrides: {
+        "node/no-unsupported-features/node-builtins": [
+          "error",
+          { allowExperimental: true },
+        ],
+      },
+    },
+    unicorn: {
+      overrides: { "unicorn/prefer-query-selector": "off" },
+    },
+    toml: {
+      overrides: { "toml/indent": ["error", 4] },
     },
   },
-  unicorn: {
-    overrides: { "unicorn/prefer-query-selector": "off" },
+  {
+    files: ["sbily/src/vendors.ts"],
+    rules: {
+      "perfectionist/sort-objects": "error",
+    },
   },
-  toml: {
-    overrides: { "toml/indent": ["error", 4] },
-  },
-});
+);

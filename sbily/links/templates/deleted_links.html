@@ -57,7 +57,7 @@
                 aria-label="Close"
                 data-jswc-dialog-close
               >
-                <i class="ph-bold ph-x"></i>
+                <i data-lucide="x" class="size-5"></i>
               </button>
             </div>
           </div>
@@ -97,7 +97,7 @@
                       {{ link.shortened_link }}
                       {% if link.remove_at %}
                         <span class="mt-1" title="This link is temporary" aria-label="This link is temporary">
-                          <i class="ph-bold ph-clock-countdown text-xl text-yellow-500"></i>
+                          <i data-lucide="clock-alert" class="size-5 stroke-[3px] text-yellow-500"></i>
                         </span>
                       {% endif %}
                     </td>
@@ -119,7 +119,7 @@
                         aria-label="Open action menu for link {{ link.shortened_link }}"
                         title="Open action menu for link {{ link.shortened_link }}"
                       >
-                        <i class="ph-bold ph-dots-three"></i>
+                        <i data-lucide="ellipsis"></i>
                       </button>
                       <div
                         id="dropdown-menu-content-{{ link.id }}"
@@ -127,7 +127,7 @@
                         data-jswc-dropdown-animation="true"
                       >
                         <a href="{% url 'restore_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
-                          <i class="ph-bold ph-clock-clockwise text-primary text-lg"></i> Restore link
+                          <i data-lucide="rotate-cw"></i> Restore link
                         </a>
                         <button
                           type="button"
@@ -135,7 +135,7 @@
                           data-jswc-dialog
                           data-jswc-target="remove-link-{{ link.id }}-dialog"
                         >
-                          <i class="ph-bold ph-trash text-red-600 text-lg"></i> Delete
+                          <i data-lucide="trash-2" class="stroke-[3px] text-red-600"></i> Delete
                         </button>
                       </div>
                       {% include "partials/delete_link_dialog.html" with is_deleted=True %}

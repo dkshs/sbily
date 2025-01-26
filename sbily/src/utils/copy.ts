@@ -1,3 +1,4 @@
+import { Check, createElement, X } from "lucide";
 import { toast } from "@/components/toast";
 
 export function copy(
@@ -9,8 +10,8 @@ export function copy(
   if (!button) return;
 
   const ICONS = {
-    success: `<i class="ph-bold ph-check"></i>`,
-    error: `<i class="ph-bold ph-x"></i>`,
+    success: createElement(Check),
+    error: createElement(X),
   };
   const MESSAGES = {
     success: "Copied to clipboard",
@@ -24,11 +25,11 @@ export function copy(
     try {
       // eslint-disable-next-line node/no-unsupported-features/node-builtins
       await navigator.clipboard.writeText(value);
-      button.innerHTML = `${ICONS.success} Copied`;
+      button.innerHTML = `${ICONS.success.outerHTML} Copied`;
       toast(MESSAGES.success, "toast-success");
     } catch (error) {
       toast(MESSAGES.error, "toast-error");
-      button.innerHTML = `${ICONS.error} Error`;
+      button.innerHTML = `${ICONS.error.outerHTML} Error`;
       console.error("Clipboard copy failed:", error);
     } finally {
       setTimeout(() => {

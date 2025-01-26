@@ -19,7 +19,6 @@
     />
 
     {% render_bundle "main" "css" %}
-    {% render_bundle "vendors" "css" %}
 
     <!-- Vendor dependencies bundled as one file -->
     {% render_bundle "vendors" "js" attrs="defer" %}
@@ -43,13 +42,13 @@
           </a>
           <button
             type="button"
-            class="absolute end-0 mr-4 md:mr-12 text-2xl flex md:hidden button-primary z-20"
+            class="absolute end-0 mr-4 md:mr-12 flex md:hidden button-primary px-3 z-20"
             data-jswc-dropdown
             data-jswc-target="nav__dropdown-content"
             aria-label="Open navigation menu."
             title="Open navigation menu."
           >
-            <i class="ph-fill ph-list"></i>
+            <i data-lucide="align-justify" class="stroke-[3px] size-5"></i>
           </button>
           <div
             class="hidden dropdown-menu right-3 top-14"

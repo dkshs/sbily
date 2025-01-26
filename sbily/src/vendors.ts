@@ -1,2 +1,35 @@
-import "@phosphor-icons/web/fill";
-import "@phosphor-icons/web/bold";
+import {
+  AlignJustify,
+  Check,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  ClockAlert,
+  Copy,
+  createIcons,
+  Ellipsis,
+  Info,
+  RotateCw,
+  SquarePen,
+  Trash2,
+  X,
+} from "lucide";
+
+createIcons({
+  attrs: { class: ["size-4"] },
+  icons: {
+    AlignJustify,
+    Check,
+    CircleAlert,
+    CircleCheck,
+    CircleX,
+    ClockAlert,
+    Copy,
+    Ellipsis,
+    Info,
+    RotateCw,
+    SquarePen,
+    Trash2,
+    X,
+  },
+});

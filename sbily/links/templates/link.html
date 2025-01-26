@@ -9,11 +9,11 @@
         <h1 class="text-2xl font-bold">Link - {{ link.shortened_link }}</h1>
         <button
           type="button"
-          class="button-primary w-fit gap-2 px-2 py-1"
+          class="button-primary w-fit gap-1 px-2 py-1"
           id="copy"
           onclick="copy('{{ link.get_absolute_url }}', 'copy')"
         >
-          <i class="ph-bold ph-copy"></i>
+          <i data-lucide="copy" class="stroke-[3px]"></i>
           Copy link
         </button>
       </div>
@@ -100,7 +100,7 @@
             data-jswc-dialog
             data-jswc-target="remove-link-{{ link.id }}-dialog"
           >
-            <i class="ph-bold ph-trash"></i> Delete
+            <i data-lucide="trash-2" class="stroke-[3px]"></i> Delete
           </button>
           {% include "partials/delete_link_dialog.html" %}
         </div>
