@@ -5,7 +5,7 @@
   "packageRules": [
     {
       "enabled": false,
-      "matchDatasources": ["docker"],
+      "matchDatasources": ["docker", "python-version"],
       "matchDepNames": ["python"],
       "matchUpdateTypes": ["major", "minor"]
     },
