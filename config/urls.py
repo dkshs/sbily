@@ -9,6 +9,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("", include("sbily.links.urls")),
     path("", include("sbily.users.urls")),
+    path("notifications/", include("sbily.notifications.urls")),
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

@@ -42,7 +42,7 @@
           </a>
           <button
             type="button"
-            class="absolute end-0 mr-4 md:mr-12 flex md:hidden button-primary px-3 z-20"
+            class="button-primary md:hidden"
             data-jswc-dropdown
             data-jswc-target="nav__dropdown-content"
             aria-label="Open navigation menu."
@@ -51,22 +51,53 @@
             <i data-lucide="align-justify" class="stroke-[3px] size-5"></i>
           </button>
           <div
-            class="hidden dropdown-menu right-3 top-14"
             id="nav__dropdown-content"
+            class="hidden dropdown-menu right-3 top-14"
             data-jswc-dropdown-animation="true"
           >
             {% if request.user.is_authenticated %}
-              <a href="{% url 'my_account' %}" class="dropdown-nav-link">My Account</a>
-              <a href="{% url 'sign_out' %}" class="dropdown-nav-link text-red-600">Sign Out</a>
+              <a href="{% url 'my_notifications' %}" class="dropdown-menu-item gap-2" title="See your notifications">
+                <i data-lucide="bell" class="size-5"></i>
+                <span>Notifications</span>
+              </a>
+              <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-2">
+                <i data-lucide="circle-user" class="size-5"></i>
+                <span>My Account</span>
+              </a>
+              <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-2 text-red-600">
+                <i data-lucide="log-out" class="size-5"></i>
+                <span>Sign Out</span>
+              </a>
             {% else %}
-              <a href="{% url 'sign_up' %}" class="dropdown-nav-link">Sign Up</a>
-              <a href="{% url 'sign_in' %}" class="dropdown-nav-link">Sign In</a>
+              <a href="{% url 'sign_up' %}" class="dropdown-menu-item">Sign Up</a>
+              <a href="{% url 'sign_in' %}" class="dropdown-menu-item">Sign In</a>
             {% endif %}
           </div>
-          <div class="hidden items-center gap-4 md:flex">
+          <div class="hidden items-center gap-2 md:flex">
             {% if request.user.is_authenticated %}
-              <a href="{% url 'my_account' %}" class="link">My Account</a>
-              <a href="{% url 'sign_out' %}" class="link text-red-600">Sign Out</a>
+              <a
+                href="{% url 'my_notifications' %}"
+                class="link relative p-2 border border-foreground/20 hover:border-foreground/40"
+                title="See your notifications"
+              >
+                <span
+                  class="flex absolute -top-1 -right-1 size-5 justify-center items-center text-xs border-2 border-secondary bg-primary rounded-full"
+                >
+                  {{ user.get_unread_notifications_count }}
+                </span>
+                <div class="size-5">
+                  <i data-lucide="bell" class="size-5"></i>
+                  <span class="sr-only">See your notifications</span>
+                </div>
+              </a>
+              <a href="{% url 'my_account' %}" class="link gap-1 py-1.5 px-2 border border-foreground/20 hover:border-foreground/40">
+                <i data-lucide="circle-user" class="size-5"></i>
+                <span>My Account</span>
+              </a>
+              <a href="{% url 'sign_out' %}" class="link text-red-600 gap-1 py-1.5 px-2 border border-red-600/30 hover:border-red-600/60">
+                <i data-lucide="log-out" class="size-5"></i>
+                <span>Sign Out</span>
+              </a>
             {% else %}
               <a href="{% url 'sign_up' %}" class="link">Sign Up</a>
               <a href="{% url 'sign_in' %}" class="link">Sign In</a>

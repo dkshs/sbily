@@ -224,6 +224,10 @@ class User(AbstractUser):
             **kwargs,
         )
 
+    def get_unread_notifications_count(self) -> int:
+        """Get count of unread notifications for user."""
+        return self.notifications.filter(is_read=False).count()
+
 
 class Token(models.Model):
     DEFAULT_EXPIRY = timedelta(hours=2)

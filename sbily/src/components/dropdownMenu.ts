@@ -98,6 +98,9 @@ export function dropdownMenu(
   targetElement.addEventListener("focusout", handleFocusout);
 
   if (!isOpen) {
+    if (document.body.scrollHeight > window.innerHeight) {
+      document.body.dataset.scrollLocked = "true";
+    }
     document.body.append(overlay);
 
     targetElement.setAttribute("aria-hidden", "false");
@@ -109,6 +112,7 @@ export function dropdownMenu(
     overlay.setAttribute("aria-hidden", "true");
 
     const closeDropdownMenu = () => {
+      delete document.body.dataset.scrollLocked;
       overlay.remove();
       targetElement.classList.replace("flex", "hidden");
       cleanup();

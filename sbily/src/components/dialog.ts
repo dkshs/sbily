@@ -93,6 +93,9 @@ export function dialog(
   document.addEventListener("focus", handleFocus, true);
 
   if (!isOpen) {
+    if (document.body.scrollHeight > window.innerHeight) {
+      document.body.dataset.scrollLocked = "true";
+    }
     document.body.append(overlay);
 
     targetElement.setAttribute("aria-hidden", "false");
@@ -106,6 +109,7 @@ export function dialog(
     overlay.setAttribute("aria-hidden", "true");
 
     const closeDialog = () => {
+      delete document.body.dataset.scrollLocked;
       overlay.remove();
       targetElement.classList.replace("block", "hidden");
       cleanup();

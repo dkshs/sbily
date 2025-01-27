@@ -67,6 +67,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "sbily.links",
     "sbily.users",
+    "sbily.notifications",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

@@ -31,12 +31,18 @@
   * {
     @apply border-border selection:bg-primary/30;
   }
+
   html {
     @apply scroll-smooth;
     color-scheme: dark;
   }
+
   body {
     @apply bg-background text-foreground font-inter relative;
+  }
+
+  body[data-scroll-locked] {
+    @apply relative overflow-hidden md:border-r-[17px] border-foreground/30 md:[&>header]:right-[17px] !important;
   }
 }
 
@@ -44,66 +50,91 @@
   .input {
     @apply flex h-10 w-full rounded-md border duration-200 border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
+
   .textarea {
     @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
+
   .label {
     @apply font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
   }
+
   .badge {
     @apply inline-flex justify-center w-fit items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-black;
   }
+
   .badge-default {
     @apply badge border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
   }
+
   .badge-secondary {
     @apply badge border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
+
   .badge-yellow {
     @apply badge border-transparent bg-yellow-500 text-background hover:bg-yellow-500/80;
   }
+
   .button {
     @apply inline-flex py-2 px-4 items-center rounded-md justify-center whitespace-nowrap font-medium ring-offset-background ring-ring duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
+
   .button-primary {
     @apply button bg-primary/60 text-primary-foreground hover:bg-primary/80 active:bg-primary/40;
   }
+
   .button-outline {
     @apply button border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/60;
   }
+
+  .button-ghost {
+    @apply button hover:bg-accent hover:text-accent-foreground active:bg-accent/60;
+  }
+
   .button-destructive {
     @apply button bg-destructive/80 text-destructive-foreground hover:bg-destructive active:bg-destructive/40 ring-destructive;
   }
+
   .link {
     @apply inline-flex items-center rounded-md justify-center font-medium ring-offset-background underline-offset-4 duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring active:opacity-70;
   }
+
   .dialog {
     @apply z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%] outline-none focus-visible:border-primary fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-95 aria-[hidden=false]:zoom-in-95 aria-hidden:slide-out-to-left-1/2 aria-hidden:slide-out-to-top-[48%] aria-[hidden=false]:slide-in-from-left-1/2 aria-[hidden=false]:slide-in-from-top-[48%];
   }
+
   .dialog-overlay {
     @apply bg-black/60 fixed z-[9999] inset-0 fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:backdrop-blur-none aria-[hidden=false]:backdrop-blur-sm;
   }
+
   .dialog-close {
     @apply absolute button-outline p-2 border-0 rounded-xl right-4 top-4;
   }
+
   .dropdown-menu {
-    @apply absolute z-[99999] flex-col bg-secondary p-1 w-40 rounded-md fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-75 aria-[hidden=false]:zoom-in-75;
+    @apply absolute z-[9999] flex-col bg-secondary p-1 w-40 rounded-md fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-75 aria-[hidden=false]:zoom-in-75;
   }
+
   .dropdown-menu-item {
     @apply link hover:no-underline hover:bg-background/40 duration-200 h-10;
   }
+
   .dropdown-menu-overlay {
-    @apply absolute z-[9999] inset-0;
+    @apply fixed z-[999] inset-0;
   }
+
   .dropdown-nav-link {
     @apply link hover:no-underline hover:bg-background/40 duration-200 px-2 py-3;
   }
+
   .link-primary {
     @apply link text-primary;
   }
+
   .separator {
     @apply shrink-0 bg-border h-[1px] w-full;
   }
+
   /* Table */
   .selected {
     @apply bg-muted/80;
@@ -111,36 +142,46 @@
 
   /* Toast */
   .toast-list {
-    @apply fixed top-0 right-0 left-0 z-[99999] flex gap-2 max-h-screen w-full md:max-w-[420px] flex-col-reverse md:left-auto sm:top-5 sm:right-5 sm:flex-col;
+    @apply fixed top-0 right-0 left-0 z-[99999] flex gap-2 max-h-screen w-full md:max-w-[420px] flex-col-reverse md:left-auto md:top-5 sm:right-5 sm:flex-col;
   }
+
   .toast {
     @apply relative p-6 z-[99999] bg-background font-medium flex flex-col rounded-md duration-200 border-2 [&_div]:gap-3;
   }
+
   .toast-open {
     @apply toast fill-mode-forwards animate-in fade-in-0 slide-in-from-top-5 duration-500;
   }
+
   .toast-close {
     @apply toast fill-mode-forwards animate-out fade-out-0 slide-out-to-right-5 duration-500;
   }
+
   .toast-close-btn {
     @apply p-2 text-lg absolute -top-1 right-1 text-foreground/80 hover:text-foreground duration-200;
   }
+
   .toast-icon {
     @apply self-center text-xl;
   }
+
   /* Toast Variants */
   .toast-debug {
     @apply toast [&_svg]:text-cyan-600;
   }
+
   .toast-error {
     @apply toast [&_svg]:text-red-600;
   }
+
   .toast-warning {
     @apply toast [&_svg]:text-yellow-600;
   }
+
   .toast-success {
     @apply toast [&_svg]:text-green-600;
   }
+
   .toast-info {
     @apply toast [&_svg]:text-blue-600;
   }
