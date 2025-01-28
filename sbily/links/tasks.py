@@ -2,12 +2,13 @@ from collections import defaultdict
 from urllib.parse import urljoin
 
 from celery import shared_task
-from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.timezone import now
 
+from sbily.notifications.models import Notification
 from sbily.users.models import User
 from sbily.utils.tasks import default_task_params
 from sbily.utils.tasks import task_response
@@ -17,21 +18,36 @@ from .models import ShortenedLink
 
 SITE_BASE_URL = settings.BASE_URL or ""
 
-logger = get_task_logger(__name__)
 
+def send_notification_deleted_links(
+    user: User,
+    links: list[ShortenedLink],
+    **kwargs,
+) -> None:
+    """
+    Send a notification to the user when their links have been deleted.
 
-def send_links_email(user: User, template: str, **kwargs) -> None:
-    """Helper function to send email notifications about deleted links."""
-    user.email_user(
-        "Your links have been deleted",
-        template,
-        deleted_links_url=urljoin(SITE_BASE_URL, reverse("deleted_links")),
-        **kwargs,
+    Args:
+        user: The user to notify.
+        links: List of deleted links.
+        **kwargs: Additional context data.
+    """
+    context = kwargs.copy()
+    context["deleted_links_url"] = urljoin(SITE_BASE_URL, reverse("deleted_links"))
+    context["links"] = links
+    context.setdefault("links_count", len(links))
+
+    content = render_to_string("notifications/links/links_deleted.md", context)
+
+    Notification.objects.create(
+        title="Your links have been deleted!",
+        user=user,
+        content=content,
     )
 
 
 @shared_task(**default_task_params("delete_expired_links", acks_late=True))
-def delete_expired_links(self):
+def delete_expired_links(self) -> dict:
     """Delete expired links from the database."""
     expired_links = ShortenedLink.objects.select_related("user").filter(
         remove_at__lte=now(),
@@ -45,11 +61,9 @@ def delete_expired_links(self):
             user_links[link.user].append(link)
 
         for user, links in user_links.items():
-            send_links_email(
-                user,
-                "emails/links/links_expired.html",
+            send_notification_deleted_links(
+                user=user,
                 links=links,
-                links_count=len(links),
             )
     return task_response(
         "COMPLETED",
@@ -59,7 +73,7 @@ def delete_expired_links(self):
 
 
 @shared_task(**default_task_params("delete_excess_user_links", acks_late=True))
-def delete_excess_user_links(self):
+def delete_excess_user_links(self) -> dict:
     """Delete excess links for users that have exceeded their link limit."""
     users = User.objects.prefetch_related("shortened_links").all()
     total_deleted_count = 0
@@ -69,33 +83,38 @@ def delete_excess_user_links(self):
         link_num = user.link_num["links"] - user.max_num_links
         link_num_temp = user.link_num["temp_links"] - user.max_num_links_temporary
         user_deleted_count = 0
+        deleted_links = []
 
         if link_num > 0:
             links_to_delete = links.filter(remove_at__isnull=True)[:link_num]
+            deleted_links.extend(list(links_to_delete))
             deleted = links.filter(pk__in=links_to_delete).delete()[0]
             user_deleted_count += deleted
             total_deleted_count += deleted
+
         if link_num_temp > 0:
-            links_to_delete = links.filter(remove_at__isnull=False)[:link_num_temp]
-            deleted = links.filter(pk__in=links_to_delete).delete()[0]
+            temp_links_to_delete = links.filter(remove_at__isnull=False)[:link_num_temp]
+            deleted_links.extend(list(temp_links_to_delete))
+            deleted = links.filter(pk__in=temp_links_to_delete).delete()[0]
             user_deleted_count += deleted
             total_deleted_count += deleted
 
         if user_deleted_count > 0:
-            send_links_email(
-                user,
-                "emails/links/links_deleted.html",
-                links_count=user_deleted_count,
+            send_notification_deleted_links(
+                user=user,
+                links=deleted_links,
+                need_upgrade=True,
             )
 
     return task_response(
         "COMPLETED",
         f"Deleted {total_deleted_count} excess links for users.",
+        deleted_count=total_deleted_count,
     )
 
 
 @shared_task(**default_task_params("cleanup_deleted_shortened_links", acks_late=True))
-def cleanup_deleted_shortened_links(self):
+def cleanup_deleted_shortened_links(self) -> dict:
     """Permanently deletes links that have been deleted."""
     deleted_count = DeletedShortenedLink.objects.filter(
         time_until_permanent_deletion__lte=now(),
@@ -108,7 +127,7 @@ def cleanup_deleted_shortened_links(self):
 
 
 @shared_task(**default_task_params("delete_link_by_id", acks_late=True))
-def delete_link_by_id(self, link_id: int):
+def delete_link_by_id(self, link_id: int) -> dict:
     """Delete a link by its ID."""
     try:
         with transaction.atomic():
@@ -116,11 +135,9 @@ def delete_link_by_id(self, link_id: int):
             user = link.user
             link.delete()
 
-            send_links_email(
-                user,
-                "emails/links/links_expired.html",
+            send_notification_deleted_links(
+                user=user,
                 links=[link],
-                links_count=1,
             )
 
             return task_response(
@@ -129,15 +146,19 @@ def delete_link_by_id(self, link_id: int):
                 deleted_count=1,
             )
     except ShortenedLink.DoesNotExist:
-        logger.warning("Attempted to delete non-existent link with ID %s", link_id)
+        return task_response(
+            "FAILED",
+            f"Link with ID {link_id} does not exist",
+            deleted_count=0,
+        )
 
 
 @shared_task(**default_task_params("delete_deleted_link_by_id", acks_late=True))
-def delete_deleted_link_by_id(self, link_id: int):
-    DeletedShortenedLink.objects.filter(id=link_id).delete()
-
+def delete_deleted_link_by_id(self, link_id: int) -> dict:
+    """Permanently delete a previously deleted link by its ID."""
+    deleted_count = DeletedShortenedLink.objects.filter(id=link_id).delete()[0]
     return task_response(
         "COMPLETED",
         f"Successfully deleted link with ID {link_id}",
-        deleted_count=1,
+        deleted_count=deleted_count,
     )
