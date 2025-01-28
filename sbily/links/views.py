@@ -19,7 +19,7 @@ from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
-LINK_REMOVE_AT_EXCLUDE = r".\d*\+\d{2}:\d{2}"
+LINK_REMOVE_AT_EXCLUDE = r".\d*[-+]\d{2}:\d{2}"
 
 
 def home(request: HttpRequest):
@@ -104,7 +104,11 @@ def link(request: HttpRequest, shortened_link: str):
             )
             return redirect("my_account")
 
-        link_remove_at = re.sub(LINK_REMOVE_AT_EXCLUDE, "", f"{link.remove_at}")
+        link_remove_at = re.sub(
+            LINK_REMOVE_AT_EXCLUDE,
+            "",
+            f"{timezone.localtime(link.remove_at)}",
+        )
         return render(
             request,
             "link.html",
