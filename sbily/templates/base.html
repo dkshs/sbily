@@ -80,11 +80,13 @@
                 class="link relative p-2 border border-foreground/20 hover:border-foreground/40"
                 title="See your notifications"
               >
-                <span
-                  class="flex absolute -top-1 -right-1 size-5 justify-center items-center text-xs border-2 border-secondary bg-primary rounded-full"
-                >
-                  {{ user.get_unread_notifications_count }}
-                </span>
+                {% if user.get_unread_notifications_count > 0 %}
+                  <span
+                    class="flex absolute -top-1 -right-1 size-5 justify-center items-center text-xs border-2 border-secondary bg-primary rounded-full"
+                  >
+                    {{ user.get_unread_notifications_count }}
+                  </span>
+                {% endif %}
                 <div class="size-5">
                   <i data-lucide="bell" class="size-5"></i>
                   <span class="sr-only">See your notifications</span>
