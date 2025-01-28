@@ -71,7 +71,7 @@ def my_account(request: HttpRequest):
 @login_required
 def change_password(request: HttpRequest):
     if request.method != "POST":
-        return render(request, "change_password.html")
+        return redirect("my_account")
 
     old_password = request.POST.get("old_password") or ""
     new_password = request.POST.get("new_password") or ""
@@ -99,10 +99,10 @@ def change_password(request: HttpRequest):
         return redirect("my_account")
     except BadRequestError as e:
         messages.error(request, e.message)
-        return redirect("change_password")
+        return redirect("my_account")
     except Exception as e:
         messages.error(request, f"Error updating password: {e}")
-        return redirect("change_password")
+        return redirect("my_account")
 
 
 @login_required
