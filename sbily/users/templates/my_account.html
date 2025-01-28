@@ -17,7 +17,7 @@
       <form method="post" action="{% url 'my_account' %}" class="flex flex-col gap-2">
         {% csrf_token %}
         <div class="flex items-center flex-nowrap gap-2">
-          <label class="text-lg text-nowrap" for="first_name">First Name: </label>
+          <label class="label text-nowrap" for="first_name">First Name: </label>
           <input
             class="font-bold input px-2 py-0"
             id="first_name"
@@ -27,7 +27,7 @@
           />
         </div>
         <div class="flex items-center flex-nowrap gap-2">
-          <label class="text-lg text-nowrap" for="last_name">Last Name: </label>
+          <label class="label text-nowrap" for="last_name">Last Name: </label>
           <input
             class="font-bold input px-2 py-0"
             id="last_name"
@@ -37,7 +37,7 @@
           />
         </div>
         <div class="flex items-center gap-2">
-          <label class="text-lg" for="username">Username: </label>
+          <label class="label" for="username">Username: </label>
           <input
             class="font-bold input px-2 py-0"
             id="username"
@@ -47,7 +47,7 @@
           />
         </div>
         <div class="flex items-center gap-2">
-          <label class="text-lg" for="email">Email: </label>
+          <label class="label" for="email">Email: </label>
           <input
             class="font-bold input px-2 py-0"
             id="email"
@@ -74,8 +74,8 @@
             {% if user.login_with_email %}checked{% endif %}
           />
         </div>
-        <div class="text-lg flex items-center gap-2">
-          Password: <span class="font-bold">****</span>
+        <div class="label mt-1.5 flex items-center gap-2">
+          Password: ****
           <button
             type="button"
             class="button py-0 px-2 gap-1 hover:underline hover:opacity-80"
@@ -170,15 +170,15 @@
             class="mt-6 w-full flex flex-col gap-2 flex-wrap"
           >
             {% csrf_token %}
-            <div class="w-full flex flex-col gap-3 mb-2">
+            <div class="w-full flex flex-col gap-2 mb-2">
               <label for="old_password" class="label">Old Password:</label>
               <input type="password" id="old_password" name="old_password" class="input" required />
             </div>
-            <div class="w-full flex flex-col gap-3 mb-3">
+            <div class="w-full flex flex-col gap-2 mb-4">
               <label for="new_password" class="label">New Password:</label>
               <input type="password" id="new_password" name="new_password" class="input" required />
             </div>
-            <button type="submit" class="button-destructive w-fit self-end">Change</button>
+            <button type="submit" class="button-primary w-fit self-end">Change</button>
           </form>
           <button
             type="button"

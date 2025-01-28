@@ -4,25 +4,34 @@
 
 @layer base {
   :root {
-    --background: 224 71.4% 4.1%;
+    --background: 0 0% 0%;
     --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
+
+    --card: 0 0% 0%;
     --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
+
+    --popover: 0 0% 0%;
     --popover-foreground: 210 20% 98%;
-    --primary: 263.4 70% 50.4%;
+
+    --primary: 262 83% 60%;
     --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
+
+    --secondary: 240 6% 10%;
     --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
+
+    --muted: 240 6% 10%;
     --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
+
+    --accent: 240 6% 10%;
     --accent-foreground: 210 20% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50.4%;
+
+    --border: 240 6% 10%;
+    --input: 240 6% 10%;
+    --ring: 262 83% 60%;
+
     --radius: 0.5rem;
   }
 }
@@ -48,7 +57,7 @@
 
 @layer components {
   .input {
-    @apply flex h-10 w-full rounded-md border duration-200 border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-md border-2 duration-200 border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .textarea {
@@ -64,7 +73,7 @@
   }
 
   .badge-default {
-    @apply badge border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+    @apply badge border-transparent bg-primary/60 text-primary-foreground hover:bg-primary/80;
   }
 
   .badge-secondary {
@@ -81,6 +90,10 @@
 
   .button-primary {
     @apply button bg-primary/60 text-primary-foreground hover:bg-primary/80 active:bg-primary/40;
+  }
+
+  .button-secondary {
+    @apply button bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
 
   .button-outline {
@@ -100,7 +113,7 @@
   }
 
   .dialog {
-    @apply z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border rounded-md translate-x-[-50%] translate-y-[-50%] outline-none focus-visible:border-primary fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-95 aria-[hidden=false]:zoom-in-95 aria-hidden:slide-out-to-left-1/2 aria-hidden:slide-out-to-top-[48%] aria-[hidden=false]:slide-in-from-left-1/2 aria-[hidden=false]:slide-in-from-top-[48%];
+    @apply z-[99999] w-full fixed left-1/2 top-1/2 bg-background max-w-lg mx-auto p-6 border-2 rounded-md translate-x-[-50%] translate-y-[-50%] outline-none focus-visible:border-primary fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-95 aria-[hidden=false]:zoom-in-95 aria-hidden:slide-out-to-left-1/2 aria-hidden:slide-out-to-top-[48%] aria-[hidden=false]:slide-in-from-left-1/2 aria-[hidden=false]:slide-in-from-top-[48%];
   }
 
   .dialog-overlay {
@@ -112,11 +125,11 @@
   }
 
   .dropdown-menu {
-    @apply absolute z-[9999] flex-col bg-secondary p-1 w-40 rounded-md fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-75 aria-[hidden=false]:zoom-in-75;
+    @apply absolute z-[9999] flex-col bg-background border-2 p-1 w-40 rounded-md fill-mode-forwards aria-[hidden=false]:animate-in aria-hidden:animate-out aria-[hidden=false]:fade-in-0 aria-hidden:fade-out-0 aria-hidden:zoom-out-75 aria-[hidden=false]:zoom-in-75;
   }
 
   .dropdown-menu-item {
-    @apply link hover:no-underline hover:bg-background/40 duration-200 h-10;
+    @apply link hover:no-underline hover:bg-secondary/80 duration-200 h-10;
   }
 
   .dropdown-menu-overlay {
@@ -124,7 +137,7 @@
   }
 
   .dropdown-nav-link {
-    @apply link hover:no-underline hover:bg-background/40 duration-200 px-2 py-3;
+    @apply link hover:no-underline hover:bg-secondary/80 duration-200 px-2 py-3;
   }
 
   .link-primary {
