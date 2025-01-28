@@ -81,7 +81,7 @@
   }
 
   .badge-yellow {
-    @apply badge border-transparent bg-yellow-500 text-background hover:bg-yellow-500/80;
+    @apply badge border-transparent bg-yellow-500/80 text-background hover:bg-yellow-500;
   }
 
   .button {
