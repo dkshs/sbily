@@ -7,7 +7,7 @@ from sbily.utils.tasks import task_response
 
 
 @shared_task(**default_task_params("cleanup_clocked_schedules", acks_late=True))
-def cleanup_clocked_schedules():
+def cleanup_clocked_schedules(self):
     """
     Clean up expired clocked schedules that are not associated with any periodic tasks.
     Also removes disabled periodic tasks containing 'Remove link' and
