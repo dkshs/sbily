@@ -275,7 +275,10 @@ class DeletedShortenedLink(AbstractShortenedLink):
     @transaction.atomic
     def restore(self) -> None:
         """Restore the deleted shortened link"""
-        data = filter_dict(self.__dict__.copy(), {"_state", "id", "removed_at"})
+        data = filter_dict(
+            self.__dict__.copy(),
+            {"_state", "id", "removed_at", "time_until_permanent_deletion"},
+        )
         if self.is_expired():
             data["remove_at"] = timezone.now() + self.DEFAULT_EXPIRY
         ShortenedLink.objects.create(**data)
