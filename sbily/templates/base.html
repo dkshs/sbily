@@ -40,40 +40,7 @@
             />
             Sbily
           </a>
-          <button
-            type="button"
-            class="button-primary md:hidden"
-            data-jswc-dropdown
-            data-jswc-target="nav__dropdown-content"
-            aria-label="Open navigation menu."
-            title="Open navigation menu."
-          >
-            <i data-lucide="align-justify" class="stroke-[3px] size-5"></i>
-          </button>
-          <div
-            id="nav__dropdown-content"
-            class="hidden dropdown-menu right-3 top-14"
-            data-jswc-dropdown-animation="true"
-          >
-            {% if request.user.is_authenticated %}
-              <a href="{% url 'my_notifications' %}" class="dropdown-menu-item gap-2" title="See your notifications">
-                <i data-lucide="bell" class="size-5"></i>
-                <span>Notifications</span>
-              </a>
-              <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-2">
-                <i data-lucide="circle-user" class="size-5"></i>
-                <span>My Account</span>
-              </a>
-              <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-2 text-red-600">
-                <i data-lucide="log-out" class="size-5"></i>
-                <span>Sign Out</span>
-              </a>
-            {% else %}
-              <a href="{% url 'sign_up' %}" class="dropdown-menu-item">Sign Up</a>
-              <a href="{% url 'sign_in' %}" class="dropdown-menu-item">Sign In</a>
-            {% endif %}
-          </div>
-          <div class="hidden items-center gap-2 md:flex">
+          <div class="relative flex items-center gap-2">
             {% if request.user.is_authenticated %}
               <a
                 href="{% url 'my_notifications' %}"
@@ -92,14 +59,36 @@
                   <span class="sr-only">See your notifications</span>
                 </div>
               </a>
-              <a href="{% url 'my_account' %}" class="link gap-1 py-1.5 px-2 border border-foreground/20 hover:border-foreground/40">
+              <button
+                type="button"
+                class="button-ghost-outline p-2"
+                data-jswc-dropdown
+                data-jswc-target="dropdown-menu-account-content"
+                aria-label="Open My Account menu."
+                title="Open My Account menu."
+              >
                 <i data-lucide="circle-user" class="size-5"></i>
-                <span>My Account</span>
-              </a>
-              <a href="{% url 'sign_out' %}" class="link text-red-600 gap-1 py-1.5 px-2 border border-red-600/30 hover:border-red-600/60">
-                <i data-lucide="log-out" class="size-5"></i>
-                <span>Sign Out</span>
-              </a>
+              </button>
+              <div
+                id="dropdown-menu-account-content"
+                class="hidden dropdown-menu right-0 top-12"
+                data-jswc-dropdown-animation="true"
+              >
+                {% if request.user.is_authenticated %}
+                  <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-2">
+                    <i data-lucide="circle-user" class="size-5"></i>
+                    <span>My Account</span>
+                  </a>
+                  <div class="separator my-1"></div>
+                  <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-2 text-red-600">
+                    <i data-lucide="log-out" class="size-5"></i>
+                    <span>Sign Out</span>
+                  </a>
+                {% else %}
+                  <a href="{% url 'sign_up' %}" class="dropdown-menu-item">Sign Up</a>
+                  <a href="{% url 'sign_in' %}" class="dropdown-menu-item">Sign In</a>
+                {% endif %}
+              </div>
             {% else %}
               <a href="{% url 'sign_up' %}" class="link">Sign Up</a>
               <a href="{% url 'sign_in' %}" class="link">Sign In</a>
