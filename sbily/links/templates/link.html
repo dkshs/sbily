@@ -19,7 +19,7 @@
       </div>
       <div class="flex flex-col mt-2">
         {% if link.time_until_expiration %}
-          <p class="font-medium text-sm">
+          <p class="font-medium text-sm text-foreground/80">
             This link will expire in {{ link.time_until_expiration_formatted }}!
           </p>
           {% endif %}
@@ -104,6 +104,10 @@
           </button>
           {% include "partials/delete_link_dialog.html" %}
         </div>
+        <a href="{% url 'links' %}" class="button-outline px-2 w-fit">
+          <i data-lucide="chevron-left" class="stroke-[3px]"></i>
+          Go back
+        </a>
       </form>
     </div>
   </div>

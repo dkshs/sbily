@@ -28,9 +28,9 @@ def home(request: HttpRequest):
 
 def create_link(request: HttpRequest):
     if request.method != "POST":
-        return redirect("home")
+        return render(request, "create_link.html", {"LINK_BASE_URL": LINK_BASE_URL})
 
-    next_path = request.POST.get("next_path", "home")
+    next_path = request.POST.get("next_path", "create_link")
     original_link = request.POST.get("original_link", "").strip()
     shortened_link = request.POST.get("shortened_link", "").strip()
     remove_at = request.POST.get("remove_at", "").strip()
@@ -129,7 +129,7 @@ def link(request: HttpRequest, shortened_link: str):
 @login_required
 def update_link(request: HttpRequest, shortened_link: str):
     if request.method != "POST":
-        return redirect("my_account")
+        return redirect("links")
 
     old_shortened_link = shortened_link
 
@@ -176,7 +176,7 @@ def update_link(request: HttpRequest, shortened_link: str):
         return redirect("link", link.shortened_link)
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
-        return redirect("my_account")
+        return redirect("links")
     except ValidationError as e:
         messages.error(
             request,
@@ -185,7 +185,7 @@ def update_link(request: HttpRequest, shortened_link: str):
         return redirect("link", old_shortened_link)
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
-        return redirect("my_account")
+        return redirect("links")
 
 
 @login_required
@@ -198,13 +198,13 @@ def delete_link(request: HttpRequest, shortened_link: str):
 
         link.delete()
         messages.success(request, "Link deleted successfully")
-        return redirect("my_account")
+        return redirect("links")
     except ShortenedLink.DoesNotExist:
         messages.error(request, "Link not found")
-        return redirect("my_account")
+        return redirect("links")
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
-        return redirect("home")
+        return redirect("links")
 
 
 @login_required
@@ -259,10 +259,10 @@ def remove_deleted_link(request: HttpRequest, shortened_link: str):
 @login_required
 def handle_link_actions(request: HttpRequest):
     if request.method != "POST":
-        return redirect("my_account")
+        return redirect("links")
 
     user = request.user
-    next_path = request.POST.get("next_path", "my_account")
+    next_path = request.POST.get("next_path", "links")
     link_ids = request.POST.getlist("_selected_action")
     action = request.POST.get("action")
 

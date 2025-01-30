@@ -181,7 +181,7 @@ def sign_out(request):
 def verify_email(request: HttpRequest, token: str):
     user = request.user
     is_authenticated = user.is_authenticated
-    redirect_url_name = "my_account" if is_authenticated else "sign_in"
+    redirect_url_name = "account_email" if is_authenticated else "sign_in"
 
     try:
         obj_token = Token.objects.get(token=token, type="email_verification")

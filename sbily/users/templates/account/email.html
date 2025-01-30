@@ -1,0 +1,44 @@
+{% extends "account/base.html" %}
+
+{% block title %}Email Settings{% endblock title %}
+
+{% block tab_title %}Email Settings{% endblock tab_title %}
+{% block tab_description %}
+  Manage your email settings.
+{% endblock tab_description %}
+
+{% block tab_content %}
+  <div class="flex flex-col">
+    <div class="relative p-4 border rounded-md">
+      <div class="flex items-center gap-2">
+        <h3 class="font-bold">{{ user.email }}</h3>
+        <span class="size-2 bg-secondary rounded-full"></span>
+        <span
+          class="badge-{% if user.email_verified %}default{% else %}secondary{% endif %}"
+        >
+          {% if user.email_verified %}
+            Email Verified
+          {% else %}
+            Email Not Verified
+          {% endif %}
+        </span>
+      </div>
+      <p class="text-foreground/80 text-sm mt-2">
+        This email will be used for account-related notifications and can also be used for password resets.
+      </p>
+      {% if not user.email_verified %}
+        <p class="text-foreground/80 text-sm mt-1">
+          Please check your email for full access! If you haven't received the verification email, click the button below.
+        </p>
+        <a href="{% url "resend_verify_email" %}" class="button-outline w-fit mt-4 px-2 py-1">
+          Resend verification email
+        </a>
+      {% else %}
+        <button type="button" class="button-outline absolute rounded-full p-2 top-2 right-2" title="Change your email">
+          <i data-lucide="square-pen"></i>
+          <span class="sr-only">Change your email</span>
+        </button>
+      {% endif %}
+    </div>
+  </div>
+{% endblock tab_content %}

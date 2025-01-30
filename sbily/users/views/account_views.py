@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 
-from sbily.links.models import ShortenedLink
 from sbily.users.tasks import send_deactivated_account_email
 from sbily.users.tasks import send_email_verification
 from sbily.users.tasks import send_password_changed_email
@@ -22,50 +21,55 @@ ADMIN_URL = f"{settings.BASE_URL}{settings.ADMIN_URL}"
 
 @login_required
 def my_account(request: HttpRequest):
-    user = request.user
-
     if request.method != "POST":
-        links = ShortenedLink.objects.filter(user=user).order_by("-updated_at")
-        return render(
-            request,
-            "my_account.html",
-            {
-                "user": user,
-                "links": links,
-                "ADMIN_URL": ADMIN_URL,
-                "LINK_BASE_URL": LINK_BASE_URL,
-            },
-        )
+        return render(request, "account/index.html")
 
+    user = request.user
     first_name = request.POST.get("first_name", "").strip()
     last_name = request.POST.get("last_name", "").strip()
     username = request.POST.get("username", "").strip()
-    email = request.POST.get("email", "").strip()
-    login_with_email = request.POST.get("login_with_email") == "on"
 
-    if not validate([username, email]):
-        bad_request_error("Username and email are required")
+    try:
+        if not validate([username]):
+            bad_request_error("Username are required!")
 
-    if not any(
-        [
-            user.username != username,
-            user.email != email,
-            user.first_name != first_name,
-            user.last_name != last_name,
-            user.login_with_email != login_with_email,
-        ],
-    ):
-        messages.warning(request, "There were no changes")
+        if not any(
+            [
+                user.username != username,
+                user.first_name != first_name,
+                user.last_name != last_name,
+            ],
+        ):
+            messages.warning(request, "There were no changes")
+            return redirect("my_account")
+
+        user.first_name = first_name
+        user.last_name = last_name
+        user.username = username
+        user.save()
+        messages.success(request, "Successfully updated profile")
+        return redirect("my_account")
+    except BadRequestError as e:
+        messages.error(request, e.message)
+        return redirect("my_account")
+    except Exception as e:
+        messages.error(request, f"Error updating profile: {e}")
         return redirect("my_account")
 
-    user.first_name = first_name
-    user.last_name = last_name
-    user.username = username
-    user.email = email
-    user.login_with_email = login_with_email
-    user.save()
-    messages.success(request, "User updated successfully")
-    return redirect("my_account")
+
+@login_required
+def account_email(request: HttpRequest):
+    return render(request, "account/email.html")
+
+
+@login_required
+def account_security(request: HttpRequest):
+    return render(request, "account/security.html")
+
+
+@login_required
+def links(request: HttpRequest):
+    return render(request, "account/links.html")
 
 
 @login_required
@@ -113,13 +117,13 @@ def resend_verify_email(request: HttpRequest):
             bad_request_error("Email has already been verified")
         send_email_verification.delay_on_commit(user.id)
         messages.success(request, "Verification email sent successfully")
-        return redirect("my_account")
+        return redirect("account_email")
     except BadRequestError as e:
         messages.error(request, e.message)
-        return redirect("my_account")
+        return redirect("account_email")
     except Exception as e:
         messages.error(request, f"Error sending verification email: {e}")
-        return redirect("my_account")
+        return redirect("account_email")
 
 
 @login_required

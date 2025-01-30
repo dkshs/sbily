@@ -1,0 +1,193 @@
+{% extends "account/base.html" %}
+
+{% block title %}Links{% endblock title %}
+
+{% block tab_title %}Links{% endblock tab_title %}
+{% block tab_description %}
+  Manage your links and deleted links.
+{% endblock tab_description %}
+
+{% block tab_content %}
+  <div class="flex flex-col justify-center p-6 border rounded-md relative">
+    <div class="mt-1 flex flex-wrap gap-0.5">
+      <span class="badge-default">
+        You have {{ user.link_num.links }} of {{ user.max_num_links }} links.
+      </span>
+      <span class="badge-yellow">
+        You have {{ user.link_num.temp_links }} of {{ user.max_num_links_temporary }} temporary links.
+      </span>
+    </div>
+    <a
+      href="{% url "deleted_links" %}"
+      class="mt-2 mb-1 link-primary self-start"
+    >
+      See your deleted links
+    </a>
+    <form method="post" action="{% url "handle_link_actions" %}" class="mt-2">
+      {% csrf_token %}
+      <div class="flex items-center flex-wrap gap-1">
+        <div class="flex items-center gap-1.5">
+          <label for="action">Action: </label>
+          <select id="action" name="action" class="font-bold input px-2 py-0" required>
+            <option selected>------------</option>
+            <option value="delete_selected">Delete selected Links</option>
+            <option value="activate_selected">Activate selected Links</option>
+            <option value="deactivate_selected">Deactivate selected Links</option>
+          </select>
+        </div>
+        <button id="link-action-go" type="button" class="button-primary" data-jswc-target="handle-link-action-dialog">
+          Go
+        </button>
+        <div
+          id="handle-link-action-dialog"
+          class="hidden dialog"
+          data-jswc-dialog-animation="true"
+          aria-hidden="true"
+          tabindex="-1"
+        >
+          <div class="flex flex-col">
+            <div class="flex justify-between items-center">
+              <h2 class="text-xl font-bold">Are you sure?</h2>
+            </div>
+            <div class="flex flex-col gap-4 mt-2">
+              <p>
+                Are you sure you want to <span id="action-text"></span> the selected links?
+                All of the following items will be <span id="action-text-f"></span>:
+              </p>
+              <ul class="list-disc list-inside" id="links-selected-ul"></ul>
+            </div>
+            <div class="mt-4 w-full flex items-center gap-2 flex-wrap">
+              <button type="submit" class="button-destructive w-full sm:w-auto">
+                Yes, I’m sure
+              </button>
+              <button
+                type="button"
+                class="button-outline w-full sm:w-auto"
+                data-jswc-dialog-close
+              >
+                No, take me back
+              </button>
+            </div>
+            <button
+              type="button"
+              class="absolute button-outline p-2 border-0 rounded-xl right-4 top-4"
+              aria-label="Close"
+              data-jswc-dialog-close
+            >
+              <i data-lucide="x" class="size-5"></i>
+            </button>
+          </div>
+        </div>
+        <span class="ml-1.5">
+          <span id="action-counter">0</span>
+          of {{ links|length }} selected
+        </span>
+      </div>
+      <div class="border rounded-md mt-2 pb-2">
+        <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
+          <table class="w-full caption-bottom text-sm">
+            <caption class="mt-4 text-sm text-muted-foreground">
+              A list of your links.
+            </caption>
+            <thead>
+              <tr class="border-b duration-200 hover:bg-muted/50">
+                <th class="h-12 px-4 align-middle font-medium text-muted-foreground">
+                  <input type="checkbox" id="check-all-links" />
+                </th>
+                <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
+                <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
+                <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              {% for link in user.shortened_links.all %}
+                <tr
+                  {% if link.is_expired %}title="The link has expired!"{% endif %}
+                  class="border-b duration-200 hover:bg-muted/50"
+                >
+                  <td class="text-center align-middle font-medium">
+                    <input
+                      type="checkbox"
+                      name="_selected_action"
+                      value="{{ link.id }}"
+                      data-link="{{ link }}"
+                    />
+                  </td>
+                  <td class="flex items-center gap-1 px-4 py-2 align-middle font-medium text-lg">
+                    <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
+                    {% if link.remove_at %}
+                      <span title="This link is temporary" aria-label="This link is temporary">
+                        <i data-lucide="clock-alert" class="size-5 stroke-[3px] text-yellow-500"></i>
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2 text-center align-middle font-medium">
+                    <span
+                      aria-label="Link is {% if not link.is_active %}not {% endif %}active"
+                      title="Link is {% if not link.is_active %}not {% endif %}active"
+                      class="flex justify-center items-center text-lg {% if link.is_active %}text-green-600{% else %}text-red-600{% endif %}"
+                    >
+                      {% if link.is_active %}
+                        <i data-lucide="circle-check" class="stroke-[3px]"></i>
+                      {% else %}
+                        <i data-lucide="circle-x" class="stroke-[3px]"></i>
+                      {% endif %}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2 flex gap-1.5 justify-center align-middle font-medium">
+                    <button
+                      type="button"
+                      class="button-outline p-2"
+                      data-jswc-dropdown
+                      data-jswc-target="dropdown-menu-content-{{ link.id }}"
+                      aria-label="Open action menu for link {{ link.shortened_link }}"
+                      title="Open action menu for link {{ link.shortened_link }}"
+                    >
+                      <i data-lucide="ellipsis"></i>
+                    </button>
+                    <div
+                      id="dropdown-menu-content-{{ link.id }}"
+                      class="hidden dropdown-menu right-0 sm:right-4"
+                      data-jswc-dropdown-animation="true"
+                    >
+                      <button
+                        type="button"
+                        class="dropdown-menu-item gap-1 p-2"
+                        id="copy-{{ link.shortened_link }}"
+                        onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
+                      >
+                        <i data-lucide="copy" class="size-3.5 stroke-[3px]"></i> Copy
+                      </button>
+                      <a href="{% url 'link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                        <i data-lucide="square-pen" class="size-3.5 stroke-[3px]"></i> Edit
+                      </a>
+                      <a
+                        href="{% url 'link' link.shortened_link %}?deactivate={{ link.is_active }}"
+                        class="dropdown-menu-item gap-1 p-2"
+                      >
+                        {% if link.is_active %}
+                          <i data-lucide="circle-x" class="size-3.5 stroke-[3px] text-red-600"></i> Deactivate
+                        {% else %}
+                          <i data-lucide="circle-check" class="size-3.5 stroke-[3px] text-green-600"></i> Activate
+                        {% endif %}
+                      </a>
+                      <button
+                        type="button"
+                        class="dropdown-menu-item gap-1 p-2"
+                        data-jswc-dialog
+                        data-jswc-target="remove-link-{{ link.id }}-dialog"
+                      >
+                        <i data-lucide="trash-2" class="stroke-[3px] text-red-600"></i> Delete
+                      </button>
+                    </div>
+                    {% include "partials/delete_link_dialog.html" %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock tab_content %}

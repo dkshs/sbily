@@ -43,6 +43,16 @@
           <div class="relative flex items-center gap-2">
             {% if request.user.is_authenticated %}
               <a
+                href="{% url 'create_link' %}"
+                class="link relative p-2 border border-foreground/20 hover:border-foreground/40"
+                title="Create link"
+              >
+                <div class="size-5">
+                  <i data-lucide="circle-plus" class="size-5"></i>
+                  <span class="sr-only">Create link</span>
+                </div>
+              </a>
+              <a
                 href="{% url 'my_notifications' %}"
                 class="link relative p-2 border border-foreground/20 hover:border-foreground/40"
                 title="See your notifications"
@@ -75,14 +85,24 @@
                 data-jswc-dropdown-animation="true"
               >
                 {% if request.user.is_authenticated %}
-                  <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-2">
-                    <i data-lucide="circle-user" class="size-5"></i>
-                    <span>My Account</span>
+                  <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start">
+                    <div class="size-5">
+                      <i data-lucide="circle-user" class="size-5"></i>
+                    </div>
+                    <span class="w-full">My Account</span>
+                  </a>
+                  <a href="{% url 'links' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start">
+                    <div class="size-5">
+                      <i data-lucide="link" class="size-5"></i>
+                    </div>
+                    <span class="w-full">My Links</span>
                   </a>
                   <div class="separator my-1"></div>
-                  <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-2 text-red-600">
-                    <i data-lucide="log-out" class="size-5"></i>
-                    <span>Sign Out</span>
+                  <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start text-red-600">
+                    <div class="size-5">
+                      <i data-lucide="log-out" class="size-5"></i>
+                    </div>
+                    <span class="w-full">Sign Out</span>
                   </a>
                 {% else %}
                   <a href="{% url 'sign_up' %}" class="dropdown-menu-item">Sign Up</a>

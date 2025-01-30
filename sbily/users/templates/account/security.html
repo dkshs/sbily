@@ -1,0 +1,60 @@
+{% extends "account/base.html" %}
+
+{% block title %}Account Security{% endblock title %}
+
+{% block tab_title %}Account Security{% endblock tab_title %}
+{% block tab_description %}
+  Manage your password and authentication settings.
+{% endblock tab_description %}
+
+{% block tab_content %}
+  <div class="flex flex-col">
+    <div class="label text-foreground/80">Password:</div>
+    <div class="flex items-center gap-4 bg-secondary/60 text-foreground/80 rounded-md mt-2 py-2 px-4 w-1/3 justify-between">
+      <div class="font-bold flex items-center gap-4">
+        <i data-lucide="lock-keyhole" class="size-5 text-primary"></i>
+        <span>******</span>
+      </div>
+      <button
+        type="button"
+        class="button-ghost-outline w-fit px-2 py-1 gap-1"
+        data-jswc-dialog
+        data-jswc-target="change-password"
+      >
+        <span>Edit</span>
+        <i data-lucide="square-pen" class="size-5"></i>
+      </button>
+      <div id="change-password" class="hidden dialog" data-jswc-dialog-animation="true">
+        <div class="flex flex-col">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold">Change password</h2>
+          </div>
+          <form
+            method="post"
+            action="{% url "change_password" %}"
+            class="mt-6 w-full flex flex-col gap-2 flex-wrap"
+          >
+            {% csrf_token %}
+            <div class="w-full flex flex-col gap-2 mb-2">
+              <label for="old_password" class="label">Old Password:</label>
+              <input type="password" id="old_password" name="old_password" class="input" required />
+            </div>
+            <div class="w-full flex flex-col gap-2 mb-4">
+              <label for="new_password" class="label">New Password:</label>
+              <input type="password" id="new_password" name="new_password" class="input" required />
+            </div>
+            <button type="submit" class="button-primary w-fit self-end">Change</button>
+          </form>
+          <button
+            type="button"
+            class="button-outline absolute p-2 border-0 rounded-xl right-4 top-4"
+            aria-label="Close"
+            data-jswc-dialog-close
+          >
+            <i data-lucide="x" class="size-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock tab_content %}
