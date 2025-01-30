@@ -64,7 +64,24 @@ def account_email(request: HttpRequest):
 
 @login_required
 def account_security(request: HttpRequest):
-    return render(request, "account/security.html")
+    if request.method != "POST":
+        return render(request, "account/security.html")
+
+    login_with_email = request.POST.get("login_with_email") == "on"
+
+    try:
+        user = request.user
+        if user.login_with_email == login_with_email:
+            messages.warning(request, "There were no changes")
+            return redirect("account_security")
+
+        user.login_with_email = login_with_email
+        user.save()
+        messages.success(request, "Successfully updated security settings")
+        return redirect("account_security")
+    except Exception as e:
+        messages.error(request, f"Error updating security settings: {e}")
+        return redirect("account_security")
 
 
 @login_required

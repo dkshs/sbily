@@ -1,4 +1,5 @@
 import type { dialog } from "./components/dialog";
+import type { Switch } from "./components/switch";
 import type { closeToast, toast } from "./components/toast";
 import type { copy } from "./utils/copy";
 
@@ -11,6 +12,7 @@ export interface WindowWithCustomProps {
   toast: typeof toast;
   closeToast: typeof closeToast;
   dialog: typeof dialog;
+  Switch: typeof Switch;
 }
 
 export type EventHandler<T> = (event: T) => void;

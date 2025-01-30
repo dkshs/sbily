@@ -144,6 +144,15 @@
     @apply link hover:no-underline hover:bg-secondary/80 duration-200 px-2 py-3;
   }
 
+  /* Switch */
+  .switch-button {
+    @apply inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent duration-200 outline-none ring-ring ring-offset-2 ring-offset-background focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input;
+  }
+
+  .switch-thumb {
+    @apply pointer-events-none block size-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0;
+  }
+
   .link-primary {
     @apply link text-primary;
   }
