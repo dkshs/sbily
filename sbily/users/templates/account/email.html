@@ -10,34 +10,82 @@
 {% block tab_content %}
   <div class="flex flex-col">
     <div class="relative p-4 border rounded-md">
-      <div class="flex items-center gap-2">
-        <h3 class="font-bold">{{ user.email }}</h3>
-        <span class="size-2 bg-secondary rounded-full"></span>
-        <span
-          class="badge-{% if user.email_verified %}default{% else %}secondary{% endif %}"
-        >
-          {% if user.email_verified %}
-            Email Verified
-          {% else %}
-            Email Not Verified
-          {% endif %}
-        </span>
-      </div>
-      <p class="text-foreground/80 text-sm mt-2">
-        This email will be used for account-related notifications and can also be used for password resets.
-      </p>
-      {% if not user.email_verified %}
-        <p class="text-foreground/80 text-sm mt-1">
-          Please check your email for full access! If you haven't received the verification email, click the button below.
-        </p>
-        <a href="{% url "resend_verify_email" %}" class="button-outline w-fit mt-4 px-2 py-1">
-          Resend verification email
-        </a>
+      {% if token %}
+        <form method="post" class="flex flex-col" action="{% url 'change_email' token %}">
+          {% csrf_token %}
+          <div class="flex flex-col gap-3">
+            <label for="new_email" class="label text-foreground/80">New email:</label>
+            <input type="email" name="new_email" id="new_email" class="input" placeholder="{{ user.email }}" required />
+          </div>
+          <div class="flex items-center gap-2 mt-4">
+            <button type="submit" class="button-primary w-fit px-2 py-1.5">Change</button>
+            <a href="{% url 'account_email' %}" class="button-outline w-fit px-2 py-1.5">Cancel</a>
+          </div>
+        </form>
       {% else %}
-        <button type="button" class="button-outline absolute rounded-full p-2 top-2 right-2" title="Change your email">
-          <i data-lucide="square-pen"></i>
-          <span class="sr-only">Change your email</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <h3 class="font-bold">{{ user.email }}</h3>
+          <span class="size-2 bg-secondary rounded-full"></span>
+          <span
+            class="badge-{% if user.email_verified %}default{% else %}secondary{% endif %}"
+          >
+            {% if user.email_verified %}
+              Email Verified
+            {% else %}
+              Email Not Verified
+            {% endif %}
+          </span>
+        </div>
+        <p class="text-foreground/80 text-sm mt-2">
+          This email will be used for account-related notifications and can also be used for password resets.
+        </p>
+        {% if not user.email_verified %}
+          <p class="text-foreground/80 text-sm mt-1">
+            Please check your email for full access! If you haven't received the verification email, click the button below.
+          </p>
+          <a href="{% url "resend_verify_email" %}" class="button-outline w-fit mt-4 px-2 py-1">
+            Resend verification email
+          </a>
+        {% else %}
+          <button
+            type="button"
+            class="button-outline absolute rounded-full p-2 top-2 right-2"
+            title="Change your email"
+            data-jswc-dialog
+            data-jswc-target="change-email"
+          >
+            <i data-lucide="square-pen"></i>
+            <span class="sr-only">Change your email</span>
+          </button>
+          <div id="change-email" class="hidden dialog" data-jswc-dialog-animation="true">
+            <div class="flex flex-col">
+              <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold">Change email</h2>
+              </div>
+              <div class="mt-5 w-full flex flex-col">
+                <p>
+                  To change your email, click the “Change” button and you will receive an email
+                  with further instructions on how to change your email.
+                </p>
+                <form method="post" class="flex items-center gap-2 mt-4" action="{% url 'account_email' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="button-primary w-fit">Change</button>
+                  <button type="button" class="button-outline w-fit" data-jswc-dialog-close>
+                    No, take me back
+                  </button>
+                </form>
+              </div>
+              <button
+                type="button"
+                class="button-outline absolute p-2 border-0 rounded-xl right-4 top-4"
+                aria-label="Close"
+                data-jswc-dialog-close
+              >
+                <i data-lucide="x" class="size-5"></i>
+              </button>
+            </div>
+          </div>
+        {% endif %}
       {% endif %}
     </div>
   </div>

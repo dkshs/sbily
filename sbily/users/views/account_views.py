@@ -7,13 +7,18 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 
+from sbily.users.models import Token
+from sbily.users.models import User
 from sbily.users.tasks import send_deactivated_account_email
+from sbily.users.tasks import send_email_change_instructions
+from sbily.users.tasks import send_email_changed_email
 from sbily.users.tasks import send_email_verification
 from sbily.users.tasks import send_password_changed_email
 from sbily.utils.data import validate
 from sbily.utils.data import validate_password
 from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
+from sbily.utils.urls import redirect_with_params
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 ADMIN_URL = f"{settings.BASE_URL}{settings.ADMIN_URL}"
@@ -59,7 +64,72 @@ def my_account(request: HttpRequest):
 
 @login_required
 def account_email(request: HttpRequest):
-    return render(request, "account/email.html")
+    if request.method != "POST":
+        token = request.GET.get("token", None)
+        return render(request, "account/email.html", {"token": token})
+
+    try:
+        user = request.user
+        if not user.email_verified:
+            bad_request_error("Please verify your email first")
+        send_email_change_instructions.delay_on_commit(user.id)
+        messages.success(request, "Please check your email for instructions")
+        return redirect("account_email")
+    except BadRequestError as e:
+        messages.error(request, e.message)
+        return redirect("account_email")
+    except Exception as e:
+        messages.error(request, f"Error sending instructions email: {e}")
+        return redirect("account_email")
+
+
+@login_required
+def change_email(request: HttpRequest, token: str):
+    try:
+        token_obj = Token.objects.get(
+            token=token,
+            type=Token.TYPE_CHANGE_EMAIL,
+            user=request.user,
+        )
+
+        if request.method != "POST":
+            return redirect_with_params("account_email", {"token": token})
+
+        user = request.user
+        if not user.email_verified:
+            bad_request_error("Please verify your email first")
+
+        new_email = request.POST.get("new_email") or ""
+
+        if not validate([new_email]):
+            bad_request_error("Please fill in all fields")
+        if user.email == new_email:
+            bad_request_error("The new email cannot be the same as the old email")
+        if User.objects.filter(email=new_email).exists():
+            bad_request_error("The new email is already in use")
+
+        old_email = user.email
+        user.email = new_email
+        user.email_verified = False
+        user.save()
+        token_obj.delete()
+
+        send_email_changed_email.delay_on_commit(user.id, old_email)
+
+        messages.success(
+            request,
+            "Email changed successfully! Please check your email for the verification link.",  # noqa: E501
+        )
+        return redirect("account_email")
+    except Token.DoesNotExist:
+        messages.error(request, "Invalid token")
+        return redirect("account_email")
+    except BadRequestError as e:
+        messages.error(request, e.message)
+        return redirect("change_email", token=token)
+    except Exception as e:
+        messages.error(request, f"Error changing email: {e}")
+        return redirect("change_email", token=token)
 
 
 @login_required

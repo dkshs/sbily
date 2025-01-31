@@ -1,0 +1,22 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Email changed{% endblock title %}
+
+{% block content_info %}
+  <p>
+    This is an automated notification to inform you that the email address belonging to {{ user.username }}
+    has been changed from {{ old_email }} to {{ user.email }}.
+  </p>
+  {% if not is_old %}
+    <p>
+      Please verify your new email address by clicking
+      <a href="{{ verify_email_link }}" target="_blank" rel="noopener noreferrer">
+        here
+      </a>.
+    </p>
+  {% endif %}
+{% endblock content_info %}
+
+{% block request_this_text %}
+  <p>If you didn't make this request, {% if is_old %}please reach out to an administrator for support.{% else %}you can safely ignore this email.{% endif %}</p>
+{% endblock request_this_text %}

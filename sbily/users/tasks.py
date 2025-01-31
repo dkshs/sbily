@@ -9,6 +9,7 @@ from sbily.utils.tasks import task_response
 
 from .models import Token
 from .models import User
+from .utils.emails import send_email
 
 BASE_URL = settings.BASE_URL or ""
 
@@ -62,22 +63,6 @@ def send_email_verification(self, user_id: int):
     )
 
 
-@shared_task(**default_task_params("send_password_changed_email"))
-def send_password_changed_email(self, user_id: int):
-    """Send email informing user that their password has been changed."""
-    user = User.objects.get(id=user_id)
-
-    subject = "Your password has been changed!"
-    template = "emails/users/password-changed.html"
-
-    user.email_user(subject, template)
-    return task_response(
-        "COMPLETED",
-        f"Password changed email sent to {user.username}.",
-        user_id=user_id,
-    )
-
-
 @shared_task(**default_task_params("send_password_reset_email"))
 def send_password_reset_email(self, user_id: int):
     """Send password reset link to user."""
@@ -95,6 +80,70 @@ def send_password_reset_email(self, user_id: int):
     return task_response(
         "COMPLETED",
         f"Password reset email sent to {user.username}.",
+        user_id=user_id,
+    )
+
+
+@shared_task(**default_task_params("send_password_changed_email"))
+def send_password_changed_email(self, user_id: int):
+    """Send email informing user that their password has been changed."""
+    user = User.objects.get(id=user_id)
+
+    subject = "Your password has been changed!"
+    template = "emails/users/password-changed.html"
+
+    user.email_user(subject, template)
+    return task_response(
+        "COMPLETED",
+        f"Password changed email sent to {user.username}.",
+        user_id=user_id,
+    )
+
+
+@shared_task(**default_task_params("send_email_change_instructions"))
+def send_email_change_instructions(self, user_id: int):
+    """Send email change instructions to user."""
+    user = User.objects.get(id=user_id)
+
+    subject = "Change your email address"
+    template = "emails/users/change-email.html"
+    change_email_link = user.get_change_email_link()
+
+    user.email_user(
+        subject,
+        template,
+        change_email_link=change_email_link,
+    )
+    return task_response(
+        "COMPLETED",
+        f"Email change instructions sent to {user.username}.",
+        user_id=user_id,
+    )
+
+
+@shared_task(**default_task_params("send_email_changed_email"))
+def send_email_changed_email(self, user_id: int, old_email: str):
+    """Send email informing user that their email has been changed."""
+    user = User.objects.get(id=user_id)
+
+    subject = "Your email has been changed!"
+    template = "emails/users/email-changed.html"
+    context = {
+        "old_email": old_email,
+        "verify_email_link": user.get_verify_email_link(),
+    }
+    old_email_context = {
+        "user": user,
+        "name": user.get_short_name(),
+        "is_old": True,
+    } | context
+
+    user.email_user(subject, template, **context)
+    send_email(subject, template, [old_email], **old_email_context)
+
+    return task_response(
+        "COMPLETED",
+        f"Email changed email sent to {user.username}.",
         user_id=user_id,
     )
 

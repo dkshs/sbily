@@ -1,0 +1,16 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Change your email{% endblock title %}
+
+{% block content_info %}
+  <p>
+    To change your email, click
+    <a href="{{ change_email_link }}" target="_blank" rel="noopener noreferrer">
+      here
+    </a>!
+  </p>
+{% endblock content_info %}
+
+{% block request_this_text %}
+  <p>If you didn't make this request, you can safely ignore this email.</p>
+{% endblock request_this_text %}

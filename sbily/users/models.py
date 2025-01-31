@@ -202,6 +202,10 @@ class User(AbstractUser):
             expires_at=now() + deactivated_user_retention,
         )
 
+    def get_change_email_link(self) -> str:
+        """Generate change email link for user"""
+        return self.get_token_link(Token.TYPE_CHANGE_EMAIL, "change_email")
+
     def email_user(
         self,
         subject: str,
@@ -232,12 +236,14 @@ class User(AbstractUser):
 class Token(models.Model):
     DEFAULT_EXPIRY = timedelta(hours=2)
     TYPE_EMAIL_VERIFICATION = "email_verification"
+    TYPE_CHANGE_EMAIL = "change_email"
     TYPE_SIGN_IN_WITH_EMAIL = "sign_in_with_email"
     TYPE_PASSWORD_RESET = "password_reset"  # noqa: S105
     TYPE_ACTIVATE_ACCOUNT = "activate_account"
 
     TOKEN_TYPE = [
         (TYPE_EMAIL_VERIFICATION, _("Email Verification")),
+        (TYPE_CHANGE_EMAIL, _("Change Email")),
         (TYPE_SIGN_IN_WITH_EMAIL, _("Sign In With Email")),
         (TYPE_PASSWORD_RESET, _("Password Reset")),
         (TYPE_ACTIVATE_ACCOUNT, _("Activate Account")),
@@ -322,6 +328,11 @@ class Token(models.Model):
             raise ValidationError(
                 _("This email has already been verified."),
                 code="verified",
+            )
+        if self.type == self.TYPE_CHANGE_EMAIL and not self.user.email_verified:
+            raise ValidationError(
+                _("This email has not been verified."),
+                code="unverified",
             )
         if self.type == self.TYPE_SIGN_IN_WITH_EMAIL and not self.user.email_verified:
             raise ValidationError(
