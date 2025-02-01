@@ -1,21 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Deleted links{% endblock title %}
+{% block title %}Links{% endblock title %}
 
 {% block content %}
   <div class="my-16 flex flex-col justify-center max-w-3xl mx-auto">
     <div class="flex flex-col justify-center p-6 border relative sm:rounded-md">
-      <h2 class="text-2xl font-bold">My deleted links</h2>
+      <div class="mt-1 flex flex-wrap gap-0.5">
+        <span class="badge-default">
+          You have {{ user.link_num.links }} of {{ user.max_num_links }} links.
+        </span>
+        <span class="badge-yellow">
+          You have {{ user.link_num.temp_links }} of {{ user.max_num_links_temporary }} temporary links.
+        </span>
+      </div>
+      <a
+        href="{% url "deleted_links" %}"
+        class="mt-2 mb-1 link-primary self-start"
+      >
+        See your deleted links
+      </a>
       <form method="post" action="{% url "handle_link_actions" %}" class="mt-2">
         {% csrf_token %}
-        <input type="hidden" name="next_path" value="{% url "deleted_links" %}" />
         <div class="flex items-center flex-wrap gap-1">
           <div class="flex items-center gap-1.5">
             <label for="action">Action: </label>
             <select id="action" name="action" class="font-bold input px-2 py-0" required>
               <option selected>------------</option>
-              <option value="restore_selected">Restore selected Links</option>
-              <option value="delete_selected_deleted_links">Delete selected Links</option>
+              <option value="delete_selected">Delete selected Links</option>
+              <option value="activate_selected">Activate selected Links</option>
+              <option value="deactivate_selected">Deactivate selected Links</option>
             </select>
           </div>
           <button id="link-action-go" type="button" class="button-primary" data-jswc-target="handle-link-action-dialog">
@@ -70,7 +83,7 @@
           <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
             <table class="w-full caption-bottom text-sm">
               <caption class="mt-4 text-sm text-muted-foreground">
-                A list of your deleted links.
+                A list of your links.
               </caption>
               <thead>
                 <tr class="border-b duration-200 hover:bg-muted/50">
@@ -78,13 +91,16 @@
                     <input type="checkbox" id="check-all-links" />
                   </th>
                   <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
-                  <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Remove in</th>
+                  <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
                   <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody id="tbody">
-                {% for link in links %}
-                  <tr class="border-b duration-200 hover:bg-muted/50">
+                {% for link in user.shortened_links.all %}
+                  <tr
+                    {% if link.is_expired %}title="The link has expired!"{% endif %}
+                    class="border-b duration-200 hover:bg-muted/50"
+                  >
                     <td class="text-center align-middle font-medium">
                       <input
                         type="checkbox"
@@ -94,23 +110,27 @@
                       />
                     </td>
                     <td class="flex items-center gap-1 px-4 py-2 align-middle font-medium text-lg">
-                      {{ link.shortened_link }}
+                      <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
                       {% if link.remove_at %}
-                        <span class="mt-1" title="This link is temporary" aria-label="This link is temporary">
+                        <span title="This link is temporary" aria-label="This link is temporary">
                           <i data-lucide="clock-alert" class="size-5 stroke-[3px] text-yellow-500"></i>
                         </span>
                       {% endif %}
                     </td>
                     <td class="px-4 py-2 text-center align-middle font-medium">
                       <span
-                        aria-label="This link will be removed in {{ link.time_until_permanent_deletion_formatted }}"
-                        title="This link will be removed in {{ link.time_until_permanent_deletion_formatted }}"
-                        class="text-lg"
+                        aria-label="Link is {% if not link.is_active %}not {% endif %}active"
+                        title="Link is {% if not link.is_active %}not {% endif %}active"
+                        class="flex justify-center items-center {% if link.is_active %}text-green-600{% else %}text-red-600{% endif %}"
                       >
-                        {{ link.time_until_permanent_deletion_formatted }}
+                        {% if link.is_active %}
+                          <i data-lucide="circle-check" class="stroke-[3px]"></i>
+                        {% else %}
+                          <i data-lucide="circle-x" class="stroke-[3px]"></i>
+                        {% endif %}
                       </span>
                     </td>
-                    <td class="flex justify-center gap-1.5 px-4 py-2 align-middle font-medium">
+                    <td class="px-4 py-2 flex gap-1.5 justify-center align-middle font-medium">
                       <button
                         type="button"
                         class="button-outline p-2"
@@ -123,11 +143,29 @@
                       </button>
                       <div
                         id="dropdown-menu-content-{{ link.id }}"
-                        class="hidden dropdown-menu right-0 sm:right-4"
+                        class="hidden dropdown-menu"
                         data-jswc-dropdown-animation="true"
                       >
-                        <a href="{% url 'restore_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
-                          <i data-lucide="rotate-cw"></i> Restore link
+                        <button
+                          type="button"
+                          class="dropdown-menu-item gap-1 p-2"
+                          id="copy-{{ link.shortened_link }}"
+                          onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
+                        >
+                          <i data-lucide="copy" class="size-3.5 stroke-[3px]"></i> Copy
+                        </button>
+                        <a href="{% url 'link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                          <i data-lucide="square-pen" class="size-3.5 stroke-[3px]"></i> Edit
+                        </a>
+                        <a
+                          href="{% url 'link' link.shortened_link %}?deactivate={{ link.is_active }}"
+                          class="dropdown-menu-item gap-1 p-2"
+                        >
+                          {% if link.is_active %}
+                            <i data-lucide="circle-x" class="size-3.5 stroke-[3px] text-red-600"></i> Deactivate
+                          {% else %}
+                            <i data-lucide="circle-check" class="size-3.5 stroke-[3px] text-green-600"></i> Activate
+                          {% endif %}
                         </a>
                         <button
                           type="button"
@@ -138,7 +176,7 @@
                           <i data-lucide="trash-2" class="stroke-[3px] text-red-600"></i> Delete
                         </button>
                       </div>
-                      {% include "partials/delete_link_dialog.html" with is_deleted=True %}
+                      {% include "partials/delete_link_dialog.html" %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -147,12 +185,6 @@
           </div>
         </div>
       </form>
-      <a href="{% url 'links' %}" class="button-outline mt-2 px-2 w-fit">
-        <span class="size-4">
-          <i data-lucide="chevron-left" class="stroke-[3px]"></i>
-        </span>
-        <span>Go back</span>
-      </a>
     </div>
   </div>
 {% endblock content %}

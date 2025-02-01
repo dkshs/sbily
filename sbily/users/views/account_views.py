@@ -155,11 +155,6 @@ def account_security(request: HttpRequest):
 
 
 @login_required
-def links(request: HttpRequest):
-    return render(request, "account/links.html")
-
-
-@login_required
 def change_password(request: HttpRequest):
     if request.method != "POST":
         return redirect("my_account")

@@ -12,7 +12,6 @@ account_urlpatterns = [
     path("", views.my_account, name="my_account"),
     path("email/", include(account_email_urlpatterns)),
     path("security/", views.account_security, name="account_security"),
-    path("links/", views.links, name="links"),
     path("change_password/", views.change_password, name="change_password"),
     path("resend_verify_email/", views.resend_verify_email, name="resend_verify_email"),
     path("deactivate/", views.deactivate_account, name="deactivate_account"),

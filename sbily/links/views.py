@@ -86,6 +86,11 @@ def redirect_link(request: HttpRequest, shortened_link: str):
 
 
 @login_required
+def links(request: HttpRequest):
+    return render(request, "links.html")
+
+
+@login_required
 def link(request: HttpRequest, shortened_link: str):
     try:
         link = ShortenedLink.objects.get(
