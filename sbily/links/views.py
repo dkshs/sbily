@@ -109,7 +109,7 @@ def link(request: HttpRequest, shortened_link: str):
             )
             return redirect("my_account")
 
-        link_remove_at = re.sub(
+        link_remove_at = link.remove_at and re.sub(
             LINK_REMOVE_AT_EXCLUDE,
             "",
             f"{timezone.localtime(link.remove_at)}",
@@ -143,7 +143,11 @@ def update_link(request: HttpRequest, shortened_link: str):
             shortened_link=shortened_link,
             user=request.user,
         )
-        link.remove_at = re.sub(LINK_REMOVE_AT_EXCLUDE, "", f"{link.remove_at}")
+        link.remove_at = re.sub(
+            LINK_REMOVE_AT_EXCLUDE,
+            "",
+            f"{timezone.localtime(link.remove_at)}",
+        )
 
         form_data = {
             "original_link": request.POST.get("original_link", "").strip(),
