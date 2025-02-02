@@ -18,6 +18,12 @@ export function initThemeToggle() {
   const theme = getTheme();
   const moonIcon = createElement(Moon);
   const sunIcon = createElement(Sun);
+  const iconsClass = [
+    "animate-in",
+    "spin-in",
+    "transition-transform",
+    "duration-500",
+  ];
 
   const enableDark = () => {
     document.documentElement.classList.add("dark");
@@ -29,7 +35,7 @@ export function initThemeToggle() {
     } else {
       themeToggle.prepend(moonIcon);
     }
-    moonIcon.classList.add("animate-in", "spin-in", "duration-200");
+    moonIcon.classList.add(...iconsClass);
   };
   const enableLight = () => {
     document.documentElement.classList.remove("dark");
@@ -41,7 +47,7 @@ export function initThemeToggle() {
     } else {
       themeToggle.prepend(sunIcon);
     }
-    sunIcon.classList.add("animate-in", "spin-in", "duration-200");
+    sunIcon.classList.add(...iconsClass);
   };
 
   if (theme === "dark") enableDark();
