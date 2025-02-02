@@ -14,12 +14,17 @@ from django.utils import timezone
 
 from sbily.utils.data import validate
 from sbily.utils.urls import redirect_with_params
+from sbily.utils.urls import reverse_with_params
 
 from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 LINK_REMOVE_AT_EXCLUDE = r".\d*[-+]\d{2}:\d{2}"
+
+
+def deleted_links_path() -> str:
+    return reverse_with_params("links", {"tab": "deleted"})
 
 
 def home(request: HttpRequest):
@@ -87,7 +92,18 @@ def redirect_link(request: HttpRequest, shortened_link: str):
 
 @login_required
 def links(request: HttpRequest):
-    return render(request, "links.html")
+    user = request.user
+
+    links = ShortenedLink.objects.filter(user=user).order_by("-updated_at")
+    deleted_links = DeletedShortenedLink.objects.filter(user=user).order_by(
+        "-removed_at",
+    )
+
+    return render(
+        request,
+        "links.html",
+        {"links": links, "deleted_links": deleted_links},
+    )
 
 
 @login_required
@@ -217,12 +233,6 @@ def delete_link(request: HttpRequest, shortened_link: str):
 
 
 @login_required
-def deleted_links(request: HttpRequest):
-    links = DeletedShortenedLink.objects.filter(user=request.user)
-    return render(request, "deleted_links.html", {"links": links})
-
-
-@login_required
 def restore_link(request: HttpRequest, shortened_link: str):
     try:
         link = DeletedShortenedLink.objects.get(
@@ -231,19 +241,19 @@ def restore_link(request: HttpRequest, shortened_link: str):
         )
         link.restore()
         messages.success(request, "Link restored successfully")
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
     except DeletedShortenedLink.DoesNotExist:
         messages.error(request, "Link deleted not found")
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
     except ValidationError as e:
         messages.error(
             request,
             str(e) if isinstance(e.messages, str) else e.messages[0],
         )
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
 
 
 @login_required
@@ -256,13 +266,13 @@ def remove_deleted_link(request: HttpRequest, shortened_link: str):
 
         link.delete()
         messages.success(request, "Link deleted successfully")
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
     except DeletedShortenedLink.DoesNotExist:
         messages.error(request, "Link deleted not found")
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
-        return redirect("deleted_links")
+        return redirect(deleted_links_path())
 
 
 @login_required
@@ -271,7 +281,8 @@ def handle_link_actions(request: HttpRequest):
         return redirect("links")
 
     user = request.user
-    next_path = request.POST.get("next_path", "links")
+    is_deleted_links = request.POST.get("is_deleted_links", "False") == "True"
+    next_path_params = {"tab": "deleted" if is_deleted_links else "active"}
     link_ids = request.POST.getlist("_selected_action")
     action = request.POST.get("action")
 
@@ -289,10 +300,10 @@ def handle_link_actions(request: HttpRequest):
 
     if not action or action not in actions:
         messages.error(request, "Invalid action")
-        return redirect(next_path)
+        return redirect_with_params("links", next_path_params)
     if not link_ids:
         messages.error(request, "No links selected")
-        return redirect(next_path)
+        return redirect_with_params("links", next_path_params)
 
     try:
         if action in ("activate_selected", "deactivate_selected"):
@@ -305,8 +316,8 @@ def handle_link_actions(request: HttpRequest):
             request,
             str(e) if isinstance(e.messages, str) else e.messages[0],
         )
-        return redirect(next_path)
+        return redirect_with_params("links", next_path_params)
     except Exception as e:
         messages.error(request, f"An error occurred: {e}")
-        return redirect(next_path)
-    return redirect(next_path)
+        return redirect_with_params("links", next_path_params)
+    return redirect_with_params("links", next_path_params)

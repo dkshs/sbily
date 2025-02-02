@@ -4,6 +4,7 @@ import type { WindowWithCustomProps } from "./types";
 import { dialog, initDialog } from "./components/dialog";
 import { initDropdownMenu } from "./components/dropdownMenu";
 import { initSwitch, Switch } from "./components/switch";
+import { initTabs } from "./components/tabs";
 import { initThemeToggle } from "./components/themeToggle";
 import { closeToast, toast } from "./components/toast";
 import { copy } from "./utils/copy";
@@ -27,6 +28,7 @@ const initApp = (): void => {
   initDropdownMenu();
   initSwitch();
   initThemeToggle();
+  initTabs();
 };
 
 document.addEventListener("DOMContentLoaded", initApp);

@@ -15,13 +15,8 @@ link_urlpatterns = [
 
 # URLs for managing deleted links
 deleted_links_urlpatterns = [
-    path("", views.deleted_links, name="deleted_links"),
-    path("<str:shortened_link>/restore/", views.restore_link, name="restore_link"),
-    path(
-        "<str:shortened_link>/remove/",
-        views.remove_deleted_link,
-        name="remove_deleted_link",
-    ),
+    path("restore/", views.restore_link, name="restore_link"),
+    path("remove/", views.remove_deleted_link, name="remove_deleted_link"),
 ]
 
 # Main URL patterns
@@ -38,6 +33,6 @@ urlpatterns = [
     # Include sub-patterns
     path("links/", views.links, name="links"),
     path("link/<str:shortened_link>/", include(link_urlpatterns)),
-    path("deleted_links/", include(deleted_links_urlpatterns)),
+    path("deleted_links/<str:shortened_link>/", include(deleted_links_urlpatterns)),
     path("handle_link_actions/", views.handle_link_actions, name="handle_link_actions"),
 ]

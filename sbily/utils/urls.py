@@ -7,6 +7,33 @@ from django.urls import reverse
 from sbily.utils.data import is_none
 
 
+def reverse_with_params(
+    url_name: str,
+    params: dict | None = None,
+) -> str:
+    """Reverses a URL pattern with optional query parameters.
+
+    Args:
+        url_name: The name of the URL pattern
+        params: Optional dictionary of query parameters
+
+    Returns:
+        URL string with query parameters if provided
+    """
+    url_path = reverse(url_name)
+
+    if not params:
+        return reverse(url_path)
+
+    filtered_params = {k: v for k, v in params.items() if not is_none(v)}
+    if not filtered_params:
+        return reverse(url_path)
+
+    query_string = urlencode(filtered_params)
+
+    return f"{url_path}?{query_string}"
+
+
 def redirect_with_params(
     url_name: str,
     params: dict | None = None,
@@ -24,14 +51,5 @@ def redirect_with_params(
         >>> redirect_with_params("sign_in", {"next": "/account/me/"})
         HttpResponseRedirect("/auth/sign_in/?next=/account/me/")
     """
-    if not params:
-        return redirect(url_name)
-
-    filtered_params = {k: v for k, v in params.items() if not is_none(v)}
-    if not filtered_params:
-        return redirect(url_name)
-
-    query_string = urlencode(filtered_params)
-    url_path = reverse(url_name)
-
-    return redirect(f"{url_path}?{query_string}")
+    url = reverse_with_params(url_name, params)
+    return redirect(url)
