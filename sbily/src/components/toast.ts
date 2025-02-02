@@ -46,7 +46,7 @@ export function closeToast(id: string, time = 3000) {
   }, time + 600);
 }
 
-export function toast(msg: string, className: string, time = 3000) {
+export function toast(msg: string, className: string, time = 3000, delay = 0) {
   const toastOl = verifyToastOl();
   const id = `toast-${Date.now()}`;
 
@@ -56,31 +56,33 @@ export function toast(msg: string, className: string, time = 3000) {
   const toastIcon = getToastIcon(className);
   toastIcon.classList.add("toast-icon");
 
-  toastOl.insertAdjacentHTML(
-    "beforeend",
-    `<li class="toast-open ${className}" id="${id}" role="alert" aria-live="assertive" aria-atomic="true" tabindex="0">
-      <button
-        type="button"
-        onclick="closeToast('${id}', 0)"
-        class="toast-close-btn"
-        aria-label="Close toast"
-        data-dismiss="toast"
-      >
-        <span aria-hidden="true">&times;</span>
-      </button>
-      <div class="flex items-center">
-        ${toastIcon.outerHTML}
-        <p
-          class="toast-msg"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
+  setTimeout(() => {
+    toastOl.insertAdjacentHTML(
+      "beforeend",
+      `<li class="toast-open ${className}" id="${id}" role="alert" aria-live="assertive" aria-atomic="true" tabindex="0">
+        <button
+          type="button"
+          onclick="closeToast('${id}', 0)"
+          class="toast-close-btn"
+          aria-label="Close toast"
+          data-dismiss="toast"
         >
-          ${msg}
-        </p>
-      </div>
-    </li>`,
-  );
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <div class="flex items-center">
+          ${toastIcon.outerHTML}
+          <p
+            class="toast-msg"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            ${msg}
+          </p>
+        </div>
+      </li>`,
+    );
 
-  closeToast(id, time);
+    closeToast(id, time);
+  }, delay);
 }

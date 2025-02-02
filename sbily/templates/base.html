@@ -2,7 +2,7 @@
 {% load render_bundle from webpack_loader %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark opacity-0 duration-200">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -59,7 +59,7 @@
               >
                 {% if user.get_unread_notifications_count > 0 %}
                   <span
-                    class="flex absolute -top-1 -right-1 size-5 justify-center items-center text-xs border-2 border-secondary bg-primary rounded-full"
+                    class="flex absolute -top-1 -right-1 size-5 justify-center items-center text-xs border-2 border-secondary bg-primary rounded-full text-background dark:text-foreground"
                   >
                     {{ user.get_unread_notifications_count }}
                   </span>
@@ -84,35 +84,40 @@
                 class="hidden dropdown-menu right-0 top-12"
                 data-jswc-dropdown-animation="true"
               >
-                {% if request.user.is_authenticated %}
-                  <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start">
-                    <div class="size-5">
-                      <i data-lucide="circle-user" class="size-5"></i>
-                    </div>
-                    <span class="w-full">My Account</span>
-                  </a>
-                  <a href="{% url 'links' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start">
-                    <div class="size-5">
-                      <i data-lucide="link" class="size-5"></i>
-                    </div>
-                    <span class="w-full">My Links</span>
-                  </a>
-                  <div class="separator my-1"></div>
-                  <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start text-red-600">
-                    <div class="size-5">
-                      <i data-lucide="log-out" class="size-5"></i>
-                    </div>
-                    <span class="w-full">Sign Out</span>
-                  </a>
-                {% else %}
-                  <a href="{% url 'sign_up' %}" class="dropdown-menu-item">Sign Up</a>
-                  <a href="{% url 'sign_in' %}" class="dropdown-menu-item">Sign In</a>
-                {% endif %}
+                <a href="{% url 'my_account' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start">
+                  <div class="size-5">
+                    <i data-lucide="circle-user" class="size-5"></i>
+                  </div>
+                  <span class="w-full">My Account</span>
+                </a>
+                <a href="{% url 'links' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start">
+                  <div class="size-5">
+                    <i data-lucide="link" class="size-5"></i>
+                  </div>
+                  <span class="w-full">My Links</span>
+                </a>
+                <div class="separator my-1"></div>
+                <a href="{% url 'sign_out' %}" class="dropdown-menu-item gap-3 px-2 justify-between text-start text-red-600">
+                  <div class="size-5">
+                    <i data-lucide="log-out" class="size-5"></i>
+                  </div>
+                  <span class="w-full">Sign Out</span>
+                </a>
               </div>
             {% else %}
               <a href="{% url 'sign_up' %}" class="link">Sign Up</a>
               <a href="{% url 'sign_in' %}" class="link">Sign In</a>
             {% endif %}
+            <button
+              type="button"
+              class="link relative p-2 border border-foreground/20 hover:border-foreground/40"
+              title="Theme toggle"
+              data-jswc-theme-toggle
+            >
+              <div class="size-5">
+                <span class="sr-only">Theme toggle</span>
+              </div>
+            </button>
           </div>
         </nav>
       </header>
@@ -127,7 +132,7 @@
       document.addEventListener("DOMContentLoaded", () => {
         {% if messages %}
           {% for message in messages %}
-        toast("{{ message }}", "{{ message.tags }}");
+        toast("{{ message }}", "{{ message.tags }}", 3000, 600);
           {% endfor %}
         {% endif %}
 

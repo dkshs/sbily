@@ -6,6 +6,7 @@ const config: Config = {
     "./sbily/src/**/*.ts",
     "./sbily/**/*.html",
   ],
+  darkMode: ["class"],
   theme: {
     container: {
       center: true,

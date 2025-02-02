@@ -6,7 +6,7 @@
 
 {% block content %}
   <div class="my-16 flex flex-col justify-center max-w-xl mx-auto bg-secondary rounded-md border-2">
-    <div class="bg-black p-6 rounded-md">
+    <div class="bg-background p-6 rounded-md">
       <h1 class="text-lg font-bold">{{ notification.title }}</h1>
       <div class="flex items-center gap-2 mt-2 text-sm">
         <div class="flex items-center gap-1">
@@ -23,7 +23,7 @@
         </span>
       </div>
       <div class="separator my-6"></div>
-      <div class="prose prose-invert prose-a:link-primary prose-a:no-underline">
+      <div class="prose dark:prose-invert prose-a:link-primary prose-a:no-underline">
         {{ notification.content|markdown|safe }}
       </div>
       <div class="separator my-6"></div>
