@@ -23,6 +23,7 @@ from sbily.utils.data import validate_password
 from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
 from sbily.utils.urls import redirect_with_params
+from sbily.utils.urls import reverse_with_params
 
 
 def sign_up(request: HttpRequest):
@@ -181,7 +182,11 @@ def sign_out(request):
 def verify_email(request: HttpRequest, token: str):
     user = request.user
     is_authenticated = user.is_authenticated
-    redirect_url_name = "account_email" if is_authenticated else "sign_in"
+    redirect_url_name = (
+        reverse_with_params("my_account", {"tab": "email"})
+        if is_authenticated
+        else "sign_in"
+    )
 
     try:
         obj_token = Token.objects.get(token=token, type="email_verification")

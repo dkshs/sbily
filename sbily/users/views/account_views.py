@@ -24,10 +24,16 @@ LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
 ADMIN_URL = f"{settings.BASE_URL}{settings.ADMIN_URL}"
 
 
+def redirect_with_tab(tab: str, **kwargs):
+    params = {"tab": tab, **kwargs}
+    return redirect_with_params("my_account", params)
+
+
 @login_required
 def my_account(request: HttpRequest):
     if request.method != "POST":
-        return render(request, "account/index.html")
+        token = request.GET.get("token", None)
+        return render(request, "account.html", {"token": token})
 
     user = request.user
     first_name = request.POST.get("first_name", "").strip()
@@ -63,10 +69,9 @@ def my_account(request: HttpRequest):
 
 
 @login_required
-def account_email(request: HttpRequest):
+def change_email_instructions(request: HttpRequest):
     if request.method != "POST":
-        token = request.GET.get("token", None)
-        return render(request, "account/email.html", {"token": token})
+        return redirect_with_tab("email")
 
     try:
         user = request.user
@@ -74,13 +79,13 @@ def account_email(request: HttpRequest):
             bad_request_error("Please verify your email first")
         send_email_change_instructions.delay_on_commit(user.id)
         messages.success(request, "Please check your email for instructions")
-        return redirect("account_email")
+        return redirect_with_tab("email")
     except BadRequestError as e:
         messages.error(request, e.message)
-        return redirect("account_email")
+        return redirect_with_tab("email")
     except Exception as e:
         messages.error(request, f"Error sending instructions email: {e}")
-        return redirect("account_email")
+        return redirect_with_tab("email")
 
 
 @login_required
@@ -93,7 +98,7 @@ def change_email(request: HttpRequest, token: str):
         )
 
         if request.method != "POST":
-            return redirect_with_params("account_email", {"token": token})
+            return redirect_with_tab("email", token=token)
 
         user = request.user
         if not user.email_verified:
@@ -120,10 +125,10 @@ def change_email(request: HttpRequest, token: str):
             request,
             "Email changed successfully! Please check your email for the verification link.",  # noqa: E501
         )
-        return redirect("account_email")
+        return redirect_with_tab("email")
     except Token.DoesNotExist:
         messages.error(request, "Invalid token")
-        return redirect("account_email")
+        return redirect_with_tab("email")
     except BadRequestError as e:
         messages.error(request, e.message)
         return redirect("change_email", token=token)
@@ -135,7 +140,7 @@ def change_email(request: HttpRequest, token: str):
 @login_required
 def account_security(request: HttpRequest):
     if request.method != "POST":
-        return render(request, "account/security.html")
+        return redirect_with_tab("security")
 
     login_with_email = request.POST.get("login_with_email") == "on"
 
@@ -143,21 +148,21 @@ def account_security(request: HttpRequest):
         user = request.user
         if user.login_with_email == login_with_email:
             messages.warning(request, "There were no changes")
-            return redirect("account_security")
+            return redirect_with_tab("security")
 
         user.login_with_email = login_with_email
         user.save()
         messages.success(request, "Successfully updated security settings")
-        return redirect("account_security")
+        return redirect_with_tab("security")
     except Exception as e:
         messages.error(request, f"Error updating security settings: {e}")
-        return redirect("account_security")
+        return redirect_with_tab("security")
 
 
 @login_required
 def change_password(request: HttpRequest):
     if request.method != "POST":
-        return redirect("my_account")
+        return redirect_with_tab("security")
 
     old_password = request.POST.get("old_password") or ""
     new_password = request.POST.get("new_password") or ""
@@ -182,13 +187,13 @@ def change_password(request: HttpRequest):
         user.save()
         send_password_changed_email.delay_on_commit(request.user.id)
         messages.success(request, "Successful updated password! Please re-login")
-        return redirect("my_account")
+        return redirect_with_tab("security")
     except BadRequestError as e:
         messages.error(request, e.message)
-        return redirect("my_account")
+        return redirect_with_tab("security")
     except Exception as e:
         messages.error(request, f"Error updating password: {e}")
-        return redirect("my_account")
+        return redirect_with_tab("security")
 
 
 @login_required
@@ -199,13 +204,13 @@ def resend_verify_email(request: HttpRequest):
             bad_request_error("Email has already been verified")
         send_email_verification.delay_on_commit(user.id)
         messages.success(request, "Verification email sent successfully")
-        return redirect("account_email")
+        return redirect_with_tab("email")
     except BadRequestError as e:
         messages.error(request, e.message)
-        return redirect("account_email")
+        return redirect_with_tab("email")
     except Exception as e:
         messages.error(request, f"Error sending verification email: {e}")
-        return redirect("account_email")
+        return redirect_with_tab("email")
 
 
 @login_required

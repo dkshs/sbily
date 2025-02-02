@@ -4,7 +4,7 @@ from django.urls import path
 from sbily.users.views import account_views as views
 
 account_email_urlpatterns = [
-    path("", views.account_email, name="account_email"),
+    path("", views.change_email_instructions, name="change_email_instructions"),
     path("change/<str:token>/", views.change_email, name="change_email"),
 ]
 
