@@ -9,7 +9,7 @@ from django.shortcuts import render
 
 from sbily.users.models import Token
 from sbily.users.models import User
-from sbily.users.tasks import send_deactivated_account_email
+from sbily.users.tasks import send_deleted_account_email
 from sbily.users.tasks import send_email_change_instructions
 from sbily.users.tasks import send_email_changed_email
 from sbily.users.tasks import send_email_verification
@@ -214,21 +214,33 @@ def resend_verify_email(request: HttpRequest):
 
 
 @login_required
-def deactivate_account(request: HttpRequest):
+def delete_account(request: HttpRequest):
+    if request.method != "POST":
+        return redirect("my_account")
+
+    user = request.user
     try:
-        user = request.user
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
+
         if not user.email_verified:
             bad_request_error("Please verify your email first")
-        user.is_active = False
-        user.save()
-        send_deactivated_account_email.delay_on_commit(user.id)
-        messages.success(request, "Account deactivate successfully")
+
+        if not validate([username, password]):
+            bad_request_error("Please fill in all fields")
+        if user.username != username or not user.check_password(password):
+            bad_request_error("Incorrect username or password")
+
+        user_email = user.email
+        send_deleted_account_email.delay_on_commit(user_email, username)
+        user.delete()
+        messages.success(request, "Account deleted successfully")
         return redirect("sign_in")
     except BadRequestError as e:
         messages.error(request, e.message)
         return redirect("my_account")
     except Exception as e:
-        messages.error(request, f"Error deactivating account: {e}")
+        messages.error(request, f"Error deleting account: {e}")
         return redirect("my_account")
 
 

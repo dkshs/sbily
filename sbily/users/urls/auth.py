@@ -20,10 +20,4 @@ auth_urlpatterns = [
     path("verify_email/<str:token>/", views.verify_email, name="verify_email"),
     path("forgot_password/", views.forgot_password, name="forgot_password"),
     path("reset_password/<str:token>/", views.reset_password, name="reset_password"),
-    path("activate_account/", views.activate_account, name="activate_account"),
-    path(
-        "activate_account/<str:token>/",
-        views.activate_account_verify,
-        name="activate_account_verify",
-    ),
 ]

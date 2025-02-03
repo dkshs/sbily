@@ -1,7 +1,6 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import transaction
 from django.utils import timezone
 
 from sbily.utils.tasks import default_task_params
@@ -172,67 +171,17 @@ def send_sign_in_with_email(self, user_id: int):
     )
 
 
-@shared_task(**default_task_params("send_deactivated_account_email"))
-def send_deactivated_account_email(self, user_id: int):
-    """
-    Send email informing user that their account has been deactivated.
+@shared_task(**default_task_params("send_deleted_account_email"))
+def send_deleted_account_email(self, user_email: int, username: str):
+    """Send email informing user that their account has been deleted."""
+    subject = "Your account has been deleted"
+    template = "emails/users/account-deleted.html"
 
-    Also deactivates the user's shortened and deleted shortened links.
-    """
-    user = User.objects.get(id=user_id)
-
-    subject = "Your account has been deactivated"
-    template = "emails/users/deactivated-account.html"
-    account_activation_link = user.get_account_activation_link()
-
-    user.email_user(
-        subject,
-        template,
-        account_activation_link=account_activation_link,
-    )
-    user.shortened_links.update(is_active=False)
-    user.deleted_shortened_links.update(is_active=False)
+    send_email(subject, template, [user_email], username=username, name=username)
     return task_response(
         "COMPLETED",
-        f"Deactivated account email sent to {user.username}.",
-        user_id=user_id,
-    )
-
-
-@shared_task(**default_task_params("send_account_activation_email"))
-def send_account_activation_email(self, user_id: int):
-    """Send account activation email to the user."""
-    user = User.objects.get(id=user_id)
-
-    subject = "Activate your account"
-    template = "emails/users/activate-account.html"
-    account_activation_link = user.get_account_activation_link()
-
-    user.email_user(
-        subject,
-        template,
-        account_activation_link=account_activation_link,
-    )
-    return task_response(
-        "COMPLETED",
-        f"Account activation email sent to {user.username}.",
-        user_id=user_id,
-    )
-
-
-@shared_task(**default_task_params("send_activated_account_email"))
-def send_activated_account_email(self, user_id: int):
-    """Send email informing user that their account has been activated."""
-    user = User.objects.get(id=user_id)
-
-    subject = "Your account has been activated"
-    template = "emails/users/activated-account.html"
-
-    user.email_user(subject, template)
-    return task_response(
-        "COMPLETED",
-        f"Activated account email sent to {user.username}.",
-        user_id=user_id,
+        f"Account deleted email sent to {user_email}.",
+        user_email=user_email,
     )
 
 
@@ -245,49 +194,4 @@ def cleanup_expired_tokens(self):
         "COMPLETED",
         f"Deleted {num_deleted} expired tokens.",
         num_deleted=num_deleted,
-    )
-
-
-@shared_task(**default_task_params("cleanup_deactivated_users", acks_late=True))
-def cleanup_deactivated_users(self):
-    """
-    Delete deactivated users from the database.
-
-    Sends an account deletion email to each user before deleting their account.
-    Processes users in batches to improve efficiency. Logs successes and failures.
-    """
-    expired_tokens = Token.objects.filter(
-        expires_at__lt=timezone.now(),
-        type=Token.TYPE_ACTIVATE_ACCOUNT,
-    )
-    users = User.objects.filter(
-        is_active=False,
-        tokens__in=expired_tokens,
-    ).distinct()
-
-    num_deleted = 0
-    num_failed = 0
-    email_params = {
-        "subject": "Your account has been deleted",
-        "template": "emails/users/account-deleted.html",
-    }
-
-    for user in users.iterator():
-        try:
-            with transaction.atomic():
-                user.email_user(**email_params)
-                num_deleted += user.delete()[0]
-        except Exception:
-            num_failed += 1
-            logger.exception(
-                "Error deleting user %s (ID: %s)",
-                user.username,
-                user.id,
-            )
-
-    return task_response(
-        "COMPLETED",
-        f"Deleted {num_deleted} deactivated users. Failed to delete {num_failed} users.",  # noqa: E501
-        num_deleted=num_deleted,
-        num_failed=num_failed,
     )
