@@ -7,5 +7,3 @@ There are a total of {{ links_count }} links removed, here they are:
 {% for link in links %}
 {{ forloop.counter }}. {{ link.shortened_link }} (<{{ link.original_link }}>)</li>
 {% endfor %}
-
-[View your deleted links here!]({{ deleted_links_url }})

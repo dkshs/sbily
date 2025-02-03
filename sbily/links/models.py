@@ -1,4 +1,3 @@
-import contextlib
 import json
 import secrets
 from urllib.parse import urljoin
@@ -18,8 +17,6 @@ from django_celery_beat.models import PeriodicTask
 
 from sbily.users.models import User
 
-from .managers import DeletedShortenedLinkManager
-from .utils import filter_dict
 from .utils import user_can_create_link
 
 SITE_BASE_URL = settings.BASE_URL or ""
@@ -35,7 +32,7 @@ def future_date_validator(value: timezone.datetime) -> None:
         )
 
 
-class AbstractShortenedLink(models.Model):
+class ShortenedLink(models.Model):
     SHORTENED_LINK_PATTERN = r"^[a-zA-Z0-9-_]*$"
     SHORTENED_LINK_MAX_LENGTH = 10
     DEFAULT_EXPIRY = timezone.timedelta(days=1)
@@ -103,10 +100,9 @@ class AbstractShortenedLink(models.Model):
     )
 
     class Meta:
-        abstract = True
         verbose_name = _("Shortened Link")
         verbose_name_plural = _("Shortened Links")
-        ordering = ["-created_at"]
+        ordering = ["-updated_at"]
         indexes = [
             models.Index(fields=["shortened_link", "user"]),
         ]
@@ -123,12 +119,36 @@ class AbstractShortenedLink(models.Model):
         self.full_clean()
         if not self.shortened_link:
             self._generate_unique_shortened_link()
+
         super().save(*args, **kwargs)
+
+        if self.remove_at:
+            schedule, _ = ClockedSchedule.objects.get_or_create(
+                clocked_time=self.remove_at,
+            )
+            PeriodicTask.objects.update_or_create(
+                name=f"Remove link {self.id}",
+                defaults={
+                    "task": "delete_link_by_id",
+                    "args": json.dumps([self.pk]),
+                    "clocked": schedule,
+                    "one_off": True,
+                    "expires": self.remove_at + timezone.timedelta(minutes=1),
+                    "start_time": self.remove_at,
+                    "enabled": True,
+                },
+            )
+        else:
+            PeriodicTask.objects.filter(name=f"Remove link {self.id}").delete()
 
     def get_absolute_url(self) -> str:
         """Returns the absolute URL for this shortened link"""
         path = reverse("redirect_link", kwargs={"shortened_link": self.shortened_link})
         return urljoin(SITE_BASE_URL, path)
+
+    def clean(self) -> None:
+        user_can_create_link(self.id, self.remove_at, self.user)
+        super().clean()
 
     def _generate_unique_shortened_link(self) -> None:
         """Helper method to generate unique shortened link with retries"""
@@ -173,113 +193,3 @@ class AbstractShortenedLink(models.Model):
         if not self.remove_at or self.is_expired():
             return _("Permanent")
         return timesince(timezone.now(), self.remove_at)
-
-
-class ShortenedLink(AbstractShortenedLink):
-    @transaction.atomic
-    def save(self, *args, **kwargs) -> None:
-        super().save(*args, **kwargs)
-
-        if self.remove_at:
-            schedule, _ = ClockedSchedule.objects.get_or_create(
-                clocked_time=self.remove_at,
-            )
-            PeriodicTask.objects.update_or_create(
-                name=f"Remove link {self.id}",
-                defaults={
-                    "task": "delete_link_by_id",
-                    "args": json.dumps([self.pk]),
-                    "clocked": schedule,
-                    "one_off": True,
-                    "expires": self.remove_at + timezone.timedelta(minutes=1),
-                    "start_time": self.remove_at,
-                    "enabled": True,
-                },
-            )
-        else:
-            PeriodicTask.objects.filter(name=f"Remove link {self.id}").delete()
-
-    def clean(self) -> None:
-        user_can_create_link(self.id, self.remove_at, self.user)
-        super().clean()
-
-
-class DeletedShortenedLink(AbstractShortenedLink):
-    PREMIUM_DELETE_DAYS = 6
-    REGULAR_DELETE_DAYS = 3
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="deleted_shortened_links",
-        help_text=_("User who created this shortened link"),
-    )
-    removed_at = models.DateTimeField(
-        _("Removed At"),
-        auto_now_add=True,
-        db_index=True,
-        help_text=_("When this shortened link was removed"),
-    )
-    time_until_permanent_deletion = models.DateTimeField(
-        _("Time Until Permanent Deletion"),
-        null=True,
-        blank=True,
-        db_index=True,
-        editable=False,
-        help_text=_("When this shortened link will be permanently deleted"),
-    )
-
-    objects = DeletedShortenedLinkManager()
-
-    class Meta:
-        verbose_name = _("Deleted Shortened Link")
-        verbose_name_plural = _("Deleted Shortened Links")
-        ordering = ["-removed_at"]
-
-    def save(self, *args, **kwargs):
-        user = self.user
-        delete_links_days = (
-            self.PREMIUM_DELETE_DAYS
-            if user.is_premium or user.is_admin
-            else self.REGULAR_DELETE_DAYS
-        )
-        removed_at = self.removed_at or timezone.now()
-        deletion_time = removed_at + timezone.timedelta(days=delete_links_days)
-        self.time_until_permanent_deletion = deletion_time
-        super().save(*args, **kwargs)
-
-        with contextlib.suppress(PeriodicTask.DoesNotExist, IntegrityError):
-            schedule, _ = ClockedSchedule.objects.get_or_create(
-                clocked_time=deletion_time,
-            )
-            PeriodicTask.objects.update_or_create(
-                name=f"Remove deleted link {self.id}",
-                defaults={
-                    "task": "delete_deleted_link_by_id",
-                    "args": json.dumps([self.pk]),
-                    "clocked": schedule,
-                    "one_off": True,
-                    "expires": deletion_time + timezone.timedelta(minutes=1),
-                    "start_time": deletion_time,
-                    "enabled": True,
-                },
-            )
-
-    @property
-    def time_until_permanent_deletion_formatted(self) -> str:
-        """
-        Returns the time remaining until permanent deletion in a human-readable format.
-        """
-        return timesince(timezone.now(), self.time_until_permanent_deletion)
-
-    @transaction.atomic
-    def restore(self) -> None:
-        """Restore the deleted shortened link"""
-        data = filter_dict(
-            self.__dict__.copy(),
-            {"_state", "id", "removed_at", "time_until_permanent_deletion"},
-        )
-        if self.is_expired():
-            data["remove_at"] = timezone.now() + self.DEFAULT_EXPIRY
-        ShortenedLink.objects.create(**data)
-        self.delete()

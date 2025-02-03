@@ -60,16 +60,3 @@ def user_can_create_link(
     is_temporary_status_changed = bool(link_remove_at) != bool(link.remove_at)
     if is_temporary_status_changed:
         validate_link_creation(is_temporary=bool(link_remove_at), user=user)
-
-
-def filter_dict(data: dict, exclude_keys: set[str]) -> dict:
-    """Remove specified keys from a dictionary.
-
-    Args:
-        data: The original dictionary.
-        exclude_keys: Set of string keys to exclude from the dictionary.
-
-    Returns:
-        The filtered dictionary without the specified keys.
-    """
-    return {k: v for k, v in data.items() if k not in exclude_keys}

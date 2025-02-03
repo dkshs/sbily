@@ -1,11 +1,9 @@
 from collections import defaultdict
-from urllib.parse import urljoin
 
 from celery import shared_task
 from django.conf import settings
 from django.db import transaction
 from django.template.loader import render_to_string
-from django.urls import reverse
 from django.utils.timezone import now
 
 from sbily.notifications.models import Notification
@@ -13,7 +11,6 @@ from sbily.users.models import User
 from sbily.utils.tasks import default_task_params
 from sbily.utils.tasks import task_response
 
-from .models import DeletedShortenedLink
 from .models import ShortenedLink
 
 SITE_BASE_URL = settings.BASE_URL or ""
@@ -33,7 +30,6 @@ def send_notification_deleted_links(
         **kwargs: Additional context data.
     """
     context = kwargs.copy()
-    context["deleted_links_url"] = urljoin(SITE_BASE_URL, reverse("deleted_links"))
     context["links"] = links
     context.setdefault("links_count", len(links))
 
@@ -113,19 +109,6 @@ def delete_excess_user_links(self) -> dict:
     )
 
 
-@shared_task(**default_task_params("cleanup_deleted_shortened_links", acks_late=True))
-def cleanup_deleted_shortened_links(self) -> dict:
-    """Permanently deletes links that have been deleted."""
-    deleted_count = DeletedShortenedLink.objects.filter(
-        time_until_permanent_deletion__lte=now(),
-    ).delete()[0]
-    return task_response(
-        "COMPLETED",
-        f"Permanently deleted {deleted_count} deleted links.",
-        deleted_count=deleted_count,
-    )
-
-
 @shared_task(**default_task_params("delete_link_by_id", acks_late=True))
 def delete_link_by_id(self, link_id: int) -> dict:
     """Delete a link by its ID."""
@@ -151,14 +134,3 @@ def delete_link_by_id(self, link_id: int) -> dict:
             f"Link with ID {link_id} does not exist",
             deleted_count=0,
         )
-
-
-@shared_task(**default_task_params("delete_deleted_link_by_id", acks_late=True))
-def delete_deleted_link_by_id(self, link_id: int) -> dict:
-    """Permanently delete a previously deleted link by its ID."""
-    deleted_count = DeletedShortenedLink.objects.filter(id=link_id).delete()[0]
-    return task_response(
-        "COMPLETED",
-        f"Successfully deleted link with ID {link_id}",
-        deleted_count=deleted_count,
-    )

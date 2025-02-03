@@ -4,30 +4,18 @@
       <h2 class="text-xl font-bold">Are you sure?</h2>
     </div>
     <div class="flex flex-col gap-4 mt-2">
-      <p>Are you sure you want to delete the "{{ link }}" link{% if is_deleted %} permanently{% endif %}?</p>
+      <p>Are you sure you want to delete the "{{ link }}" link permanently?</p>
       <ul class="list-disc list-inside">
         <li>
-          Link:
-          {% if is_deleted %}
-            <span class="text-primary">{{ link }}</span>
-          {% else %}
-            <a href="{% url "link" link.shortened_link %}" class="link-primary">{{ link }}</a>
-          {% endif %}
+          Link: <a href="{% url 'link' link.shortened_link %}" class="link-primary">{{ link }}</a>
         </li>
       </ul>
     </div>
     <div class="mt-4 w-full flex items-center gap-2 flex-wrap">
-      <a
-        href="{% if is_deleted %}{% url 'remove_deleted_link' link.shortened_link %}{% else %}{% url 'delete_link' link.shortened_link %}{% endif %}"
-        class="button-destructive w-full sm:w-auto"
-      >
+      <a href="{% url 'delete_link' link.shortened_link %}" class="button-destructive w-full sm:w-auto">
         Yes, I’m sure
       </a>
-      <button
-        type="button"
-        class="button-outline w-full sm:w-auto"
-        data-jswc-dialog-close
-      >
+      <button type="button" class="button-outline w-full sm:w-auto" data-jswc-dialog-close>
         No, take me back
       </button>
     </div>

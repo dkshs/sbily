@@ -4,16 +4,7 @@
 
 {% block content %}
   <div class="my-16 flex flex-col justify-center gap-2 max-w-3xl mx-auto">
-    <div
-      class="flex items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
-      data-jwsc-tab-list
-      data-jwsc-tab-default="active"
-      data-jwsc-tab-url-query="tab"
-    >
-      <button type="button" class="tab-trigger" data-jwsc-tab-value="active">Links</button>
-      <button type="button" class="tab-trigger" data-jwsc-tab-value="deleted">Deleted Links</button>
-    </div>
-    <div data-jwsc-tab-panel="active" class="hidden flex-col justify-center p-6 border relative sm:rounded-md data-[state=active]:flex">
+    <div class="flex-col justify-center p-6 border relative sm:rounded-md">
       <h2 class="text-2xl font-bold mb-2">My links</h2>
       <div class="mt-1 flex flex-wrap gap-0.5">
         <span class="badge-default">
@@ -24,10 +15,6 @@
         </span>
       </div>
       {% include "partials/links_table.html" %}
-    </div>
-    <div data-jwsc-tab-panel="deleted" class="hidden flex-col justify-center p-6 border relative sm:rounded-md data-[state=active]:flex">
-      <h2 class="text-2xl font-bold mb-2">My deleted links</h2>
-      {% include "partials/links_table.html" with links=deleted_links is_deleted_links=True %}
     </div>
   </div>
 {% endblock content %}

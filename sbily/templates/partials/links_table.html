@@ -1,21 +1,13 @@
 <form method="post" action="{% url "handle_link_actions" %}" class="mt-2">
   {% csrf_token %}
-  {% if is_deleted_links %}
-    <input type="hidden" name="is_deleted_links" value="True" />
-  {% endif %}
   <div class="flex items-center flex-wrap gap-1">
     <div class="flex items-center gap-1.5">
       <label for="action">Action: </label>
       <select id="action" name="action" class="font-bold input px-2 py-0" required>
         <option selected>------------</option>
-        {% if is_deleted_links %}
-          <option value="restore_selected">Restore selected Links</option>
-          <option value="delete_selected_deleted_links">Delete selected Links</option>
-        {% else %}
-          <option value="delete_selected">Delete selected Links</option>
-          <option value="activate_selected">Activate selected Links</option>
-          <option value="deactivate_selected">Deactivate selected Links</option>
-        {% endif %}
+        <option value="delete_selected">Delete selected Links</option>
+        <option value="activate_selected">Activate selected Links</option>
+        <option value="deactivate_selected">Deactivate selected Links</option>
       </select>
     </div>
     <button id="link-action-go" type="button" class="button-primary" data-jswc-target="handle-link-action-dialog">
@@ -70,7 +62,7 @@
     <div class="w-full overflow-auto max-h-[500px] overscroll-contain">
       <table class="w-full caption-bottom text-sm">
         <caption class="mt-4 text-sm text-muted-foreground">
-          A list of your {% if is_deleted_links %}deleted {% endif %}links.
+          A list of your links.
         </caption>
         <thead>
           <tr class="border-b duration-200 hover:bg-muted/50">
@@ -78,18 +70,14 @@
               <input type="checkbox" id="check-all-links" />
             </th>
             <th class="h-12 px-4 text-start align-middle font-medium text-muted-foreground">Shortened Link</th>
-            {% if is_deleted_links %}
-              <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Remove in</th>
-            {% else %}
-              <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
-            {% endif %}
+            <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Is Active</th>
             <th class="h-12 px-4 text-center align-middle font-medium text-muted-foreground">Actions</th>
           </tr>
         </thead>
         <tbody id="tbody">
           {% for link in links %}
             <tr
-              {% if link.is_expired and not is_deleted_links %}title="The link has expired!"{% endif %}
+              {% if link.is_expired %}title="The link has expired!"{% endif %}
               class="border-b duration-200 hover:bg-muted/50"
             >
               <td class="text-center align-middle font-medium">
@@ -101,11 +89,7 @@
                 />
               </td>
               <td class="flex items-center gap-1 px-4 py-2 align-middle font-medium text-lg">
-                {% if is_deleted_links %}
-                  {{ link.shortened_link }}
-                {% else %}
-                  <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
-                {% endif %}
+                <a href="{% url 'link' link.shortened_link %}" class="link">{{ link.shortened_link }}</a>
                 {% if link.remove_at %}
                   <span title="This link is temporary" aria-label="This link is temporary">
                     <i data-lucide="clock-alert" class="size-5 stroke-[3px] text-yellow-500"></i>
@@ -113,27 +97,17 @@
                 {% endif %}
               </td>
               <td class="px-4 py-2 text-center align-middle font-medium">
-                {% if is_deleted_links %}
-                  <span
-                    aria-label="This link will be removed in {{ link.time_until_permanent_deletion_formatted }}"
-                    title="This link will be removed in {{ link.time_until_permanent_deletion_formatted }}"
-                    class="text-lg"
-                  >
-                    {{ link.time_until_permanent_deletion_formatted }}
-                  </span>
-                {% else %}
-                  <span
-                    aria-label="Link is {% if not link.is_active %}not {% endif %}active"
-                    title="Link is {% if not link.is_active %}not {% endif %}active"
-                    class="flex justify-center items-center {% if link.is_active %}text-green-600{% else %}text-red-600{% endif %}"
-                  >
-                    {% if link.is_active %}
-                      <i data-lucide="circle-check" class="stroke-[3px]"></i>
-                    {% else %}
-                      <i data-lucide="circle-x" class="stroke-[3px]"></i>
-                    {% endif %}
-                  </span>
-                {% endif %}
+                <span
+                  aria-label="Link is {% if not link.is_active %}not {% endif %}active"
+                  title="Link is {% if not link.is_active %}not {% endif %}active"
+                  class="flex justify-center items-center {% if link.is_active %}text-green-600{% else %}text-red-600{% endif %}"
+                >
+                  {% if link.is_active %}
+                    <i data-lucide="circle-check" class="stroke-[3px]"></i>
+                  {% else %}
+                    <i data-lucide="circle-x" class="stroke-[3px]"></i>
+                  {% endif %}
+                </span>
               </td>
               <td class="flex justify-center gap-1.5 px-4 py-2 align-middle font-medium">
                 <button
@@ -151,33 +125,27 @@
                   class="hidden dropdown-menu"
                   data-jswc-dropdown-animation="true"
                 >
-                  {% if is_deleted_links %}
-                    <a href="{% url 'restore_link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
-                      <i data-lucide="rotate-cw"></i> Restore link
-                    </a>
-                  {% else %}
-                    <button
-                      type="button"
-                      class="dropdown-menu-item gap-1 p-2"
-                      id="copy-{{ link.shortened_link }}"
-                      onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
-                    >
-                      <i data-lucide="copy" class="size-3.5 stroke-[3px]"></i> Copy
-                    </button>
-                    <a href="{% url 'link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
-                      <i data-lucide="square-pen" class="size-3.5 stroke-[3px]"></i> Edit
-                    </a>
-                    <a
-                      href="{% url 'link' link.shortened_link %}?deactivate={{ link.is_active }}"
-                      class="dropdown-menu-item gap-1 p-2"
-                    >
-                      {% if link.is_active %}
-                        <i data-lucide="circle-x" class="size-3.5 stroke-[3px] text-red-600"></i> Deactivate
-                      {% else %}
-                        <i data-lucide="circle-check" class="size-3.5 stroke-[3px] text-green-600"></i> Activate
-                      {% endif %}
-                    </a>
-                  {% endif %}
+                  <button
+                    type="button"
+                    class="dropdown-menu-item gap-1 p-2"
+                    id="copy-{{ link.shortened_link }}"
+                    onclick="copy('{{ link.get_absolute_url }}', 'copy-{{ link.shortened_link }}')"
+                  >
+                    <i data-lucide="copy" class="size-3.5 stroke-[3px]"></i> Copy
+                  </button>
+                  <a href="{% url 'link' link.shortened_link %}" class="dropdown-menu-item gap-1 p-2">
+                    <i data-lucide="square-pen" class="size-3.5 stroke-[3px]"></i> Edit
+                  </a>
+                  <a
+                    href="{% url 'link' link.shortened_link %}?deactivate={{ link.is_active }}"
+                    class="dropdown-menu-item gap-1 p-2"
+                  >
+                    {% if link.is_active %}
+                      <i data-lucide="circle-x" class="size-3.5 stroke-[3px] text-red-600"></i> Deactivate
+                    {% else %}
+                      <i data-lucide="circle-check" class="size-3.5 stroke-[3px] text-green-600"></i> Activate
+                    {% endif %}
+                  </a>
                   <button
                     type="button"
                     class="dropdown-menu-item gap-1 p-2"
