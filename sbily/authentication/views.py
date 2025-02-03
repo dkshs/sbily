@@ -14,7 +14,6 @@ from sbily.users.models import Token
 from sbily.users.models import User
 from sbily.users.tasks import send_password_changed_email
 from sbily.users.tasks import send_password_reset_email
-from sbily.users.tasks import send_sign_in_with_email
 from sbily.users.tasks import send_welcome_email
 from sbily.utils.data import is_none
 from sbily.utils.data import validate
@@ -23,6 +22,8 @@ from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
 from sbily.utils.urls import redirect_with_params
 from sbily.utils.urls import reverse_with_params
+
+from .tasks import send_sign_in_with_email
 
 
 def sign_up(request: HttpRequest):

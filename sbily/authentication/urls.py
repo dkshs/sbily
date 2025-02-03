@@ -1,7 +1,7 @@
 from django.urls import include
 from django.urls import path
 
-from sbily.users.views import auth_views as views
+from . import views
 
 auth_sign_in_urlpatterns = [
     path("", views.sign_in, name="sign_in"),
@@ -13,7 +13,7 @@ auth_sign_in_urlpatterns = [
     ),
 ]
 
-auth_urlpatterns = [
+urlpatterns = [
     path("sign_up/", views.sign_up, name="sign_up"),
     path("sign_in/", include(auth_sign_in_urlpatterns)),
     path("sign_out/", views.sign_out, name="sign_out"),

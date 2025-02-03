@@ -1,5 +1,4 @@
 # ruff: noqa: BLE001
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
@@ -19,9 +18,6 @@ from sbily.utils.data import validate_password
 from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
 from sbily.utils.urls import redirect_with_params
-
-LINK_BASE_URL = getattr(settings, "LINK_BASE_URL", None)
-ADMIN_URL = f"{settings.BASE_URL}{settings.ADMIN_URL}"
 
 
 def redirect_with_tab(tab: str, **kwargs):

@@ -8,7 +8,8 @@ from django.views import defaults as default_views
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("", include("sbily.links.urls")),
-    path("", include("sbily.users.urls")),
+    path("auth/", include("sbily.authentication.urls")),
+    path("account/", include("sbily.users.urls")),
     path("notifications/", include("sbily.notifications.urls")),
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
