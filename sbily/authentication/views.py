@@ -213,8 +213,6 @@ def verify_email(request: HttpRequest, token: str):
 
 
 def forgot_password(request: HttpRequest):
-    if request.user.is_authenticated:
-        return redirect("my_account")
     if request.method != "POST":
         return render(request, "forgot_password.html")
 
@@ -227,7 +225,7 @@ def forgot_password(request: HttpRequest):
         user = User.objects.get(email=email)
         send_password_reset_email.delay_on_commit(user.id)
         messages.success(request, "Password reset email sent successfully")
-        return redirect("sign_in")
+        return redirect("my_account" if user.is_authenticated else "sign_in")
     except User.DoesNotExist:
         messages.error(request, "User does not exist")
         return redirect("forgot_password")
@@ -240,8 +238,6 @@ def forgot_password(request: HttpRequest):
 
 
 def reset_password(request: HttpRequest, token: str):
-    if request.user.is_authenticated:
-        return redirect("my_account")
     if request.method != "POST":
         return render(request, "reset_password.html", {"token": token})
 
@@ -273,7 +269,6 @@ def reset_password(request: HttpRequest, token: str):
         send_password_changed_email.delay_on_commit(user.id)
         messages.success(request, "Password reset successfully")
         return redirect("sign_in")
-
     except Token.DoesNotExist:
         messages.error(request, "Invalid token")
         return redirect("forgot_password")
