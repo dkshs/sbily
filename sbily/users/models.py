@@ -1,3 +1,4 @@
+import json
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -9,6 +10,8 @@ from django.utils.timezone import datetime
 from django.utils.timezone import now
 from django.utils.timezone import timedelta
 from django.utils.translation import gettext_lazy as _
+from django_celery_beat.models import ClockedSchedule
+from django_celery_beat.models import PeriodicTask
 
 from .utils.data import generate_token
 
@@ -283,6 +286,22 @@ class Token(models.Model):
             self.token = generate_token()
         super().full_clean()
         super().save(*args, **kwargs)
+
+        schedule, _ = ClockedSchedule.objects.get_or_create(
+            clocked_time=self.expires_at,
+        )
+        PeriodicTask.objects.update_or_create(
+            name=f"Delete token {self.id}",
+            defaults={
+                "task": "delete_token_by_id",
+                "args": json.dumps([self.pk]),
+                "clocked": schedule,
+                "one_off": True,
+                "expires": self.expires_at + timedelta(minutes=1),
+                "start_time": self.expires_at,
+                "enabled": True,
+            },
+        )
 
     def renew(self):
         """Renew token by updating token and timestamps"""

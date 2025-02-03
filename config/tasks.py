@@ -11,14 +11,14 @@ def cleanup_clocked_schedules(self):
     """
     Clean up expired clocked schedules that are not associated with any periodic tasks.
     Also removes disabled periodic tasks containing 'Remove link' and
-    'Remove deleted link' in their name.
+    'Delete token' in their name.
     """
     from django_celery_beat.models import ClockedSchedule
     from django_celery_beat.models import PeriodicTask
 
     periodic_tasks = PeriodicTask.objects.filter(
         enabled=False,
-        name__regex=r"^(Remove link|Remove deleted link)",
+        name__regex=r"^(Remove link|Delete token)",
     )
 
     threshold_time = now() + timedelta(minutes=5)

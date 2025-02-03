@@ -168,3 +168,15 @@ def cleanup_expired_tokens(self):
         f"Deleted {num_deleted} expired tokens.",
         num_deleted=num_deleted,
     )
+
+
+@shared_task(**default_task_params("delete_token_by_id", acks_late=True))
+def delete_token_by_id(self, token_id: int) -> dict:
+    """Delete a token by its ID."""
+    token = Token.objects.get(id=token_id)
+    token.delete()
+
+    return task_response(
+        "COMPLETED",
+        f"Successfully deleted token with ID {token_id}",
+    )
