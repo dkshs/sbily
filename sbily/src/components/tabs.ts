@@ -6,8 +6,9 @@ export function initTabs() {
   tabLists.forEach((tabs) => {
     tabs.role = "tablist";
 
-    const tabUrlQuery = tabs.dataset.jwscTabUrlQuery;
     const tabDefault = tabs.dataset.jwscTabDefault;
+    const tabUrlQuery = tabs.dataset.jwscTabUrlQuery;
+    const urlParams = new URLSearchParams(window.location.search);
 
     const tabButtons = tabs.querySelectorAll<HTMLButtonElement>(
       "[data-jwsc-tab-value]",
@@ -21,10 +22,18 @@ export function initTabs() {
       button.ariaSelected = "false";
 
       button.addEventListener("click", () => {
+        if (button.dataset.state === "active") return;
+
         const target = button.dataset.jwscTabValue;
         const targetElement =
           target && document.querySelector(`[data-jwsc-tab-panel=${target}]`);
         if (!targetElement) return;
+
+        if (tabUrlQuery) {
+          urlParams.set(tabUrlQuery, target);
+          const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+          window.history.replaceState({}, "", newUrl);
+        }
 
         button.dataset.state = "active";
         button.ariaSelected = "true";
@@ -41,22 +50,17 @@ export function initTabs() {
       });
     });
 
-    if (tabDefault) {
+    const tabParam = urlParams.get(tabUrlQuery || tabDefault || "");
+    if (tabParam) {
+      const tabButton = tabs.querySelector<HTMLButtonElement>(
+        `[data-jwsc-tab-value=${tabParam}]`,
+      );
+      if (tabButton) tabButton.click();
+    } else {
       const defaultButton = tabs.querySelector<HTMLButtonElement>(
         `[data-jwsc-tab-value=${tabDefault}]`,
       );
       if (defaultButton) defaultButton.click();
-    }
-
-    if (tabUrlQuery) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get(tabUrlQuery);
-      if (tabParam) {
-        const tabButton = tabs.querySelector<HTMLButtonElement>(
-          `[data-jwsc-tab-value=${tabParam}]`,
-        );
-        if (tabButton) tabButton.click();
-      }
     }
   });
 }
