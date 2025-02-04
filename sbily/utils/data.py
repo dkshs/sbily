@@ -1,6 +1,11 @@
 import re
 from typing import Any
 
+from django.contrib.auth.password_validation import (
+    validate_password as django_validate_password,
+)
+from django.core.exceptions import ValidationError
+
 MIN_PASSWORD_LENGTH = 8
 SPECIAL_CHARS = r"[!@#$%^&*(),.?\":{}|<>]"
 PASSWORD_PATTERN = rf"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*{SPECIAL_CHARS})"
@@ -67,5 +72,10 @@ def validate_password(password: str) -> tuple[bool, str]:
             "Password must contain at least one digit, one uppercase letter, "
             "one lowercase letter, and one special character."
         )
+
+    try:
+        django_validate_password(password)
+    except ValidationError as e:
+        return False, str(e)
 
     return True, ""

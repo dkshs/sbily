@@ -157,15 +157,15 @@ def change_password(request: HttpRequest):
         if old_password.strip() == new_password.strip():
             bad_request_error("The old and new password cannot be the same")
 
-        password_id_valid = validate_password(new_password)
-        if not password_id_valid[0]:
-            bad_request_error(password_id_valid[1])
-
         user = request.user
         if not user.email_verified:
             bad_request_error("Please verify your email first")
         if not user.check_password(old_password):
             bad_request_error("The old password is incorrect")
+
+        password_id_valid = validate_password(new_password)
+        if not password_id_valid[0]:
+            bad_request_error(password_id_valid[1])
 
         user.set_password(new_password)
         user.save()

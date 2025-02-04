@@ -8,6 +8,8 @@ from django.core.validators import URLValidator
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 
 from sbily.links.models import ShortenedLink
 from sbily.users.models import Token
@@ -95,16 +97,20 @@ def sign_in(request: HttpRequest):
             bad_request_error("Invalid username or password")
 
         login(request, user)
-        if is_none(original_link):
-            return redirect("my_account" if is_none(next_param) else next_param)
         url_validate = URLValidator()
         try:
+            if is_none(original_link):
+                next_path = reverse("my_account" if is_none(next_param) else next_param)
+                return redirect(next_path)
+
             url_validate(original_link)
             link = ShortenedLink.objects.create(original_link=original_link, user=user)
             messages.success(request, "Link created successfully")
             return redirect("link", shortened_link=link.shortened_link)
         except ValidationError:
             bad_request_error("Invalid original link.")
+        except NoReverseMatch:
+            bad_request_error("Invalid next parameter.")
     except BadRequestError as e:
         messages.error(request, e.message)
         return redirect_with_params("sign_in", context)
