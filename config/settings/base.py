@@ -58,6 +58,7 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.forms",
 ]
 THIRD_PARTY_APPS = [
     "django_celery_beat",
@@ -156,6 +157,9 @@ TEMPLATES = [
         },
     },
 ]
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
+FORM_RENDERER = "sbily.forms.renderers.CustomFormRenderer"
 
 # SECURITY
 # ------------------------------------------------------------------------------

@@ -19,6 +19,8 @@ from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
 from sbily.utils.urls import redirect_with_params
 
+from .forms import ProfileForm
+
 
 def redirect_with_tab(tab: str, **kwargs):
     params = {"tab": tab, **kwargs}
@@ -27,41 +29,27 @@ def redirect_with_tab(tab: str, **kwargs):
 
 @login_required
 def my_account(request: HttpRequest):
+    user = request.user
+
     if request.method != "POST":
         token = request.GET.get("token", None)
-        return render(request, "account.html", {"token": token})
+        form = ProfileForm(instance=user)
+        return render(request, "account.html", {"token": token, "form": form})
 
-    user = request.user
-    first_name = request.POST.get("first_name", "").strip()
-    last_name = request.POST.get("last_name", "").strip()
-    username = request.POST.get("username", "").strip()
-
-    try:
-        if not validate([username]):
-            bad_request_error("Username are required!")
-
-        if not any(
-            [
-                user.username != username,
-                user.first_name != first_name,
-                user.last_name != last_name,
-            ],
-        ):
+    form = ProfileForm(request.POST, instance=user)
+    if form.is_valid():
+        if form.has_changed():
+            form.save()
+            messages.success(request, "Successfully updated profile")
+        else:
             messages.warning(request, "There were no changes")
-            return redirect("my_account")
+        return redirect("my_account")
 
-        user.first_name = first_name
-        user.last_name = last_name
-        user.username = username
-        user.save()
-        messages.success(request, "Successfully updated profile")
-        return redirect("my_account")
-    except BadRequestError as e:
-        messages.error(request, e.message)
-        return redirect("my_account")
-    except Exception as e:
-        messages.error(request, f"Error updating profile: {e}")
-        return redirect("my_account")
+    for field, errors in form.errors.items():
+        for error in errors:
+            messages.error(request, f"{field.title()}: {error}")
+
+    return redirect("my_account")
 
 
 @login_required
