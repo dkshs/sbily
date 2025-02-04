@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.shortcuts import render
-from django.urls import reverse
 from django.utils import timezone
 
 from sbily.utils.data import validate
@@ -29,18 +28,15 @@ def create_link(request: HttpRequest):
     if request.method != "POST":
         return render(request, "create_link.html", {"LINK_BASE_URL": LINK_BASE_URL})
 
-    next_path = request.POST.get("next_path", "create_link")
     original_link = request.POST.get("original_link", "").strip()
     shortened_link = request.POST.get("shortened_link", "").strip()
     remove_at = request.POST.get("remove_at", "").strip()
     is_temporary = request.POST.get("is_temporary") == "on"
 
     try:
-        next_path = reverse(next_path)
-
         if not validate([original_link]):
             messages.error(request, "Please enter a valid original link")
-            return redirect(next_path)
+            return redirect("create_link")
 
         if not request.user.is_authenticated:
             return redirect_with_params("sign_in", {"original_link": original_link})
@@ -63,10 +59,10 @@ def create_link(request: HttpRequest):
         return redirect("link", shortened_link=link.shortened_link)
     except ValidationError as e:
         messages.error(request, str(e.messages[0]))
-        return redirect(next_path)
+        return redirect("create_link")
     except Exception as e:
         messages.error(request, f"An error occurred: {e!s}")
-        return redirect(next_path)
+        return redirect("create_link")
 
 
 def redirect_link(request: HttpRequest, shortened_link: str):

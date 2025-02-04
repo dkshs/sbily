@@ -40,16 +40,12 @@ def my_account(request: HttpRequest):
     if form.is_valid():
         if form.has_changed():
             form.save()
-            messages.success(request, "Successfully updated profile")
+            messages.success(request, "Successfully updated profile!")
         else:
-            messages.warning(request, "There were no changes")
+            messages.warning(request, "There were no changes!")
         return redirect("my_account")
 
-    for field, errors in form.errors.items():
-        for error in errors:
-            messages.error(request, f"{field.title()}: {error}")
-
-    return redirect("my_account")
+    return render(request, "account.html", {"form": form})
 
 
 @login_required

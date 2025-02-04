@@ -1,0 +1,86 @@
+from django import forms
+from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
+
+from sbily.forms import BaseForm
+from sbily.forms import BaseModelForm
+from sbily.users.models import User
+from sbily.utils.data import is_none
+from sbily.utils.data import validate_password
+
+
+class SignUpForm(BaseModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "username", "email", "password"]
+        required_fields = ["username", "email", "password"]
+        widgets = {
+            "password": forms.PasswordInput(),
+        }
+
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+        is_valid, message = validate_password(password)
+        if not is_valid:
+            raise forms.ValidationError(message, code="invalid_password")
+        return password
+
+
+class SignInForm(BaseForm):
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={"autofocus": True}),
+        required=True,
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(),
+        strip=False,
+        required=True,
+    )
+    next_path = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False,
+        initial="my_account",
+    )
+    original_link = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False,
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get("username")
+        password = cleaned_data.get("password")
+        user = authenticate(username=username, password=password)
+        if user is None:
+            msg = "Invalid credentials."
+            raise forms.ValidationError(msg, code="invalid_credentials")
+        cleaned_data["user"] = user
+        return cleaned_data
+
+    def clean_original_link(self):
+        original_link = self.cleaned_data.get("original_link")
+        if not is_none(original_link):
+            url_validate = URLValidator()
+            try:
+                url_validate(original_link)
+            except ValidationError:
+                original_link = None
+        return original_link
+
+    def clean_next_path(self):
+        next_path = self.cleaned_data.get("next_path")
+        if is_none(next_path):
+            return "my_account"
+        if next_path.startswith("/"):
+            return next_path
+
+        try:
+            reverse(next_path)
+        except NoReverseMatch:
+            next_path = "my_account"
+
+        return next_path

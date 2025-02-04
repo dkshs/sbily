@@ -1,15 +1,10 @@
 # ruff: noqa: BLE001
 from django.contrib import messages
-from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
-from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.shortcuts import render
-from django.urls import reverse
-from django.urls.exceptions import NoReverseMatch
 
 from sbily.links.models import ShortenedLink
 from sbily.users.models import Token
@@ -17,14 +12,14 @@ from sbily.users.models import User
 from sbily.users.tasks import send_password_changed_email
 from sbily.users.tasks import send_password_reset_email
 from sbily.users.tasks import send_welcome_email
-from sbily.utils.data import is_none
 from sbily.utils.data import validate
 from sbily.utils.data import validate_password
 from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
-from sbily.utils.urls import redirect_with_params
 from sbily.utils.urls import reverse_with_params
 
+from .forms import SignInForm
+from .forms import SignUpForm
 from .tasks import send_sign_in_with_email
 
 
@@ -32,43 +27,25 @@ def sign_up(request: HttpRequest):
     if request.user.is_authenticated:
         return redirect("home")
     if request.method != "POST":
-        return render(request, "sign_up.html")
+        form = SignUpForm()
+        return render(request, "sign_up.html", {"form": form})
 
-    first_name = request.POST.get("first_name", "")
-    last_name = request.POST.get("last_name", "")
-    username = request.POST.get("username", "")
-    email = request.POST.get("email", "")
-    password = request.POST.get("password", "")
+    form = SignUpForm(request.POST)
+    if form.is_valid():
+        try:
+            user = form.save()
+            messages.success(
+                request,
+                "User created successfully! Please verify your email",
+            )
+            login(request, user)
+            send_welcome_email.delay_on_commit(user.id)
+            return redirect("my_account")
+        except Exception as e:
+            messages.error(request, f"Error signing up: {e}")
+            return redirect("sign_up")
 
-    try:
-        if not validate([username, email]):
-            bad_request_error("Please fill in all fields")
-        password_id_valid = validate_password(password)
-        if not password_id_valid[0]:
-            bad_request_error(password_id_valid[1])
-        if User.objects.filter(username=username).exists():
-            bad_request_error("User already exists")
-
-        user = User.objects.create_user(
-            username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-        )
-        messages.success(
-            request,
-            "User created successfully! Please verify your email",
-        )
-        login(request, user)
-        send_welcome_email.delay_on_commit(user.id)
-        return redirect("home")
-    except BadRequestError as e:
-        messages.error(request, e.message)
-        return redirect("sign_up")
-    except Exception as e:
-        messages.error(request, f"Error creating user: {e}")
-        return redirect("sign_up")
+    return render(request, "sign_up.html", {"form": form})
 
 
 def sign_in(request: HttpRequest):
@@ -78,45 +55,31 @@ def sign_in(request: HttpRequest):
     if request.method != "POST":
         next_param = request.GET.get("next", "my_account")
         original_link = request.GET.get("original_link", None)
-        context = {"next": next_param, "original_link": original_link}
-        return render(request, "sign_in.html", context)
+        form = SignInForm(
+            initial={"next_path": next_param, "original_link": original_link},
+        )
+        return render(request, "sign_in.html", {"form": form})
 
-    username = request.POST.get("username", "")
-    password = request.POST.get("password", "")
-
-    next_param = request.POST.get("next", "my_account")
-    original_link = request.POST.get("original_link", None)
-    context = {"next": next_param, "original_link": original_link}
-
-    try:
-        if not validate([username, password]):
-            bad_request_error("Please fill in all fields")
-
-        user = authenticate(request, username=username, password=password)
-        if user is None:
-            bad_request_error("Invalid username or password")
-
-        login(request, user)
-        url_validate = URLValidator()
+    form = SignInForm(request.POST)
+    if form.is_valid():
         try:
-            if is_none(original_link):
-                next_path = reverse("my_account" if is_none(next_param) else next_param)
-                return redirect(next_path)
+            cleaned_data = form.cleaned_data
+            user = cleaned_data["user"]
+            login(request, user)
 
-            url_validate(original_link)
+            next_param = cleaned_data["next_path"]
+            original_link = cleaned_data["original_link"]
+            if not original_link:
+                return redirect(next_param)
+
             link = ShortenedLink.objects.create(original_link=original_link, user=user)
             messages.success(request, "Link created successfully")
             return redirect("link", shortened_link=link.shortened_link)
-        except ValidationError:
-            bad_request_error("Invalid original link.")
-        except NoReverseMatch:
-            bad_request_error("Invalid next parameter.")
-    except BadRequestError as e:
-        messages.error(request, e.message)
-        return redirect_with_params("sign_in", context)
-    except Exception as e:
-        messages.error(request, f"Error signing in: {e}")
-        return redirect_with_params("sign_in", context)
+        except Exception as e:
+            messages.error(request, f"Error signing in: {e}")
+            return redirect("sign_in")
+
+    return render(request, "sign_in.html", {"form": form})
 
 
 def sign_in_with_email(request: HttpRequest):
