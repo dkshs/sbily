@@ -4,34 +4,23 @@
 
 A Django project for a link shortener.
 
-## Technologies used
+## Technologies Used
 
 - [Python](https://www.python.org/)
 - [Django](https://www.djangoproject.com/)
+- [Rspack](https://rspack.dev/)
 - [TailwindCSS](https://tailwindcss.com/)
 - [Docker](https://www.docker.com/)
 
-## How to execute the project
+## How to Execute the Project
 
-To run the project you need to have [Python](https://www.python.org/), [Node](https://nodejs.org/) (To run TailwindCSS) and [Git](https://git-scm.com) installed on your machine or just use [Docker](#9-running-with-docker) together with [Git](https://git-scm.com).
+To run the project, you need to have [Python](https://www.python.org/) and [Node](https://nodejs.org/) (to run Rspack) installed on your machine, or you can use [Docker](#with-docker).
 
-### 1. Clone this repository
+### Without Docker
 
-```bash
-git clone https://github.com/dkshs/sbily.git
-```
+Once the repository is cloned and the global dependencies are installed, you can install the project's local dependencies.
 
-### 2. Access the project folder
-
-```bash
-cd sbily
-```
-
-### 3. Virtual environment
-
-Start a virtual environment and activate it. If you don't know how, this might help: <https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments>.
-
-### 4. Install dependencies
+#### 1. Install Local Dependencies
 
 Python dependencies:
 
@@ -45,36 +34,27 @@ Node dependencies:
 npm install
 ```
 
-### 5. Configure environment variables
+#### 2. Configure environment variables
 
-Copy the `.env.example` file in this directory to `.env` _(which will be ignored by Git)_:
+Copy the `.envs.example` directory to the `.envs` directory _(which will be ignored by Git)_:
 
 ```bash
-cp .env.example .env
+cp -r .envs.example .envs
 ```
 
-Then define each variable in `.env`:
-
-```env
-SECRET_KEY=Enter_A_Secret_Password_here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-BASE_URL=http://127.0.0.1:8000/
-```
-
-### 6. Make the migrations
+#### 3. Make the migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 7. Create a super user
+#### 4. Create a super user
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 8. Running application in development mode
+#### 5. Running application in development mode
 
 Django application:
 
@@ -82,32 +62,33 @@ Django application:
 python manage.py runserver
 ```
 
-Tailwind css:
+Rspack:
 
 ```bash
 npm run dev
 ```
 
-- The application will start locally - go to: <http://127.0.0.1:8000/>
+The Python command will start the Django application at <http://localhost:8000> and Node will start Rspack and a proxy server for automatic reloading at <http://localhost:3000>.
 
-- In the administrative area, enter the username and password created in [step 7](#7-create-a-super-user).
+- Open <http://localhost:3000> to see the application.
+- In the administrative area, enter the username and password created in [step 4](#4-create-a-super-user).
 
-### 9. Running with Docker
+### With Docker
 
-Having the [source code](#1-clone-this-repository) with the [variables defined](#5-configure-environment-variables), with [Docker](https://www.docker.com/) installed, let's up the container:
+Once the repository is cloned, the global dependencies are installed and [variables defined](#2-configure-environment-variables), let's start the container:
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.local.yml up
 ```
 
-_When started, the container starts the Django application!_
+When started, the container starts the Django application!
 
-> **_The steps below will only be necessary if you have not yet carried out the migrations and created a super user! If you have already done so, the application can be accessed at: <http://localhost:8080>_**
+> **_The steps below will only be necessary if you have not yet carried out the migrations and created a super user! If you have already done so, the application can be accessed at: <http://localhost:3000>_**
 
 You will need to enter the container via CLI:
 
 ```bash
-docker compose exec -it app zsh
+docker compose -f docker-compose.local.yml up exec django zsh
 ```
 
 > Now you are inside the container!
@@ -124,7 +105,9 @@ Creating a super user:
 python manage.py createsuperuser
 ```
 
-- The application is running on: <http://localhost:8080/>.
+The Python command will start the Django application at <http://localhost:8000> and Node will start Rspack and a proxy server for automatic loading at <http://localhost:3000>.
+
+- Open <http://localhost:3000> to see the application.
 
 ## License
 
