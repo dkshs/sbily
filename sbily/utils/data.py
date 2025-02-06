@@ -35,7 +35,7 @@ def is_none(value: Any) -> bool:
     return value is None
 
 
-def validate_password(password: str) -> tuple[bool, str]:
+def validate_password(password: str, user=None) -> tuple[bool, str]:
     """
     Validates a password by checking if it meets the following criteria:
     - At least 8 characters long
@@ -74,7 +74,7 @@ def validate_password(password: str) -> tuple[bool, str]:
         )
 
     try:
-        django_validate_password(password)
+        django_validate_password(password, user)
     except ValidationError as e:
         return False, str(e)
 

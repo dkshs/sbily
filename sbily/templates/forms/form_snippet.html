@@ -1,9 +1,9 @@
-{% if form.errors %}
+{% if form.non_field_errors %}
   <div class="flex flex-col gap-2 mb-6">
     {% for error in form.non_field_errors %}
       <div role="alert" class="alert-danger">
         <i data-lucide="circle-x"></i>
-        <h5 class="alert-title">Sign In Error!</h5>
+        <h5 class="alert-title">Error!</h5>
         <div class="alert-description">{{ error|escape }}</div>
       </div>
     {% endfor %}

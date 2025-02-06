@@ -28,13 +28,16 @@ class SignUpForm(BaseModelForm):
             raise forms.ValidationError(message, code="invalid_password")
         return password
 
+    def save(self, commit=True):  # noqa: FBT002
+        user = super().save(commit=False)
+        user.set_password(user.password)
+        if commit:
+            user.save()
+        return user
+
 
 class SignInForm(BaseForm):
-    username = forms.CharField(
-        max_length=150,
-        widget=forms.TextInput(attrs={"autofocus": True}),
-        required=True,
-    )
+    username = forms.CharField(max_length=150, required=True)
     password = forms.CharField(
         widget=forms.PasswordInput(),
         strip=False,
@@ -54,10 +57,12 @@ class SignInForm(BaseForm):
         cleaned_data = super().clean()
         username = cleaned_data.get("username")
         password = cleaned_data.get("password")
+
         user = authenticate(username=username, password=password)
         if user is None:
             msg = "Invalid credentials."
             raise forms.ValidationError(msg, code="invalid_credentials")
+
         cleaned_data["user"] = user
         return cleaned_data
 
@@ -84,3 +89,74 @@ class SignInForm(BaseForm):
             next_path = "my_account"
 
         return next_path
+
+
+class BaseEmailForm(BaseForm):
+    email = forms.EmailField(max_length=150, required=True)
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        try:
+            user = User.objects.get(email=email)
+            if not user.email_verified:
+                msg = "Please verify your email first."
+                raise forms.ValidationError(msg, code="email_not_verified")
+        except User.DoesNotExist as e:
+            msg = "User does not exist."
+            raise forms.ValidationError(msg, code="user_does_not_exist") from e
+
+        self.cleaned_data["user"] = user
+        return email
+
+
+class SignInWithEmailForm(BaseEmailForm):
+    def clean_email(self):
+        super().clean_email(self)
+
+        user = self.cleaned_data.get("user")
+        if not user.login_with_email:
+            msg = "Please enable login with email."
+            raise forms.ValidationError(msg, code="login_with_email_disabled")
+
+        return self.cleaned_data.get("email")
+
+
+class ForgotPasswordForm(BaseEmailForm):
+    pass
+
+
+class ResetPasswordForm(BaseModelForm):
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(),
+        strip=False,
+        required=True,
+    )
+
+    class Meta:
+        model = User
+        fields = ["password"]
+        widgets = {
+            "password": forms.PasswordInput(),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            msg = "Passwords do not match."
+            raise forms.ValidationError(msg, code="passwords_do_not_match")
+
+        is_valid, message = validate_password(password, self.instance)
+        if not is_valid:
+            raise forms.ValidationError(message, code="invalid_password")
+
+        return cleaned_data
+
+    def save(self, commit=True):  # noqa: FBT002
+        user = super().save(commit=False)
+        user.set_password(user.password)
+        if commit:
+            user.save()
+        return user

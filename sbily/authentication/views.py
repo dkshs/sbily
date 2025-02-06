@@ -8,17 +8,17 @@ from django.shortcuts import render
 
 from sbily.links.models import ShortenedLink
 from sbily.users.models import Token
-from sbily.users.models import User
 from sbily.users.tasks import send_password_changed_email
 from sbily.users.tasks import send_password_reset_email
 from sbily.users.tasks import send_welcome_email
-from sbily.utils.data import validate
-from sbily.utils.data import validate_password
 from sbily.utils.errors import BadRequestError
 from sbily.utils.errors import bad_request_error
 from sbily.utils.urls import reverse_with_params
 
+from .forms import ForgotPasswordForm
+from .forms import ResetPasswordForm
 from .forms import SignInForm
+from .forms import SignInWithEmailForm
 from .forms import SignUpForm
 from .tasks import send_sign_in_with_email
 
@@ -86,32 +86,26 @@ def sign_in_with_email(request: HttpRequest):
     if request.user.is_authenticated:
         return redirect("my_account")
     if request.method != "POST":
-        return render(request, "sign_in_with_email.html")
+        form = SignInWithEmailForm()
+        return render(request, "sign_in_with_email.html", {"form": form})
 
-    email = request.POST.get("email", "")
+    form = SignInWithEmailForm(request.POST)
 
-    try:
-        if not validate([email]):
-            bad_request_error("Please fill in all fields")
+    if form.is_valid():
+        try:
+            user = form.cleaned_data.get("user")
 
-        user = User.objects.get(email=email)
-        if not user.email_verified:
-            bad_request_error("Please verify your email first")
-        if not user.login_with_email:
-            bad_request_error("Please enable login with email")
+            send_sign_in_with_email.delay_on_commit(user.id)
+            messages.success(
+                request,
+                "Please check your email for a sign in link.",
+            )
+            return redirect("sign_in")
+        except Exception as e:
+            messages.error(request, f"Error sending sign in link: {e!s}")
+            return redirect("sign_in_with_email")
 
-        send_sign_in_with_email.delay_on_commit(user.id)
-        messages.success(request, "Please check your email for a sign in link")
-        return redirect("sign_in")
-    except User.DoesNotExist:
-        messages.error(request, "User does not exist")
-        return redirect("sign_in_with_email")
-    except BadRequestError as e:
-        messages.error(request, e.message)
-        return redirect("sign_in_with_email")
-    except Exception as e:
-        messages.error(request, f"Error sending sign in link: {e}")
-        return redirect("sign_in_with_email")
+    return render(request, "sign_in_with_email.html", {"form": form})
 
 
 def sign_in_with_email_verify(request: HttpRequest, token: str):
@@ -183,69 +177,50 @@ def verify_email(request: HttpRequest, token: str):
 
 def forgot_password(request: HttpRequest):
     if request.method != "POST":
-        return render(request, "forgot_password.html")
+        form = ForgotPasswordForm()
+        return render(request, "forgot_password.html", {"form": form})
 
-    email = request.POST.get("email", "")
+    form = ForgotPasswordForm(request.POST)
 
-    try:
-        if not validate([email]):
-            bad_request_error("Please fill in all fields")
+    if form.is_valid():
+        try:
+            user = form.cleaned_data.get("user")
+            send_password_reset_email.delay_on_commit(user.id)
+            messages.success(request, "Password reset email sent successfully")
+            return redirect("sign_in")
+        except Exception as e:
+            messages.error(request, f"Error sending password reset email: {e!s}")
+            return redirect("forgot_password")
 
-        user = User.objects.get(email=email)
-        send_password_reset_email.delay_on_commit(user.id)
-        messages.success(request, "Password reset email sent successfully")
-        return redirect("my_account" if user.is_authenticated else "sign_in")
-    except User.DoesNotExist:
-        messages.error(request, "User does not exist")
-        return redirect("forgot_password")
-    except BadRequestError as e:
-        messages.error(request, e.message)
-        return redirect("forgot_password")
-    except Exception as e:
-        messages.error(request, f"Error sending password reset email: {e}")
-        return redirect("forgot_password")
+    return render(request, "forgot_password.html", {"form": form})
 
 
 def reset_password(request: HttpRequest, token: str):
-    if request.method != "POST":
-        return render(request, "reset_password.html", {"token": token})
-
-    password = request.POST.get("password", "")
-    confirm_password = request.POST.get("confirm_password", "")
-
     try:
-        if not validate([password, confirm_password]):
-            bad_request_error("Please fill in all fields")
-        if password.strip() != confirm_password.strip():
-            bad_request_error("Passwords do not match")
-
-        password_id_valid = validate_password(password)
-        if not password_id_valid[0]:
-            bad_request_error(password_id_valid[1])
-
         obj_token = Token.objects.get(token=token, type=Token.TYPE_PASSWORD_RESET)
-
-        if obj_token.is_expired():
-            bad_request_error(
-                "Token has expired! Please request a new one",
-                "forgot_password",
-            )
-
-        user = obj_token.user
-        user.set_password(password)
-        user.save()
-        obj_token.delete()
-        send_password_changed_email.delay_on_commit(user.id)
-        messages.success(request, "Password reset successfully")
-        return redirect("sign_in")
     except Token.DoesNotExist:
         messages.error(request, "Invalid token")
         return redirect("forgot_password")
-    except BadRequestError as e:
-        messages.error(request, e.message)
-        redirect_url = e.redirect_url or "reset_password"
-        kwargs = {"token": token} if redirect_url == "reset_password" else {}
-        return redirect(redirect_url, **kwargs)
-    except Exception as e:
-        messages.error(request, f"Error resetting password: {e}")
+
+    if obj_token.is_expired():
+        messages.error(request, "Token has expired! Please request a new one")
         return redirect("forgot_password")
+
+    if request.method != "POST":
+        form = ResetPasswordForm(instance=obj_token.user)
+        return render(request, "reset_password.html", {"token": token, "form": form})
+
+    form = ResetPasswordForm(request.POST, instance=obj_token.user)
+
+    if form.is_valid():
+        try:
+            user = form.save()
+            obj_token.delete()
+            send_password_changed_email.delay_on_commit(user.id)
+            messages.success(request, "Password reset successfully")
+            return redirect("sign_in")
+        except Exception as e:
+            messages.error(request, f"Error resetting password: {e!s}")
+            return redirect("forgot_password")
+
+    return render(request, "reset_password.html", {"token": token, "form": form})
