@@ -11,7 +11,7 @@ markdown==3.7  # https://github.com/Python-Markdown/markdown
 
 # Django
 # ------------------------------------------------------------------------------
-django==5.0.11  # https://www.djangoproject.com/
+django==5.0.12  # https://www.djangoproject.com/
 django-cleanup==9.0.0  # https://github.com/un1t/django-cleanup
 dj-database-url==2.3.0  # https://github.com/jazzband/dj-database-url
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
