@@ -1,6 +1,7 @@
 # Sbily
 
 [![license mit](https://img.shields.io/badge/licence-MIT-blue)](/LICENSE)
+[![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/format.json)](https://github.com/astral-sh/ruff)
 
 A Django project for a link shortener.
 
