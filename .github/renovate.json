@@ -16,6 +16,14 @@
       "matchUpdateTypes": ["major", "minor"]
     },
     {
+      "semanticCommitScope": "frontend-deps",
+      "matchDatasources": ["npm", "node-version"]
+    },
+    {
+      "semanticCommitScope": "backend-deps",
+      "matchDatasources": ["pypi", "docker", "python-version"]
+    },
+    {
       "groupName": "all non-major backend dependencies",
       "semanticCommitScope": "backend-deps",
       "matchDatasources": ["pypi", "docker", "python-version"],
