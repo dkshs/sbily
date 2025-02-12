@@ -14,8 +14,8 @@
   },
   "devDependencies": {
     "@dkshs/eslint-config": "^4.0.1",
-    "@rspack/cli": "^1.2.2",
-    "@rspack/core": "^1.2.2",
+    "@rspack/cli": "^1.2.3",
+    "@rspack/core": "^1.2.3",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
