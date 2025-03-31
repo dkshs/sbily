@@ -109,7 +109,7 @@ STATIC_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/static/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = config(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    default="Sbily <noreply@sbily.dkshs.me>",
+    default="Sbily <noreply@sbily.ncontiero.com>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = config("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)

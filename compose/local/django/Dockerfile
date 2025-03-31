@@ -84,7 +84,7 @@ COPY ./compose/local/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 
-RUN wget https://gist.githubusercontent.com/dkshs/46cbda109e29d1772416d8e44f148a64/raw/50564b1a3e6c326289754a7128ca98c627e0b355/.p10k.zsh && \
+RUN wget https://gist.githubusercontent.com/ncontiero/46cbda109e29d1772416d8e44f148a64/raw/50564b1a3e6c326289754a7128ca98c627e0b355/.p10k.zsh && \
   mv ./.p10k.zsh /home/dev-user
 
 # copy application code to WORKDIR
